@@ -526,6 +526,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                             `http://127.0.0.1:3002/api/lecture/attendance/${session.id}`,
                             {
                               headers: {
+                                 method: "get", 
                                 Authorization: `Bearer ${token}`,
                                 "Content-Type": "application/json",
                               },
