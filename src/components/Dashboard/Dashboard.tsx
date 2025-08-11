@@ -7,7 +7,6 @@ import { useTrainerData } from '../../hooks/useTrainerData';
 
 export const Dashboard: React.FC = () => {
   const { dashboardStats, sessions, batches } = useTrainerData();
-  console.log(dashboardStats);
 
   return (
     <div className="space-y-6">

@@ -5,8 +5,6 @@ import { useTrainerData } from '../../hooks/useTrainerData';
 
 export const Attendance: React.FC = () => {
   const { sessions, batches, students, markAttendance } = useTrainerData();
-  console.log("sessions",sessions);
-  console.log("batches",batches);
 
   // Calculate stats
   const totalSessions = sessions.length;

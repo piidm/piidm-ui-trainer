@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   X,
   Users,
@@ -32,7 +32,8 @@ interface AttendanceModalProps {
 interface StudentAttendance {
   studentId: string;
   studentName: string;
-  status: "present" | "absent";
+  attendanceId: number;
+  status: "present" | "absent" | "no attendance";
 }
 
 export const AttendanceModal: React.FC<AttendanceModalProps> = ({
@@ -47,8 +48,11 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  console.log("session,", session);
-  console.log();
+  const [updatingIds, setUpdatingIds] = useState<Record<number, boolean>>({});
+
+  const token =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+
 
   // Mock students data - in real app, this would come from props or API
 
@@ -72,42 +76,89 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
   const [attendenceStudents, setattendenceStudents] = useState<any[]>([]);
 
+  // Utility function to fetch and update attendance data
+  const fetchAttendanceData = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:3002/api/lecture/attendance/" + session.id, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const resData = await res.json();
+      setattendenceStudents(resData);
+      // Update attendanceData state as well
+      const batchStudents = resData.filter(
+        (s: any) => Number(s.student.batch_id) === Number(session.batchId)
+      );
+      const initialData = batchStudents.map((s: any) => {
+        let status: "present" | "absent" | "no attendance";
+        if (s.attendance_status === 2) status = "present";
+        else if (s.attendance_status === 1) status = "absent";
+        else status = "no attendance";
+        return {
+          studentId: s.student.student_id,
+          studentName: s.student.name,
+          attendanceId: s.attendance_id,
+          status
+        };
+      });
+      setAttendanceData(initialData);
+    } catch (error) {
+      console.error("Error fetching attendance data:", error);
+    }
+  };
+
   useEffect(() => {
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+    if (isOpen) {
+      fetchAttendanceData();
+    }
+  }, [isOpen, session.id]);
 
-    fetch("http://127.0.0.1:3002/api/lecture/attendance/" + session.id, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((resData) => {
-        const mappedStudents = resData.map((item: any) => {
-          return item; // Assuming item is already in the correct format
-        });
-        setattendenceStudents(mappedStudents);
-      })
-      .catch(console.error);
-  }, []);
+  const batchStudents = useMemo(() => {
+    return attendenceStudents.filter(
+      (s) => Number(s.student.batch_id) === Number(session.batchId)
+    );
+  }, [attendenceStudents, session.batchId]);
 
+  useEffect(() => {
+    if (isOpen && batchStudents.length > 0) {
+      const initialData = batchStudents.map((s) => {
+        let status: "present" | "absent" | "no attendance";
+        if (s.attendance_status === 2) status = "present";
+        else if (s.attendance_status === 1) status = "absent";
+        else status = "no attendance";
+        return {
+          studentId: s.student.student_id,
+          studentName: s.student.name,
+          attendanceId: s.attendance_id,
+          status,
+        };
+      });
 
-  console.log("attendenceStudents", attendenceStudents);
-
-  const batchStudents = attendenceStudents.filter(
-    (s) => Number(s.student.batch_id) === Number(session.batchId)
-  );
-  console.log("batchStudents", batchStudents);
+      // Only update state if the data has changed
+      setAttendanceData((prevData) => {
+        const isSameData = JSON.stringify(prevData) === JSON.stringify(initialData);
+        return isSameData ? prevData : initialData;
+      });
+    }
+  }, [isOpen, batchStudents]);
 
   // Initialize attendance data
   useEffect(() => {
     if (isOpen && batchStudents.length > 0) {
-      const initialData = batchStudents.map((s) => ({
-        studentId: s.student.student_id,
-        studentName: s.student.name,
-        status: "present" as "present" | "absent", // Default to present
-      }));
+      const initialData = batchStudents.map((s) => {
+        let status: "present" | "absent" | "no attendance";
+        if (s.attendance_status === 2) status = "present";
+        else if (s.attendance_status === 1) status = "absent";
+        else status = "no attendance";
+        return {
+          studentId: s.student.student_id,
+          studentName: s.student.name,
+          attendanceId: s.attendance_id,
+          status
+        };
+      });
       setAttendanceData(initialData);
     }
   }, [isOpen, session.batchId, batchStudents]);
@@ -127,18 +178,91 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
   const attendancePercentage =
     totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
 
-  const handleStatusChange = (
+  const handleStatusChange = async (
     studentId: string,
-    status: "present" | "absent"
+    newStatus: "present" | "absent" | "no attendance"
   ) => {
     if (!canEdit) return;
 
+    const student = attendanceData.find((s) => s.studentId === studentId);
+    if (!student) return;
+    if (student.status === newStatus) return;
+
+    const attendanceId = student.attendanceId;
+    if (attendanceId == null) return;
+    if (updatingIds[attendanceId]) return;
+
+    const prevStatus = student.status;
+    const attendance_status =
+      newStatus === "present" ? 2 : newStatus === "absent" ? 1 : 0;
+
+    // Optimistic UI update
     setAttendanceData((prev) =>
-      prev.map((student) =>
-        student.studentId === studentId ? { ...student, status } : student
+      prev.map((s) =>
+        s.studentId === studentId ? { ...s, status: newStatus } : s
       )
     );
+    setUpdatingIds((prev) => ({ ...prev, [attendanceId]: true }));
+
+    try {
+      const res = await fetch(
+        "http://127.0.0.1:3002/api/lecture/attendance/update",
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            attendance_id: attendanceId,
+            attendance_status: attendance_status,
+          }),
+        }
+      );
+
+      const updatedRecord = await res.json();
+
+      if (!res.ok) throw new Error(updatedRecord?.message || "Update failed");
+
+      // ✅ Directly patch updated student in UI using API response
+      setAttendanceData((prev) =>
+        prev.map((s) =>
+          s.attendanceId === attendanceId
+            ? {
+              ...s,
+              status:
+                updatedRecord.attendance_status === 2
+                  ? "present"
+                  : updatedRecord.attendance_status === 1
+                    ? "absent"
+                    : "no attendance",
+            }
+            : s
+        )
+      );
+
+      // 🔄 Also re-fetch from backend after a short delay
+      setTimeout(fetchAttendanceData, 300);
+
+    } catch (err) {
+      console.error("Error updating status:", err);
+      // Rollback
+      setAttendanceData((prev) =>
+        prev.map((s) =>
+          s.studentId === studentId ? { ...s, status: prevStatus } : s
+        )
+      );
+    } finally {
+      setUpdatingIds((prev) => {
+        const copy = { ...prev };
+        delete copy[attendanceId];
+        return copy;
+      });
+    }
   };
+
+
+
 
   const handleMarkAllPresent = () => {
     if (!canEdit) return;
@@ -169,10 +293,12 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const attendanceToSave = attendanceData.map((student) => ({
-        studentId: student.studentId,
-        status: student.status,
-      }));
+      const attendanceToSave = attendanceData
+        .filter((student) => student.status === "present" || student.status === "absent")
+        .map((student) => ({
+          studentId: student.studentId,
+          status: student.status as "present" | "absent",
+        }));
 
       onSaveAttendance(session.id, attendanceToSave);
 
@@ -187,6 +313,9 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
       setIsSaving(false);
     }
   };
+
+
+
 
   if (!isOpen) return null;
 
@@ -312,6 +441,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
           </div>
         </div>
 
+
         {/* Student List */}
         <div className="flex-1 overflow-y-auto p-6">
           {filteredStudents.length === 0 ? (
@@ -325,8 +455,10 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                 <div
                   key={student.studentId}
                   className={`flex items-center justify-between p-4 border rounded-lg transition-all ${student.status === "present"
-                      ? "bg-green-50 border-green-200"
-                      : "bg-red-50 border-red-200"
+                    ? "bg-green-50 border-green-200"
+                    : student.status === "absent"
+                      ? "bg-red-50 border-red-200"
+                      : "bg-gray-50 border-gray-200"
                     }`}
                 >
                   <div className="flex items-center gap-4">
@@ -347,18 +479,91 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
                   <div className="flex items-center gap-4">
                     {/* Status Display */}
-                    <select className={`form-control form-control-user slt select_attendance_statuspx-3 py-1 rounded-full text-sm font-medium ${student.status === "present"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                        }`}>
-                      <option value="0" selected={true}>No Attendance</option>
+                    <select
+                      value={
+                        student.status === "present"
+                          ? "2"
+                          : student.status === "absent"
+                            ? "1"
+                            : "0"
+                      }
+                      onChange={async (e) => {
+                        const newStatus =
+                          e.target.value === "2"
+                            ? "present"
+                            : e.target.value === "1"
+                              ? "absent"
+                              : "no attendance";
+
+                        // Optimistic update
+                        setAttendanceData((prev) =>
+                          prev.map((s) =>
+                            s.studentId === student.studentId ? { ...s, status: newStatus } : s
+                          )
+                        );
+
+                        // Build API payload in required array format
+                        const payload = [
+                          {
+                            attendance_id: student.attendanceId,
+                            attendance_status:
+                              newStatus === "present" ? 2 : newStatus === "absent" ? 1 : 0,
+                          },
+                        ];
+
+                        try {
+                          await fetch("http://127.0.0.1:3002/api/lecture/attendance/update", {
+                            method: "PUT", // If backend uses PUT/PATCH, change here
+                            headers: {
+                              Authorization: `Bearer ${token}`,
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(payload),
+                          });
+
+                          // Refresh list from GET API
+                          const res = await fetch(
+                            `http://127.0.0.1:3002/api/lecture/attendance/${session.id}`,
+                            {
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                              },
+                            }
+                          );
+                          const updatedList = await res.json();
+                          setattendenceStudents(updatedList);
+
+                          const batchStudents = updatedList.filter(
+                            (s: any) => Number(s.student.batch_id) === Number(session.batchId)
+                          );
+                          const mappedData = batchStudents.map((s: any) => ({
+                            studentId: s.student.student_id,
+                            studentName: s.student.name,
+                            attendanceId: s.attendance_id,
+                            status:
+                              s.attendance_status === 2
+                                ? "present"
+                                : s.attendance_status === 1
+                                  ? "absent"
+                                  : "no attendance",
+                          }));
+                          setAttendanceData(mappedData);
+                        } catch (err) {
+                        }
+                      }}
+                    >
+                      <option value="0">No Attendance</option>
                       <option value="1">Absent</option>
                       <option value="2">Present</option>
                     </select>
-                    <div
 
-                    >
-                      {student.status === "present" ? "Present" : "Absent"}
+                    <div>
+                      {student.status === "present"
+                        ? "Present"
+                        : student.status === "absent"
+                          ? "Absent"
+                          : "No Attendance"}
                     </div>
 
                     {/* Toggle Buttons */}
@@ -369,8 +574,8 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                             handleStatusChange(student.studentId, "present")
                           }
                           className={`p-2 rounded-lg transition-all ${student.status === "present"
-                              ? "bg-green-600 text-white"
-                              : "bg-gray-200 text-gray-600 hover:bg-green-100"
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-200 text-gray-600 hover:bg-green-100"
                             }`}
                           title="Mark Present"
                         >
@@ -381,8 +586,8 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                             handleStatusChange(student.studentId, "absent")
                           }
                           className={`p-2 rounded-lg transition-all ${student.status === "absent"
-                              ? "bg-red-600 text-white"
-                              : "bg-gray-200 text-gray-600 hover:bg-red-100"
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-200 text-gray-600 hover:bg-red-100"
                             }`}
                           title="Mark Absent"
                         >

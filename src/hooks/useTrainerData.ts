@@ -698,11 +698,9 @@ const mockExams: Exam[] = [
 
 export const useTrainerData = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
-  console.log("batches", batches);
   const [students, setStudents] = useState<Student[]>([]);
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  console.log("assignments",assignments);
   const [exams, setExams] = useState<Exam[]>(mockExams);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [reviewActions, setReviewActions] = useState<ReviewAction[]>([]);
