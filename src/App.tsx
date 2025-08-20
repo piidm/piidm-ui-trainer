@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Sidebar } from './components/Layout/Sidebar';
 import { Header } from './components/Layout/Header';
-import { Dashboard } from './components/Dashboard/Dashboard';
 import { LiveSessions } from './components/Sessions/LiveSessions';
 import { Assignments } from './components/Assignments/Assignments';
 import { Attendance } from './components/Attendance/Attendance';
+import Dashboard from './components/Dashboard/Dashboard';
 
 function App() {
   const [activeView, setActiveView] = useState('dashboard');

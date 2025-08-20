@@ -706,47 +706,8 @@ export const useTrainerData = () => {
   const [reviewActions, setReviewActions] = useState<ReviewAction[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const dashboardStats: DashboardStats = {
-    totalBatches: batches && batches[0] ? batches[0].length : 0,
-    totalStudents: students && students[0] && typeof students[0].length === "number" ? students[0].length : 0,
-    todaySessions: sessions.filter((s) => {
-      const today = new Date().toISOString().split("T")[0];
-      return s.date === today;
-    }).length,
-   pendingGrading: (assignments || []).reduce((acc, assignment) => {
-  const submissions = Array.isArray(assignment.submissions) ? assignment.submissions : [];
-  const submittedCount = submissions.filter(s => s.status === "submitted").length;
-  return acc + submittedCount;
-}, 0),
 
-    averageAttendance: 89,
-    upcomingExams: exams.filter((e) => new Date(e.scheduledDate) > new Date())
-      .length,
-  };
-
-  const assignmentStats: AssignmentStats = {
-    totalAssignments: assignments.length,
-    activeAssignments: assignments.filter((a) => a.status === "active").length,
-    expiredAssignments: assignments.filter((a) => a.status === "expired")
-      .length,
-    totalSubmissions: assignments.reduce(
-      (acc, assignment) => acc + assignment.submissions.length,
-      0
-    ),
-    pendingReviews: assignments.reduce(
-      (acc, assignment) =>
-        acc +
-        assignment.submissions.filter((s) => s.status === "submitted").length,
-      0
-    ),
-    reviewedSubmissions: assignments.reduce(
-      (acc, assignment) =>
-        acc +
-        assignment.submissions.filter((s) => s.status === "reviewed").length,
-      0
-    ),
-  };
-
+  //Convert 12-hour time format to 24-hour format
   function convertTo24Hour(time12h: any) {
     const [time, modifier] = time12h.match(/(\d{1,2}:\d{2})(AM|PM)/i).slice(1);
     let [hours, minutes] = time.split(":").map(Number);
@@ -764,185 +725,260 @@ export const useTrainerData = () => {
   }
 
   // Sessions API
+  const fetchSessions = async (signal?: AbortSignal) => {
 
-  useEffect(() => {
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+    try {
+      const token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
-    fetch(
-      "http://127.0.0.1:3002/api/lecture/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=topic&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=batch_date&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=batch_time.name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=course_mode.name&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=zoom_link&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=total_combined_batches&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753018158729",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      const res = await fetch(
+        "http://127.0.0.1:3002/api/lecture/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=topic&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=batch_date&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=batch_time.name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=course_mode.name&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=zoom_link&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=total_combined_batches&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753018158729",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          signal
+        }
+      )
+      if (!res.ok) throw new Error("Failed to fetch sessions");
+      const resData = await res.json();
+
+      const sessions: LiveSession[] = (resData.data || []).map((item: any) => {
+        let batchIds: string[] = [];
+        try {
+          batchIds = JSON.parse(item.json_batch_ids);
+        } catch {
+          batchIds = [];
+        }
+
+        const firstBatchId = batchIds[0]?.toString() || "0";
+        const today = new Date().toISOString().split("T")[0];
+
+        const batchDate = item.batch_date?.split("T")[0] || today;
+        const status = batchDate < today ? "completed" : "scheduled";
+
+        let startTime12hr = item.batch_time?.name.split(" - ")[0];
+        let startTime24hr = startTime12hr
+          ? convertTo24Hour(startTime12hr)
+          : "00:00";
+
+        return {
+          id: item.lecture_id.toString(),
+          topic: item.topic || item.title || "Untitled",
+          batchId: firstBatchId,
+          date: item.batch_date,
+          time: startTime24hr || "00:00",
+          mode: item.course_mode?.name.toLowerCase() || "unknown",
+          lectureLink: item.zoom_link || "",
+          status,
+        } as LiveSession;
+      });
+
+      setSessions(sessions);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Fetch sessions aborted");
+      } else {
+        console.error(err);
       }
-    )
-      .then((res) => res.json())
-      .then((resData) => {
-        const sessions = resData.data.map((item: any) => {
-          let batchIds: string[] = [];
-          try {
-            batchIds = JSON.parse(item.json_batch_ids);
-          } catch {
-            batchIds = [];
-          }
-
-          const firstBatchId = batchIds[0]?.toString() || "0";
-          const today = new Date().toISOString().split("T")[0];
-          const status = item.batch_date < today ? "completed" : "scheduled";
-          let startTime12hr = item.batch_time?.name.split(" - ")[0];
-          let startTime24hr = convertTo24Hour(startTime12hr);
-
-          return {
-            id: item.lecture_id.toString(),
-            topic: item.topic || "Untitled",
-            batchId: firstBatchId,
-            date: item.batch_date,
-            time: startTime24hr || "00:00",
-            mode: item.course_mode?.name.toLowerCase() || "unknown",
-            lectureLink: item.zoom_link || "",
-            status,
-          } as LiveSession;
-        });
-
-        setSessions(sessions);
-      })
-      .catch(console.error);
-  }, []);
+    }
+  };
 
   // Batches API
+  const fetchBatches = async (signal?: AbortSignal) => {
+    setLoading(true);
+    try {
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
-  useEffect(() => {
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+      const res = await fetch(
+        "http://127.0.0.1:3002/api/batch/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=batch_num&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=batch_date&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=batch_time.name&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=branch.name&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=course.name&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=course_mode.name&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=trainer.name&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=false&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=total_seats&columns%5B9%5D%5Bname%5D=&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=false&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          signal
+        }
+      );
 
-    fetch(
-      "http://127.0.0.1:3002/api/batch/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=batch_num&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=batch_date&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=batch_time.name&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=branch.name&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=course.name&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=course_mode.name&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=trainer.name&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=false&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=total_seats&columns%5B9%5D%5Bname%5D=&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=false&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      const resData = await res.json();
+      const totalBatches = resData.basic_stats.total_batches;
+      const batchList: Batch[] = resData.data.map((item: any) => ({
+        id: item.batch_id?.toString() || "0",
+        length: totalBatches,
+        name: item.name || "Unnamed Batch",
+        timing: item.batch_time?.name || "00:00 - 00:00",
+        students: [],
+        startDate: item.start_date || "1970-01-01",
+        endDate: item.end_date || "1970-01-01",
+        courseTitle: item.course?.name || "Unknown Course",
+        totalStudents: item.total_seats || 0,
+        isActive: item.is_active !== false,
+
+      }));
+
+      setBatches(batchList);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Fetch Batches aborted");
+      } else {
+        console.error(err);
       }
-    )
-      .then((res) => res.json())
-      .then((resData) => {
-        const totalBatches = resData.basic_stats.total_batches;
-        const batchList: Batch[] = resData.data.map((item: any) => {
-          return {
-            id: item.batch_id?.toString() || "0",
-            length: totalBatches,
-            name: item.name || "Unnamed Batch",
-            timing: item.batch_time?.name || "00:00 - 00:00",
-            students: [],
-            startDate: item.start_date || "1970-01-01",
-            endDate: item.end_date || "1970-01-01",
-            courseTitle: item.course?.name || "Unknown Course",
-            totalStudents: item.total_seats || 0,
-            isActive: item.is_active !== false,
-          };
-        });
-
-        setBatches(batchList);
-      })
-      .catch(console.error);
-  }, []);
+    }
+  };
 
   // Students API
-  useEffect(() => {
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+  const fetchStudents = async (signal?: AbortSignal) => {
+    setLoading(true);
+    try {
+      const token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
-    fetch(
-      "http://127.0.0.1:3002/api/students_report/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=student.name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=attendance&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=exam&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=score&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=certificate&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=mock_interview&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=placement_status&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      const res = await fetch(
+        "http://127.0.0.1:3002/api/students_report/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=student.name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=attendance&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=exam&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=score&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=certificate&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=mock_interview&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=placement_status&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          signal
+        }
+      )
+
+      const resData = await res.json();
+
+      const totalStudents = resData.basic_stats.total_student_reports;
+      const studentList: Student[] = resData.data.map((item: any) => ({
+        id: item.student_id?.toString(),
+        length: totalStudents,
+        name: item.student?.name || "Unnamed",
+        email: item.student?.email || "N/A",
+        enrollmentDate: item.enrollmentDate || "2024-01-01",
+        overallAttendance: item.attendance || 0,
+        overallGrade: item.score || 0,
+        assignment: item.assignment || "N/A",
+        exam: item.exam || "N/A",
+        certificate: item.certificate || "Pending",
+        mockInterview: item.mock_interview || "Not Attempted",
+        placementStatus: item.placement_status || "Not Placed",
+        batchId: item.batch_id?.toString() || "0",
+      }));
+
+      setStudents(studentList); // assuming setStudents is a state setter
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Fetch Students aborted");
+      } else {
+        console.error(err);
       }
-    )
-      .then((res) => res.json())
-      .then((resData) => {
-        const totalStudents = resData.basic_stats.total_student_reports;
-        const students = resData.data.map((item: any) => ({
-          id: item.student_id?.toString(),
-          length: totalStudents,
-          name: item.student?.name || "Unnamed",
-          email: item.student?.email || "N/A",
-          enrollmentDate: item.enrollmentDate || "2024-01-01",
-          overallAttendance: item.attendance || 0,
-          overallGrade: item.score || 0,
-          assignment: item.assignment || "N/A",
-          exam: item.exam || "N/A",
-          certificate: item.certificate || "Pending",
-          mockInterview: item.mock_interview || "Not Attempted",
-          placementStatus: item.placement_status || "Not Placed",
-          batchId: item.batch_id?.toString() || "0",
-        }));
-
-        setStudents(students); // assuming setStudents is a state setter
-      })
-      .catch(console.error);
-  }, []);
+    }
+  };
 
   // assignment API
+  const fetchAssignments = async (signal?: AbortSignal) => {
+    setLoading(true);
+    try {
+      const token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
-  useEffect(() => {
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+      const res = await fetch(
+        "http://127.0.0.1:3002/api/assignment/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=title&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=description&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment_date&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=total_combined_batches&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=total_marks&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753177048507",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          signal,
+        }
+      );
+      const resData = await res.json();
 
-    fetch(
-      "http://127.0.0.1:3002/api/assignment/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=title&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=description&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment_date&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=total_combined_batches&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=total_marks&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753177048507",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      const assignments: Assignment[] = resData.data.map((item: any) => ({
+        id: item.assignment_id.toString(),
+        title: item.title || "Untitled Assignment",
+        details: item.description || "<p>No details provided.</p>",
+        batchId: item.batch_id?.toString() || "0",
+        dueDate: item.assignment_date || new Date().toISOString(),
+        totalMarks: item.total_marks || 100,
+        status: item.is_active == 1 ? "active" : "submitted",
+        createdAt: item.created_at || new Date().toISOString(),
+        updatedAt: item.updated_at || new Date().toISOString(),
+        createdBy: item.created_by || "System",
+        submissions: (item.submissions || []).map((submission: any) => ({
+          id: submission.id.toString(),
+          studentId: submission.student_id.toString(),
+          studentName: submission.student_name || "Unnamed",
+          assignmentId: item.assignment_id.toString(),
+          submittedAt: submission.submitted_at || "",
+          status: submission.status || "submitted",
+          marks: submission.marks,
+          feedback: submission.feedback,
+          reviewedAt: submission.reviewed_at,
+          reviewedBy: submission.reviewed_by,
+          files: (submission.files || []).map((file: any) => ({
+            id: file.id.toString(),
+            name: file.name,
+            url: file.url || "#",
+            type: file.type || "application/octet-stream",
+            size: file.size || 0,
+          }))
+        }))
+      }))
+
+      setAssignments(assignments);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Fetch assignments aborted");
+      } else {
+        console.error(err);
       }
-    )
-      .then((res) => res.json())
-      .then((resData) => {
-        const assignments: Assignment[] = resData.data.map((item: any) => {
-          return {
-           id: item.assignment_id.toString(),
-          title: item.title || "Untitled Assignment",
-          details: item.description || "<p>No details provided.</p>",
-          batchId: item.batch_id?.toString() || "0",
-          dueDate: item.assignment_date || new Date().toISOString(),
-          totalMarks: item.total_marks || 100,
-          status: item.is_active == 1? "active" : "submitted",
-          createdAt: item.created_at || new Date().toISOString(),
-          updatedAt: item.updated_at || new Date().toISOString(),
-          createdBy: item.created_by || "System",
-          submissions: (item.submissions || []).map((submission: any) => ({
-            id: submission.id.toString(),
-            studentId: submission.student_id.toString(),
-            studentName: submission.student_name || "Unnamed",
-            assignmentId: item.assignment_id.toString(),
-            submittedAt: submission.submitted_at || "",
-            status: submission.status || "submitted",
-            marks: submission.marks,
-            feedback: submission.feedback,
-            reviewedAt: submission.reviewed_at,
-            reviewedBy: submission.reviewed_by,
-            files: (submission.files || []).map((file: any) => ({
-              id: file.id.toString(),
-              name: file.name,
-              url: file.url || "#",
-              type: file.type || "application/octet-stream",
-              size: file.size || 0,
-            })),
-          })),
-          
-          };
-        });
+    }
+  };
 
-        setAssignments(assignments);
-      })
-      .catch(console.error);
-  }, []);
+  const dashboardStats: DashboardStats = {
+    totalBatches: batches && batches[0] ? batches[0].length : 0,
+    totalStudents: students && students[0] && typeof students[0].length === "number" ? students[0].length : 0,
+    todaySessions: sessions.filter((s) => {
+      const today = new Date().toISOString().split("T")[0];
+      return s.date === today;
+    }).length,
+    pendingGrading: (assignments || []).reduce((acc, assignment) => {
+      const submissions = Array.isArray(assignment.submissions) ? assignment.submissions : [];
+      const submittedCount = submissions.filter(s => s.status === "submitted").length;
+      return acc + submittedCount;
+    }, 0),
+
+    averageAttendance: 89,
+    upcomingExams: exams.filter((e) => new Date(e.scheduledDate) > new Date())
+      .length,
+  };
+``
+  const assignmentStats: AssignmentStats = {
+    totalAssignments: assignments.length,
+    activeAssignments: assignments.filter((a) => a.status === "active").length,
+    expiredAssignments: assignments.filter((a) => a.status === "expired")
+      .length,
+    totalSubmissions: assignments.reduce(
+      (acc, assignment) => acc + assignment.submissions.length,
+      0
+    ),
+    pendingReviews: assignments.reduce( 
+      (acc, assignment) =>
+        acc +
+        assignment.submissions.filter((s) => s.status === "submitted").length,
+      0
+    ),
+    reviewedSubmissions: assignments.reduce(
+      (acc, assignment) =>
+        acc +
+        assignment.submissions.filter((s) => s.status === "reviewed").length,
+      0
+    ),
+  };
 
   const addSession = (session: Omit<LiveSession, "id">) => {
     const newSession: LiveSession = {
@@ -1005,9 +1041,9 @@ export const useTrainerData = () => {
       prev.map((assignment) =>
         assignment.id === assignmentId
           ? {
-              ...assignment,
-              submissions: [...assignment.submissions, newSubmission],
-            }
+            ...assignment,
+            submissions: [...assignment.submissions, newSubmission],
+          }
           : assignment
       )
     );
@@ -1022,13 +1058,13 @@ export const useTrainerData = () => {
       prev.map((assignment) =>
         assignment.id === assignmentId
           ? {
-              ...assignment,
-              submissions: assignment.submissions.map((submission) =>
-                submission.id === submissionId
-                  ? { ...submission, ...updates }
-                  : submission
-              ),
-            }
+            ...assignment,
+            submissions: assignment.submissions.map((submission) =>
+              submission.id === submissionId
+                ? { ...submission, ...updates }
+                : submission
+            ),
+          }
           : assignment
       )
     );
@@ -1137,6 +1173,10 @@ export const useTrainerData = () => {
     dashboardStats,
     assignmentStats,
     loading,
+    fetchSessions,
+    fetchBatches,
+    fetchStudents,
+    fetchAssignments,
     addSession,
     updateSession,
     addAssignment,

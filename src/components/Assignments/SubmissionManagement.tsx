@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { X, Download, FileText, Calendar, User, Star, MessageSquare, Check, XCircle, AlertCircle, CheckSquare, Square } from 'lucide-react';
 import { Assignment, AssignmentSubmission, Batch, Student } from '../../types';
+import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface SubmissionManagementProps {
   isOpen: boolean;
@@ -22,15 +23,18 @@ interface SubmissionManagementProps {
   }>) => void;
 }
 
-export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({ 
-  isOpen, 
-  onClose, 
-  assignment, 
+export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
+  isOpen,
+  onClose,
+  assignment,
   batch,
   students,
   onReviewSubmission,
   onBulkReview
 }) => {
+
+
+
   const [filter, setFilter] = useState<'all' | 'pending' | 'submitted' | 'reviewed'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmission | null>(null);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
@@ -49,7 +53,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
     const batchStudents = students.filter(student => student.batchId === assignment.batchId);
-    
+
     return batchStudents.map(student => {
       const submission = assignment.submissions.find(sub => sub.studentId === student.id);
       return {
@@ -72,7 +76,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     const pending = studentSubmissions.filter(item => item.status === 'pending').length;
     const submitted = studentSubmissions.filter(item => item.status === 'submitted').length;
     const reviewed = studentSubmissions.filter(item => item.status === 'reviewed').length;
-    
+
     return { total, pending, submitted, reviewed };
   }, [studentSubmissions]);
 
@@ -111,7 +115,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     const submittedSubmissions = filteredSubmissions
       .filter(item => item.submission && item.status === 'submitted')
       .map(item => item.submission!.id);
-    
+
     if (bulkSelectedIds.size === submittedSubmissions.length) {
       setBulkSelectedIds(new Set());
     } else {
@@ -127,7 +131,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
       feedback: bulkReviewData.feedback
     }));
-    
+
     onBulkReview(reviews);
     setBulkSelectedIds(new Set());
     setShowBulkReview(false);
@@ -185,7 +189,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           <div className="p-6 border-b bg-gray-50">
             <div className="grid grid-cols-4 gap-4 mb-4">
               <div className="bg-white rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-2xl font-bold text-
+                ]gray-900">{stats.total}</div>
                 <div className="text-sm text-gray-600">Total Students</div>
               </div>
               <div className="bg-white rounded-lg p-4 text-center">
@@ -214,11 +219,10 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                   <button
                     key={key}
                     onClick={() => setFilter(key as any)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      filter === key
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filter === key
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-600 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     {label} ({count})
                   </button>
@@ -272,7 +276,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                   {filteredSubmissions.map((item) => {
                     const StatusIcon = getStatusIcon(item.status);
                     const isSelected = item.submission && bulkSelectedIds.has(item.submission.id);
-                    
+
                     return (
                       <div key={item.student.id} className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${isSelected ? 'ring-2 ring-blue-500' : 'border-gray-200'}`}>
                         <div className="flex items-start justify-between">
@@ -303,7 +307,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   {item.status}
                                 </span>
                               </div>
-                              
+
                               {item.submission ? (
                                 <>
                                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
@@ -366,7 +370,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                               <>
                                 <button
                                   onClick={() => {
-                                    item.submission.files.forEach(file => {
+                                    item.submission?.files.forEach(file => {
                                       window.open(file.url, '_blank');
                                     });
                                   }}
@@ -375,7 +379,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   <Download className="w-4 h-4" />
                                   Download
                                 </button>
-                                
+
                                 {item.status === 'submitted' && (
                                   <button
                                     onClick={() => handleAssessment(item.submission!)}
@@ -384,7 +388,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                     Review
                                   </button>
                                 )}
-                                
+
                                 {item.status === 'reviewed' && (
                                   <button
                                     onClick={() => handleAssessment(item.submission!)}
@@ -473,8 +477,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                   onChange={(e) => setAssessmentData(prev => ({ ...prev, feedback: e.target.value }))}
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={assessmentData.action === 'accept' 
-                    ? "Provide constructive feedback..." 
+                  placeholder={assessmentData.action === 'accept'
+                    ? "Provide constructive feedback..."
                     : "Explain why this submission is being rejected..."
                   }
                 />
@@ -491,11 +495,10 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                 </button>
                 <button
                   onClick={submitAssessment}
-                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
-                    assessmentData.action === 'accept'
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${assessmentData.action === 'accept'
                       ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                    }`}
                 >
                   {assessmentData.action === 'accept' ? 'Submit Review' : 'Reject Submission'}
                 </button>
@@ -567,8 +570,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                     onChange={(e) => setBulkReviewData(prev => ({ ...prev, feedback: e.target.value }))}
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={bulkReviewData.action === 'accept' 
-                      ? "Feedback for all selected submissions..." 
+                    placeholder={bulkReviewData.action === 'accept'
+                      ? "Feedback for all selected submissions..."
                       : "Reason for rejecting all selected submissions..."
                     }
                   />
@@ -584,11 +587,10 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                 </button>
                 <button
                   onClick={submitBulkReview}
-                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
-                    bulkReviewData.action === 'accept'
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${bulkReviewData.action === 'accept'
                       ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                    }`}
                 >
                   Apply to {bulkSelectedIds.size} Submissions
                 </button>

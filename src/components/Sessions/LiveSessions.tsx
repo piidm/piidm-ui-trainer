@@ -4,10 +4,19 @@ import { SessionForm } from './SessionForm';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
 export const LiveSessions: React.FC = () => {
-  const { sessions, batches, addSession } = useTrainerData();
-  console.log("sessions", sessions);
-  console.log("batches", batches);
-  console.log("addSession", addSession);
+  const { sessions, batches, fetchBatches, fetchSessions, addSession } = useTrainerData();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      fetchSessions();
+      fetchBatches();
+    }, 1000);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    }
+  }, []);  
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -74,7 +83,7 @@ export const LiveSessions: React.FC = () => {
     }
   };
 
- 
+
 
   const SessionTable = ({ sessions, title }: { sessions: any[], title: string }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -84,7 +93,7 @@ export const LiveSessions: React.FC = () => {
           {title} ({sessions.length})
         </h3>
       </div>
-      
+
       {sessions.length === 0 ? (
         <div className="p-8 text-center">
           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -126,7 +135,7 @@ export const LiveSessions: React.FC = () => {
                 const ModeIcon = getModeIcon(session.mode);
                 const isToday = session.date === new Date().toISOString().split('T')[0];
                 const isUpcoming = new Date(`${session.date}T${session.time}`) > new Date();
-                
+
                 return (
                   <tr key={session.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -195,11 +204,10 @@ export const LiveSessions: React.FC = () => {
                         {isUpcoming && session.lectureLink && (
                           <button
                             onClick={() => handleJoinSession(session)}
-                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                              isToday
-                                ? 'bg-green-600 text-white hover:bg-green-700'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                            }`}
+                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${isToday
+                              ? 'bg-green-600 text-white hover:bg-green-700'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
                           >
                             <Video className="w-3 h-3" />
                             {isToday ? 'Join Now' : 'Join'}
@@ -246,7 +254,7 @@ export const LiveSessions: React.FC = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-gray-400" />
           <select
@@ -278,7 +286,7 @@ export const LiveSessions: React.FC = () => {
           <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No sessions found</h3>
           <p className="text-gray-600 mb-4">
-            {searchTerm || filterStatus !== 'all' 
+            {searchTerm || filterStatus !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Schedule your first training session to get started'
             }

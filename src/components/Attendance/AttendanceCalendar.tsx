@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Clock, Users, MapPin, User } from 'lucide-react';
 import { LiveSession, Batch } from '../../types';
 import { AttendanceModal } from './AttendanceModal';
+import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AttendanceCalendarProps {
   sessions: LiveSession[];
@@ -17,6 +18,7 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
   batches,
   onMarkAttendance
 }) => {
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedSession, setSelectedSession] = useState<LiveSession | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,17 +36,17 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
   // Generate calendar days
   const calendarDays = useMemo(() => {
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day);
     }
-    
+
     return days;
   }, [currentYear, currentMonth, daysInMonth, startingDayOfWeek]);
 
@@ -120,7 +122,7 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
             Today
           </button>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <button
             onClick={goToPreviousMonth}
@@ -128,11 +130,11 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
           >
             <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
-          
+
           <h3 className="text-xl font-semibold text-gray-800">
             {monthNames[currentMonth]} {currentYear}
           </h3>
-          
+
           <button
             onClick={goToNextMonth}
             className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all"
@@ -161,30 +163,28 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
             }
 
             const sessionsForDay = getSessionsForDate(day);
-            const isToday = today.getDate() === day && 
-                           today.getMonth() === currentMonth && 
-                           today.getFullYear() === currentYear;
+            const isToday = today.getDate() === day &&
+              today.getMonth() === currentMonth &&
+              today.getFullYear() === currentYear;
             const isPast = new Date(currentYear, currentMonth, day) < today;
             const canMark = canMarkAttendance(day);
 
             return (
               <div
                 key={day}
-                className={`h-32 border rounded-lg p-2 transition-all ${
-                  isToday 
-                    ? 'bg-blue-50 border-blue-200' 
-                    : isPast 
-                      ? 'bg-gray-50 border-gray-200' 
+                className={`h-32 border rounded-lg p-2 transition-all ${isToday
+                    ? 'bg-blue-50 border-blue-200'
+                    : isPast
+                      ? 'bg-gray-50 border-gray-200'
                       : 'bg-white border-gray-200 hover:bg-gray-50'
-                }`}
+                  }`}
               >
-                <div className={`text-sm font-medium mb-2 ${
-                  isToday ? 'text-blue-600' : isPast ? 'text-gray-500' : 'text-gray-900'
-                }`}>
+                <div className={`text-sm font-medium mb-2 ${isToday ? 'text-blue-600' : isPast ? 'text-gray-500' : 'text-gray-900'
+                  }`}>
                   {day}
                   {isToday && <span className="ml-1 text-xs">(Today)</span>}
                 </div>
-                
+
                 <div className="space-y-1 overflow-y-auto max-h-20">
                   {sessionsForDay.map(session => {
                     const batch = getBatch(session.batchId);
@@ -193,11 +193,10 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
                         key={session.id}
                         onClick={() => handleSessionClick(session, day)}
                         disabled={!canMark}
-                        className={`w-full text-left p-1.5 rounded text-xs transition-all ${
-                          canMark
+                        className={`w-full text-left p-1.5 rounded text-xs transition-all ${canMark
                             ? 'bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer'
                             : 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                        }`}
+                          }`}
                         title={canMark ? 'Click to mark attendance' : 'Cannot mark attendance for future dates'}
                       >
                         <div className="font-medium truncate">{session.topic}</div>

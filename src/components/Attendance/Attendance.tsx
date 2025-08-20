@@ -1,28 +1,44 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AttendanceCalendar } from './AttendanceCalendar';
 import { AttendanceStats } from './AttendanceStats';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
 export const Attendance: React.FC = () => {
-  const { sessions, batches, students, markAttendance } = useTrainerData();
+  const { sessions, batches, students,fetchStudents, fetchBatches, fetchSessions,markAttendance } = useTrainerData();
+
+    useEffect(() => {
+      const controller = new AbortController();
+
+      const timeout = setTimeout(() => {
+        fetchSessions(controller.signal);
+        fetchBatches(controller.signal);
+        fetchStudents(controller.signal)
+      }, 1000);
+      return () => {
+              console.log("🛑 Dashboard unmounted → clearing timeout");
+
+        clearTimeout(timeout);
+        controller.abort();
+      }
+    }, []);
 
   // Calculate stats
   const totalSessions = sessions.length;
   const totalStudents = students.length;
   const averageAttendance = 89; // Mock data
   const todayAttendance = 92; // Mock data
-  
+
   // Get this week's sessions
   const today = new Date();
   const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
   const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
-  
-  const thisWeekSessions = sessions.filter(session => { 
+
+  const thisWeekSessions = sessions.filter(session => {
     const sessionDate = new Date(session.date);
     return sessionDate >= startOfWeek && sessionDate <= endOfWeek;
   }).length;
 
-  // Get pending sessions (future sessions)
+  // Get pending sessions (f\uture sessions)
   const pendingSessions = sessions.filter(session => {
     const sessionDate = new Date(session.date);
     return sessionDate > new Date();
@@ -46,6 +62,7 @@ export const Attendance: React.FC = () => {
     }));
 
     markAttendance(attendanceRecords);
+    console.log(`Attendance marked for session ${sessionId}`, attendanceRecords);
   };
 
   return (

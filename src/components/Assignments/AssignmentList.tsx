@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
+import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -17,6 +18,21 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   onEditAssignment,
   onDeleteAssignment
 }) => {
+
+  const { fetchAssignments, fetchBatches } = useTrainerData();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      fetchAssignments(controller.signal);
+      fetchBatches(controller.signal);
+    }, 1000);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    }
+  }, []); // only fetch sessions when LiveSessions is active
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBatch, setFilterBatch] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -73,6 +89,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const totalPages = Math.ceil(filteredAndSortedAssignments.length / itemsPerPage);
 
   const getBatchName = (batchId: string) => {
+    console.log("batchId", batchId);
     return batches.find(batch => batch.id === batchId)?.name || 'Unknown Batch';
   };
 
@@ -116,7 +133,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           {/* Filters */}
           <div className="flex gap-3">
             <div className="flex items-center gap-2">
@@ -132,7 +149,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                 ))}
               </select>
             </div>
-            
+
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -153,7 +170,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
           <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No assignments found</h3>
           <p className="text-gray-600">
-            {searchTerm || filterBatch !== 'all' || filterStatus !== 'all' 
+            {searchTerm || filterBatch !== 'all' || filterStatus !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Create your first assignment to get started'
             }
@@ -165,7 +182,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('title')}
                   >
@@ -181,7 +198,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Batch Name
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('dueDate')}
                   >
@@ -213,7 +230,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                   const submittedCount = assignment.submissions.length;
                   const pendingCount = assignment.submissions.filter(s => s.status === 'submitted').length;
                   const reviewedCount = assignment.submissions.filter(s => s.status === 'reviewed').length;
-                  
+
                   return (
                     <tr key={assignment.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
@@ -237,9 +254,9 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
                           {new Date(assignment.dueDate).toLocaleDateString()}
                           <div className="text-xs text-gray-500 ml-2">
-                            {new Date(assignment.dueDate).toLocaleTimeString([], { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
+                            {new Date(assignment.dueDate).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
                             })}
                           </div>
                         </div>
@@ -275,7 +292,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                             <Eye className="w-3 h-3" />
                             View ({submittedCount})
                           </button>
-                          
+
                           <div className="relative">
                             <button
                               onClick={() => setActiveDropdown(activeDropdown === assignment.id ? null : assignment.id)}
@@ -283,7 +300,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                             >
                               <MoreVertical className="w-4 h-4" />
                             </button>
-                            
+
                             {activeDropdown === assignment.id && (
                               <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                                 <button
@@ -324,7 +341,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
               <div className="text-sm text-gray-700">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredAndSortedAssignments.length)} of {filteredAndSortedAssignments.length} assignments
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -333,23 +350,22 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 text-sm rounded ${
-                        currentPage === page
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
+                      className={`px-3 py-1 text-sm rounded ${currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                        }`}
                     >
                       {page}
                     </button>
                   ))}
                 </div>
-                
+
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}

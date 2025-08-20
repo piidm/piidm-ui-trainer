@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { AssignmentForm } from './AssignmentForm';
 import { AssignmentList } from './AssignmentList';
@@ -8,22 +8,40 @@ import { useTrainerData } from '../../hooks/useTrainerData';
 import { Assignment } from '../../types';
 
 export const Assignments: React.FC = () => {
-  const { 
-    assignments, 
-    batches, 
+  const {
+    assignments,
+    batches,
     students,
+    fetchAssignments,
+    fetchBatches,
+    fetchStudents,
     assignmentStats,
-    addAssignment, 
+    addAssignment,
     updateAssignment,
     deleteAssignment,
     reviewSubmission,
     bulkReviewSubmissions
   } = useTrainerData();
-  
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      fetchAssignments(controller.signal);
+      fetchBatches(controller.signal);
+      fetchStudents(controller.signal);
+    }, 1000);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    }
+  }, []);
+
 
   const handleCreateAssignment = (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
     addAssignment(assignmentData);

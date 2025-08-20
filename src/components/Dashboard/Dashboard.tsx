@@ -1,12 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Users, Video, FileText, GraduationCap, Calendar, TrendingUp } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 import { TodaySchedule } from './TodaySchedule';
 import { RecentActivity } from './RecentActivity';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
-export const Dashboard: React.FC = () => {
-  const { dashboardStats, sessions, batches } = useTrainerData();
+export default function Dashboard() {
+  const { dashboardStats, sessions, batches, fetchSessions, fetchBatches } = useTrainerData();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      fetchSessions(controller.signal);
+      fetchBatches(controller.signal);
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);  // ❌ prevents requests from ever starting
+      controller.abort();
+
+    };
+  }, []);
+
 
   return (
     <div className="space-y-6">

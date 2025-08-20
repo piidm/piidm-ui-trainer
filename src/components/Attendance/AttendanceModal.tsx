@@ -103,6 +103,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
           status
         };
       });
+      console.log("Initial attendance data:", initialData);
       setAttendanceData(initialData);
     } catch (error) {
       console.error("Error fetching attendance data:", error);
@@ -242,7 +243,6 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
       );
 
       // 🔄 Also re-fetch from backend after a short delay
-      setTimeout(fetchAttendanceData, 300);
 
     } catch (err) {
       console.error("Error updating status:", err);

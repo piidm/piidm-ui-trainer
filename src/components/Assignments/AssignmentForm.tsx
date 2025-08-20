@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calendar, Users, FileText, AlertCircle, Save } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentFormProps {
   isOpen: boolean;
@@ -13,13 +14,13 @@ interface AssignmentFormProps {
   isEditing?: boolean;
 }
 
-export const AssignmentForm: React.FC<AssignmentFormProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  batches, 
+export const AssignmentForm: React.FC<AssignmentFormProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  batches,
   assignment,
-  isEditing = false 
+  isEditing = false
 }) => {
   const [formData, setFormData] = useState({
     title: assignment?.title || '',
@@ -29,11 +30,24 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     totalMarks: assignment?.totalMarks || 100
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { fetchBatches } = useTrainerData();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      fetchBatches(controller.signal);
+    }, 1000);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    }
+  }, []);
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.title.trim()) {
       newErrors.title = 'Assignment title is required';
@@ -69,26 +83,26 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const assignmentData = {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString()
       };
-      
+
       onSubmit(assignmentData);
       onClose();
       resetForm();
-      
+
       // Show success notification (you can implement a toast system)
       console.log('Assignment saved successfully!');
     } catch (error) {
@@ -122,7 +136,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     toolbar: [
       [{ 'header': [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['blockquote', 'code-block'],
       ['link'],
       ['clean']
@@ -165,9 +179,8 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               maxLength={100}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.title ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.title ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                }`}
               placeholder="Enter a descriptive title for the assignment"
             />
             {errors.title && (
@@ -215,9 +228,8 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 <select
                   value={formData.batchId}
                   onChange={(e) => setFormData(prev => ({ ...prev, batchId: e.target.value }))}
-                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.batchId ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                 >
                   <option value="">Choose target batch</option>
                   {activeBatches.map(batch => (
@@ -248,9 +260,8 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
                   max="1000"
                   value={formData.totalMarks}
                   onChange={(e) => setFormData(prev => ({ ...prev, totalMarks: parseInt(e.target.value) || 0 }))}
-                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.totalMarks ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.totalMarks ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                   placeholder="Enter maximum points"
                 />
               </div>
@@ -273,9 +284,8 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
                   type="datetime-local"
                   value={formData.dueDate}
                   onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.dueDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.dueDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                 />
               </div>
               {errors.dueDate && (
