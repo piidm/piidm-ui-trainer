@@ -30,18 +30,6 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     totalMarks: assignment?.totalMarks || 100
   });
 
-  const { fetchBatches } = useTrainerData();
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      fetchBatches(controller.signal);
-    }, 1000);
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    }
-  }, []);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

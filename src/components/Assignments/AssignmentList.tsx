@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
-import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -19,19 +18,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   onDeleteAssignment
 }) => {
 
-  const { fetchAssignments, fetchBatches } = useTrainerData();
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      fetchAssignments(controller.signal);
-      fetchBatches(controller.signal);
-    }, 1000);
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    }
-  }, []); // only fetch sessions when LiveSessions is active
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBatch, setFilterBatch] = useState('all');

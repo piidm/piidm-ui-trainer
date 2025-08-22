@@ -35,7 +35,7 @@ export const Assignments: React.FC = () => {
       fetchAssignments(controller.signal);
       fetchBatches(controller.signal);
       fetchStudents(controller.signal);
-    }, 1000);
+    }, 500);
     return () => {
       clearTimeout(timeout);
       controller.abort();

@@ -13,7 +13,7 @@ export const Attendance: React.FC = () => {
         fetchSessions(controller.signal);
         fetchBatches(controller.signal);
         fetchStudents(controller.signal)
-      }, 1000);
+      }, 500);
       return () => {
               console.log("🛑 Dashboard unmounted → clearing timeout");
 
