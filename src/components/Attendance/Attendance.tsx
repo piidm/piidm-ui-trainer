@@ -15,8 +15,6 @@ export const Attendance: React.FC = () => {
         fetchStudents(controller.signal)
       }, 500);
       return () => {
-              console.log("🛑 Dashboard unmounted → clearing timeout");
-
         clearTimeout(timeout);
         controller.abort();
       }
@@ -24,7 +22,7 @@ export const Attendance: React.FC = () => {
 
   // Calculate stats
   const totalSessions = sessions.length;
-  const totalStudents = students.length;
+  const totalStudents = students[0]?.length;
   const averageAttendance = 89; // Mock data
   const todayAttendance = 92; // Mock data
 

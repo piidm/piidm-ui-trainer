@@ -103,7 +103,6 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
           status
         };
       });
-      console.log("Initial attendance data:", initialData);
       setAttendanceData(initialData);
     } catch (error) {
       console.error("Error fetching attendance data:", error);

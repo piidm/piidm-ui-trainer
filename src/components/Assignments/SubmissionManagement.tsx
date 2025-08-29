@@ -71,6 +71,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     });
   }, [studentSubmissions, filter]);
 
+
+
   const stats = useMemo(() => {
     const total = studentSubmissions.length;
     const pending = studentSubmissions.filter(item => item.status === 'pending').length;
@@ -79,6 +81,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
     return { total, pending, submitted, reviewed };
   }, [studentSubmissions]);
+
 
   const handleAssessment = (submission: AssignmentSubmission) => {
     setSelectedSubmission(submission);

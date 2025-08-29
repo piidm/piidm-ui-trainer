@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
 
+
 interface AssignmentListProps {
   assignments: Assignment[];
   batches: Batch[];
@@ -17,7 +18,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   onEditAssignment,
   onDeleteAssignment
 }) => {
-
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBatch, setFilterBatch] = useState('all');
@@ -75,7 +75,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const totalPages = Math.ceil(filteredAndSortedAssignments.length / itemsPerPage);
 
   const getBatchName = (batchId: string) => {
-    console.log("batchId", batchId);
+
     return batches.find(batch => batch.id === batchId)?.name || 'Unknown Batch';
   };
 
@@ -102,6 +102,18 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       onDeleteAssignment(assignment.id);
     }
   };
+
+  const getAssignmentStatus = (assignment: Assignment) => {
+    const now = new Date();
+    const due = new Date(assignment.dueDate);
+
+    if (assignment.status === "draft") {
+      return "draft";
+    }
+
+    return due >= now ? "active" : "expired";
+  };
+
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -212,6 +224,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
+
                 {paginatedAssignments.map((assignment) => {
                   const submittedCount = assignment.submissions.length;
                   const pendingCount = assignment.submissions.filter(s => s.status === 'submitted').length;
@@ -232,7 +245,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-900">
                           <Users className="w-4 h-4 mr-2 text-gray-400" />
-                          {getBatchName(assignment.batchId)}
+                          {getBatchName(assignment.batchId.split(",")[0].substring(1, assignment.batchId.indexOf(']')))}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -254,9 +267,15 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(assignment.status)}`}>
-                          {assignment.status}
-                        </span>
+                        {(() => {
+                          const status = getAssignmentStatus(assignment);
+                          return (
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>
+                              {status}
+                            </span>
+                          );
+                        })()}
+
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">

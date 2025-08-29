@@ -171,7 +171,7 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
 
             return (
               <div
-                key={day}
+                 key={`${currentYear}-${currentMonth}-${day}`}
                 className={`h-32 border rounded-lg p-2 transition-all ${isToday
                     ? 'bg-blue-50 border-blue-200'
                     : isPast
