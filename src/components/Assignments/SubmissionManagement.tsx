@@ -34,6 +34,9 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 }) => {
 
 
+console.log("batches",batch);
+
+console.log("assignment",assignment);
 
   const [filter, setFilter] = useState<'all' | 'pending' | 'submitted' | 'reviewed'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmission | null>(null);
@@ -223,8 +226,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                     key={key}
                     onClick={() => setFilter(key as any)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filter === key
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-100'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     {label} ({count})
@@ -499,8 +502,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                 <button
                   onClick={submitAssessment}
                   className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${assessmentData.action === 'accept'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
                     }`}
                 >
                   {assessmentData.action === 'accept' ? 'Submit Review' : 'Reject Submission'}
@@ -591,8 +594,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                 <button
                   onClick={submitBulkReview}
                   className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${bulkReviewData.action === 'accept'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
                     }`}
                 >
                   Apply to {bulkSelectedIds.size} Submissions

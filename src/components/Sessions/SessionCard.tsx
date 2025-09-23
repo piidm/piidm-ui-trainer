@@ -15,7 +15,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({ session, batch, onJoin
     switch (status) {
       case 'scheduled': return 'bg-blue-100 text-blue-800';
       case 'ongoing': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
+      case 'completed': return 'bg-gray-100 text-gray-800';slice
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -48,7 +48,6 @@ export const SessionCard: React.FC<SessionCardProps> = ({ session, batch, onJoin
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">{session.topic}</h3>
-            
             <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />

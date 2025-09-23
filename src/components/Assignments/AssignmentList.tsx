@@ -30,6 +30,13 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
   const filteredAndSortedAssignments = useMemo(() => {
     let filtered = assignments.filter(assignment => {
+      const now = new Date();
+      const due = new Date(assignment.dueDate);
+      let status = assignment.status;
+      if (status !== "draft") {
+        status = due >= now ? "active" : "expired";
+      }
+
       const matchesSearch = assignment.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesBatch = filterBatch === 'all' || assignment.batchId === filterBatch;
       const matchesStatus = filterStatus === 'all' || assignment.status === filterStatus;

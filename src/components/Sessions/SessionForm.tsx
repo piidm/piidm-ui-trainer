@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calendar, Clock, Users, Monitor, Link2 } from 'lucide-react';
 import { LiveSession, Batch } from '../../types';
+import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface SessionFormProps {
   isOpen: boolean;
@@ -10,6 +11,9 @@ interface SessionFormProps {
 }
 
 export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSubmit, batches }) => {
+
+
+
   const [formData, setFormData] = useState({
     topic: '',
     batchId: '',
@@ -19,10 +23,10 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
     lectureLink: ''
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.topic.trim()) {
       newErrors.topic = 'Topic is required';
@@ -61,19 +65,20 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit =  async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     const session: Omit<LiveSession, 'id'> = {
       ...formData,
       status: 'scheduled'
     };
-    
-    onSubmit(session);
+
+    await onSubmit(session);
+
     onClose();
     setFormData({
       topic: '',
@@ -125,9 +130,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
               type="text"
               value={formData.topic}
               onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.topic ? 'border-red-300' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.topic ? 'border-red-300' : 'border-gray-300'
+                }`}
               placeholder="Enter session topic"
             />
             {errors.topic && <p className="text-red-500 text-sm mt-1">{errors.topic}</p>}
@@ -145,9 +149,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.date ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.date ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
               </div>
               {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
@@ -163,9 +166,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                   type="time"
                   value={formData.time}
                   onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.time ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.time ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
               </div>
               {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time}</p>}
@@ -182,9 +184,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
               <select
                 value={formData.batchId}
                 onChange={(e) => setFormData(prev => ({ ...prev, batchId: e.target.value }))}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.batchId ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300' : 'border-gray-300'
+                  }`}
               >
                 <option value="">Choose a batch</option>
                 {batches.map(batch => (
@@ -212,11 +213,10 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                   key={value}
                   type="button"
                   onClick={() => handleModeChange(value as 'classroom' | 'online' | 'hybrid')}
-                  className={`flex flex-col items-center gap-2 p-3 border-2 rounded-lg transition-all ${
-                    formData.mode === value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
-                  }`}
+                  className={`flex flex-col items-center gap-2 p-3 border-2 rounded-lg transition-all ${formData.mode === value
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{label}</span>
@@ -240,13 +240,12 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                 value={formData.lectureLink}
                 onChange={(e) => setFormData(prev => ({ ...prev, lectureLink: e.target.value }))}
                 disabled={formData.mode === 'classroom'}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formData.mode === 'classroom' 
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                    : errors.lectureLink 
-                      ? 'border-red-300' 
-                      : 'border-gray-300'
-                }`}
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.mode === 'classroom'
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : errors.lectureLink
+                    ? 'border-red-300'
+                    : 'border-gray-300'
+                  }`}
                 placeholder={formData.mode === 'classroom' ? 'Not required for classroom sessions' : 'https://meet.google.com/your-meeting-link'}
               />
             </div>

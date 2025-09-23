@@ -706,6 +706,7 @@ export const useTrainerData = () => {
   const [reviewActions, setReviewActions] = useState<ReviewAction[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
   //Convert 12-hour time format to 24-hour format
   function convertTo24Hour(time12h: any) {
@@ -728,8 +729,6 @@ export const useTrainerData = () => {
   const fetchSessions = async (signal?: AbortSignal) => {
 
     try {
-      const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
       const res = await fetch(
         "http://127.0.0.1:3002/api/lecture/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=topic&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=batch_date&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=batch_time.name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=course_mode.name&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=zoom_link&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=total_combined_batches&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753018158729",
@@ -790,7 +789,6 @@ export const useTrainerData = () => {
   const fetchBatches = async (signal?: AbortSignal) => {
     setLoading(true);
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
       const res = await fetch(
         "http://127.0.0.1:3002/api/batch/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=batch_num&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=batch_date&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=batch_time.name&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=branch.name&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=course.name&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=course_mode.name&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=trainer.name&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=false&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=total_seats&columns%5B9%5D%5Bname%5D=&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=false&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
@@ -830,12 +828,12 @@ export const useTrainerData = () => {
     }
   };
 
+
+
   // Students API
   const fetchStudents = async (signal?: AbortSignal) => {
     setLoading(true);
     try {
-      const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
       const res = await fetch(
         "http://127.0.0.1:3002/api/students_report/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=student.name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=attendance&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=exam&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=score&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=certificate&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=mock_interview&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=placement_status&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
@@ -881,8 +879,6 @@ export const useTrainerData = () => {
   const fetchAssignments = async (signal?: AbortSignal) => {
     setLoading(true);
     try {
-      const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
       const res = await fetch(
         "http://127.0.0.1:3002/api/assignment/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=title&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=description&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment_date&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=total_combined_batches&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=total_marks&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753177048507",
@@ -929,6 +925,7 @@ export const useTrainerData = () => {
       }))
 
       setAssignments(assignments);
+      console.log("Fetched assignments:", assignments);
     } catch (err: any) {
       if (err.name === "AbortError") {
         console.log("Fetch assignments aborted");
@@ -955,7 +952,7 @@ export const useTrainerData = () => {
     upcomingExams: exams.filter((e) => new Date(e.scheduledDate) > new Date())
       .length,
   };
-``
+  ``
   const assignmentStats: AssignmentStats = {
     totalAssignments: assignments.length,
     activeAssignments: assignments.filter((a) => a.status === "active").length,
@@ -965,7 +962,7 @@ export const useTrainerData = () => {
       (acc, assignment) => acc + assignment.submissions.length,
       0
     ),
-    pendingReviews: assignments.reduce( 
+    pendingReviews: assignments.reduce(
       (acc, assignment) =>
         acc +
         assignment.submissions.filter((s) => s.status === "submitted").length,
@@ -979,12 +976,74 @@ export const useTrainerData = () => {
     ),
   };
 
-  const addSession = (session: Omit<LiveSession, "id">) => {
-    const newSession: LiveSession = {
-      ...session,
-      id: Date.now().toString(),
-    };
-    setSessions((prev) => [...prev, newSession]);
+  const modeMap: Record<string, number> = {
+    classroom: 1,
+    online: 2,
+    hybrid: 3,
+  };
+
+  // Example: Map time string to ID (customize as needed)
+  const timeMap: Record<string, number> = {
+    "09:00": 1,
+    "11:45": 2,
+    "15:00": 3,
+    // Add more mappings as needed
+  };
+
+  function formatDate(dateStr: string) {
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  const addSession = async (session: Omit<LiveSession, "id">) => {
+    try {
+      const batch_time_id = timeMap[session.time] || 1; // fallback to 1
+      const course_mode_id = modeMap[session.mode] || 1;
+      const batch_date = formatDate(session.date);
+
+      // Example trainer name, replace with dynamic value if available
+      const trainerName = "Vijay Gehlot";
+      const name = `${trainerName}-${batch_date}-${session.batchId}[${batch_time_id}]`;
+
+      const payload = [{
+        name,
+        topic: session.topic,
+        course_mode_id,
+        json_batch_ids: `[${session.batchId}]`,
+        batch_time_id,
+        trainer_id: "1",
+        user_id: "2058",
+        zoom_link: session.lectureLink,
+        batch_date,
+      }];
+
+
+
+      const res = await fetch("http://127.0.0.1:3002/api/lecture/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to create session");
+
+      const resData = await res.json();
+
+      const newSession: LiveSession = {
+        ...session,
+        id: resData.lecture_id?.toString() || Date.now().toString(),
+      };
+
+      setSessions((prev) => [...prev, newSession]);
+
+      return resData;
+    } catch (err) {
+      console.error("Error adding session:", err);
+      throw err;
+    }
   };
 
   const updateSession = (id: string, updates: Partial<LiveSession>) => {
@@ -995,22 +1054,62 @@ export const useTrainerData = () => {
     );
   };
 
-  const addAssignment = (
+  const addAssignment = async (
     assignment: Omit<
       Assignment,
       "id" | "createdAt" | "updatedAt" | "createdBy" | "submissions" | "status"
     >
   ) => {
-    const newAssignment: Assignment = {
-      ...assignment,
-      id: Date.now().toString(),
-      submissions: [],
-      status: "active",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: "Dr. Sarah Johnson",
-    };
-    setAssignments((prev) => [...prev, newAssignment]);
+
+    try {
+      function formatAssignmentDate(isoDate: string) {
+        const date = new Date(isoDate);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      }
+
+      const payload = [{
+        title: assignment.title,
+        description: assignment.details,
+        json_batch_ids: `[${assignment.batchId}]`,
+        trainer_id: "1",
+        user_id: "2058",
+        assignment_date: formatAssignmentDate(assignment.dueDate),
+        total_marks: assignment.totalMarks?.toString() || "100"
+      }];
+
+
+      const res = await fetch("http://127.0.0.1:3002/api/assignment/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to create assignment");
+
+      const resData = await res.json();
+
+      const newAssignment: Assignment = {
+        ...assignment,
+        id: Date.now().toString(),
+        submissions: [],
+        status: "active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: "Dr. Sarah Johnson",
+      };
+
+      setAssignments((prev) => [...prev, newAssignment]);
+      return resData;
+    } catch (err) {
+      console.error("Error adding session:", err);
+      throw err;
+    }
   };
 
   const updateAssignment = (id: string, updates: Partial<Assignment>) => {
@@ -1156,9 +1255,9 @@ export const useTrainerData = () => {
     };
 
     updateAssignmentStatuses();
-    const interval = setInterval(updateAssignmentStatuses, 60000); // Check every minute
+    const interval = updateAssignmentStatuses; // Check every minute
 
-    return () => clearInterval(interval);
+    return () =>interval
   }, []);
 
   return {

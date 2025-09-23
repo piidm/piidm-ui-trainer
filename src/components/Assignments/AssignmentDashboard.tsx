@@ -1,7 +1,6 @@
 import React from 'react';
 import { FileText, Users, Clock, CheckCircle, AlertTriangle, TrendingUp } from 'lucide-react';
 import { AssignmentStats } from '../../types';
-import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentDashboardProps {
   stats: AssignmentStats;

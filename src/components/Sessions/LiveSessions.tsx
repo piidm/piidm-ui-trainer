@@ -2,9 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Search, Filter, Calendar, Clock, Users, Monitor, Link2, Video, Edit } from 'lucide-react';
 import { SessionForm } from './SessionForm';
 import { useTrainerData } from '../../hooks/useTrainerData';
+import { LiveSession } from '../../types';
+
 
 export const LiveSessions: React.FC = () => {
   const { sessions, batches, fetchBatches, fetchSessions, addSession } = useTrainerData();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5; // Number of sessions per page
+
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -16,7 +22,7 @@ export const LiveSessions: React.FC = () => {
       clearTimeout(timeout);
       controller.abort();
     }
-  }, []);  
+  }, []);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,9 +52,29 @@ export const LiveSessions: React.FC = () => {
     return dateTimeB.getTime() - dateTimeA.getTime();
   });
 
+  const paginatedUpcoming = upcomingSessions.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalUpcomingPages = Math.ceil(upcomingSessions.length / pageSize);
+
+  const paginatedPast = pastSessions.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPastPages = Math.ceil(pastSessions.length / pageSize);
+
+
+
+
   const handleJoinSession = (session: any) => {
     if (session.lectureLink) {
       window.open(session.lectureLink, '_blank');
+    }
+  };
+
+  const handleScheduleSession = async (session: Omit<LiveSession, 'id'>) => {
+    try {
+      await addSession(session);
+      await fetchSessions();
+      setIsFormOpen(false);
+    } catch (err) {
+      alert("Failed to schedule session. Please check your network or backend.");
+      setIsFormOpen(false); // Optionally close the form even on error
     }
   };
 
@@ -76,6 +102,7 @@ export const LiveSessions: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+
       case 'scheduled': return 'bg-blue-100 text-blue-800';
       case 'ongoing': return 'bg-green-100 text-green-800';
       case 'completed': return 'bg-gray-100 text-gray-800';
@@ -85,7 +112,7 @@ export const LiveSessions: React.FC = () => {
 
 
 
-  const SessionTable = ({ sessions, title }: { sessions: any[], title: string }) => (
+  const SessionTable = ({ sessions, title, currentPage, totalPages, onPageChange }: { sessions: any[], title: string, currentPage: number, totalPages: number, onPageChange: (page: number) => void }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="px-6 py-4 border-b bg-gray-50">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -220,6 +247,24 @@ export const LiveSessions: React.FC = () => {
               })}
             </tbody>
           </table>
+
+          <div className="flex justify-end items-center p-4">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 mr-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span className="mx-2 text-sm">{currentPage} / {totalPages}</span>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 ml-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -272,12 +317,16 @@ export const LiveSessions: React.FC = () => {
 
       {/* Upcoming Sessions Table */}
       {upcomingSessions.length > 0 && (
-        <SessionTable sessions={upcomingSessions} title="Upcoming Sessions" />
+        <SessionTable sessions={upcomingSessions} title="Upcoming Sessions" currentPage={currentPage}
+          totalPages={totalUpcomingPages}
+          onPageChange={setCurrentPage} />
       )}
 
       {/* Past Sessions Table */}
       {pastSessions.length > 0 && (
-        <SessionTable sessions={pastSessions} title="Past Sessions" />
+        <SessionTable sessions={pastSessions} title="Past Sessions" currentPage={currentPage}
+          totalPages={totalUpcomingPages}
+          onPageChange={setCurrentPage} />
       )}
 
       {/* Empty State */}
@@ -306,7 +355,7 @@ export const LiveSessions: React.FC = () => {
       <SessionForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        onSubmit={addSession}
+        onSubmit={handleScheduleSession}
         batches={batches}
       />
     </div>

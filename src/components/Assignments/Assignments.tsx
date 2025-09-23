@@ -31,13 +31,12 @@ export const Assignments: React.FC = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => {
+    
       fetchAssignments(controller.signal);
       fetchBatches(controller.signal);
       fetchStudents(controller.signal);
-    }, 500);
+ 
     return () => {
-      clearTimeout(timeout);
       controller.abort();
     }
   }, []);
@@ -45,8 +44,9 @@ export const Assignments: React.FC = () => {
 
   const handleCreateAssignment = (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
     addAssignment(assignmentData);
+    fetchAssignments();
+    setIsFormOpen(false);
     // Show success notification
-    console.log('Assignment created successfully!');
   };
 
   const handleEditAssignment = (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
@@ -123,6 +123,7 @@ export const Assignments: React.FC = () => {
         isEditing={!!editingAssignment}
       />
 
+    
       {selectedAssignment && (
         <SubmissionManagement
           isOpen={isSubmissionModalOpen}

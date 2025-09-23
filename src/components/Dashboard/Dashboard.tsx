@@ -6,7 +6,7 @@ import { RecentActivity } from './RecentActivity';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
 export default function Dashboard() {
-  const { dashboardStats, sessions, batches,fetchStudents, fetchSessions, fetchBatches } = useTrainerData();
+  const { dashboardStats, sessions, batches, fetchStudents, fetchSessions, fetchBatches } = useTrainerData();
 
   useEffect(() => {
     const controller = new AbortController();
