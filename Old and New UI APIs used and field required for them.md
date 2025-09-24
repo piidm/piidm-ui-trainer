@@ -1,4 +1,4 @@
-##### **# Trainer Panel (PIIDM) Management API Documentation**
+#### **# Trainer Panel (PIIDM) Management API Documentation**
 
 
 
@@ -24,7 +24,7 @@ Authorization: Bearer YOUR\_API\_KEY
 
 
 
-###### **## Endpoints**
+#### **## Endpoints**
 
 
 
@@ -36,7 +36,7 @@ Retrieves a list of all the Lectures.
 
 
 
-* &nbsp;Method: GET
+* Method: GET
 * Path: /lecture/select-paginate-advanced?columns%5B0%5D%5Bdata%5D=topic\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=batch\_date\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=batch\_time.name\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=course\_mode.name\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=zoom\_link\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B5%5D%5Bdata%5D=total\_combined\_batches\&columns%5B5%5D%5Bname%5D=\&columns%5B5%5D%5Bsearchable%5D=true\&columns%5B5%5D%5Borderable%5D=false\&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B6%5D%5Bdata%5D=\&columns%5B6%5D%5Bname%5D=\&columns%5B6%5D%5Bsearchable%5D=true\&columns%5B6%5D%5Borderable%5D=false\&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false\&\_=1753018158729\&draw=2\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=
 * Headers:
 
@@ -44,7 +44,7 @@ Retrieves a list of all the Lectures.
 
 * Responses:
 
-     - 200 OK:
+     - Status: 200 OK:
 
     "basic\_stats": {
 
@@ -142,21 +142,43 @@ Add a single Lecture.
 
 
 
-Method: `POST`
+* Method: POST
+* Path: /lecture/add
+* Headers:
 
-\- Path: `/lecture/add`
+    - Authorization: Bearer YOUR\_API\_KEY (Required) Responses
 
-\- Headers:
+&nbsp;   - Request Body: \[
 
-    - `Authorization`: `Bearer YOUR\\\\\\\\\\\\\\\_API\\\\\\\\\\\\\\\_KEY` (Required)
+&nbsp;		{"name":"Vijay Gehlot-18/09/2025-11\[45]2",
 
-\- Responses:
+&nbsp;		"topic":"JAVA9",
 
-    - `201 Created`:
+&nbsp;		"course\_mode\_id":1,
 
-        ```json
+&nbsp;		"json\_batch\_ids":"\[45]",
 
+&nbsp;		"batch\_time\_id":2,
 
+&nbsp;		"trainer\_id":"1",
+
+&nbsp;		"user\_id":"2058",
+
+&nbsp;		"zoom\_link":"",
+
+&nbsp;		"batch\_date":"20/09/2025"}
+
+&nbsp;	    ]
+
+* Responses:
+
+    - Status: 201 Created:
+
+&nbsp;   - Body: {
+
+&nbsp;   	"message": "Lecture is created."
+
+&nbsp;	    }
 
 
 
