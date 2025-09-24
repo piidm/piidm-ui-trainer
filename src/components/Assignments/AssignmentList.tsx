@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
 

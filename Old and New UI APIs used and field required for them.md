@@ -1,28 +1,156 @@
-**1.Lectures API (GET)** -->  curl 'http://127.0.0.1:3002/api/lecture/select-paginate-advanced?draw=1\&columns%5B0%5D%5Bdata%5D=topic\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=batch\_date\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=batch\_time.name\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=course\_mode.name\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=zoom\_link\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B5%5D%5Bdata%5D=total\_combined\_batches\&columns%5B5%5D%5Bname%5D=\&columns%5B5%5D%5Bsearchable%5D=true\&columns%5B5%5D%5Borderable%5D=false\&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B6%5D%5Bdata%5D=\&columns%5B6%5D%5Bname%5D=\&columns%5B6%5D%5Bsearchable%5D=true\&columns%5B6%5D%5Borderable%5D=false\&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false\&\_=1757252116585' \\
+##### **# Trainer Panel (PIIDM) Management API Documentation**
 
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
 
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
 
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
+**## Base URL**
 
-  -H 'Connection: keep-alive' \\
 
-  -H 'Origin: https://localhost' \\
 
-  -H 'Sec-Fetch-Dest: empty' \\
+`http://127.0.0.1:3002/api`
 
-  -H 'Sec-Fetch-Mode: cors' \\
 
-  -H 'Sec-Fetch-Site: cross-site' \\
 
-  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36' \\
+**## Authentication**
 
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
 
-  -H 'sec-ch-ua-mobile: ?0' \\
 
-  -H 'sec-ch-ua-platform: "Windows"'
+All API requests require an `Authorization` header with a Bearer token.
+
+
+
+Authorization: Bearer YOUR\_API\_KEY
+
+
+
+
+
+###### **## Endpoints**
+
+
+
+**### 1. Get Lectures**
+
+
+
+Retrieves a list of all the Lectures.
+
+
+
+\- Method: `GET`
+
+\- Path: `/users`
+
+\- Headers:
+
+&nbsp;   - `Authorization`: `Bearer YOUR\_API\_KEY` (Required)
+
+\- Responses:
+
+&nbsp;   - `200 OK`:
+
+&nbsp;       ```json
+
+
+
+&nbsp;   "basic\_stats": {
+
+&nbsp;       "total\_lectures": 46
+
+&nbsp;   },
+
+&nbsp;   "data": \[
+
+&nbsp;       {
+
+&nbsp;           "batch\_date": "2025-09-30",
+
+&nbsp;           "batch\_time": {
+
+&nbsp;               "batch\_time\_id": 2,
+
+&nbsp;               "created\_at": "Thu, 20 Apr 2023 17:46:06 GMT",
+
+&nbsp;               "name": "10:00AM - 12:00PM",
+
+&nbsp;               "updated\_at": "Thu, 20 Apr 2023 17:46:06 GMT"
+
+&nbsp;           },
+
+&nbsp;           "course\_mode": {
+
+&nbsp;               "course\_mode\_id": 1,
+
+&nbsp;               "created\_at": "Thu, 20 Apr 2023 17:52:04 GMT",
+
+&nbsp;               "deleted": 0,
+
+&nbsp;               "name": "Classroom",
+
+&nbsp;               "updated\_at": "Thu, 20 Apr 2023 17:52:04 GMT"
+
+&nbsp;           },
+
+&nbsp;           "created\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
+
+&nbsp;           "deleted": 0,
+
+&nbsp;           "is\_active": 1,
+
+&nbsp;           "json\_batch\_ids": "\[45]",
+
+&nbsp;           "lecture\_id": 44,
+
+&nbsp;           "name": "Vijay Gehlot-18/09/2025-11\[45]2",
+
+&nbsp;           "topic": "CSS selectors4",
+
+&nbsp;           "trainer": {
+
+&nbsp;               "created\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+
+&nbsp;               "deleted": 0,
+
+&nbsp;               "email": "vijay\_gehlot\_trainer@test.com",
+
+&nbsp;               "name": "Vijay Gehlot",
+
+&nbsp;               "phone\_num": "+91-8552077668",
+
+&nbsp;               "trainer\_id": 1,
+
+&nbsp;               "updated\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+
+&nbsp;               "user\_id": 2058
+
+&nbsp;           },
+
+&nbsp;           "updated\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
+
+&nbsp;           "user\_id": 2058,
+
+&nbsp;           "zoom\_link": ""
+
+&nbsp;       },
+
+&nbsp;   ]
+
+
+
+
+
+
+
+**### 2. Create Lectures**
+
+
+
+
+
+http://127.0.0.1:3002/api/lecture/add
+
+
+
+
 
 
 
