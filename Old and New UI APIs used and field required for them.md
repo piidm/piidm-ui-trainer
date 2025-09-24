@@ -36,21 +36,17 @@ Retrieves a list of all the Lectures.
 
 
 
-\- Method: `GET`
+* &nbsp;Method: GET
+* Path: /lecture/select-paginate-advanced?columns%5B0%5D%5Bdata%5D=topic\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=batch\_date\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=batch\_time.name\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=course\_mode.name\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=zoom\_link\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B5%5D%5Bdata%5D=total\_combined\_batches\&columns%5B5%5D%5Bname%5D=\&columns%5B5%5D%5Bsearchable%5D=true\&columns%5B5%5D%5Borderable%5D=false\&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B6%5D%5Bdata%5D=\&columns%5B6%5D%5Bname%5D=\&columns%5B6%5D%5Bsearchable%5D=true\&columns%5B6%5D%5Borderable%5D=false\&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false\&\_=1753018158729\&draw=2\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=
+* Headers:
 
-\- Path: `/users`
+&nbsp;    - Authorization: Bearer YOUR\_API\_KEY (Required) Responses:
 
-\- Headers:
+* Responses:
 
-    - `Authorization`: `Bearer YOUR\\\_API\\\_KEY` (Required)
+     - 200 OK:
 
-\- Responses:
-
-    - `200 OK`:
-
-        ```json
-
-
+        
 
     "basic\_stats": {
 
@@ -144,9 +140,25 @@ Retrieves a list of all the Lectures.
 
 
 
+Add a single Lecture.
 
 
-http://127.0.0.1:3002/api/lecture/add
+
+Method: `POST`
+
+\- Path: `/lecture/add`
+
+\- Headers:
+
+    - `Authorization`: `Bearer YOUR\\\\\\\\\\\\\\\_API\\\\\\\\\\\\\\\_KEY` (Required)
+
+\- Responses:
+
+    - `201 Created`:
+
+        ```json
+
+
 
 
 
