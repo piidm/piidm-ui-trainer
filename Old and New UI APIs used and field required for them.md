@@ -46,8 +46,6 @@ Retrieves a list of all the Lectures.
 
      - 200 OK:
 
-        
-
     "basic\_stats": {
 
         "total\_lectures": 46
