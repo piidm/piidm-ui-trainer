@@ -42,97 +42,97 @@ Retrieves a list of all the Lectures.
 
 \- Headers:
 
-&nbsp;   - `Authorization`: `Bearer YOUR\_API\_KEY` (Required)
+    - `Authorization`: `Bearer YOUR\\\_API\\\_KEY` (Required)
 
 \- Responses:
 
-&nbsp;   - `200 OK`:
+    - `200 OK`:
 
-&nbsp;       ```json
+        ```json
 
 
 
-&nbsp;   "basic\_stats": {
+    "basic\_stats": {
 
-&nbsp;       "total\_lectures": 46
+        "total\_lectures": 46
 
-&nbsp;   },
+    },
 
-&nbsp;   "data": \[
+    "data": \[
 
-&nbsp;       {
+        {
 
-&nbsp;           "batch\_date": "2025-09-30",
+            "batch\_date": "2025-09-30",
 
-&nbsp;           "batch\_time": {
+            "batch\_time": {
 
-&nbsp;               "batch\_time\_id": 2,
+                "batch\_time\_id": 2,
 
-&nbsp;               "created\_at": "Thu, 20 Apr 2023 17:46:06 GMT",
+                "created\_at": "Thu, 20 Apr 2023 17:46:06 GMT",
 
-&nbsp;               "name": "10:00AM - 12:00PM",
+                "name": "10:00AM - 12:00PM",
 
-&nbsp;               "updated\_at": "Thu, 20 Apr 2023 17:46:06 GMT"
+                "updated\_at": "Thu, 20 Apr 2023 17:46:06 GMT"
 
-&nbsp;           },
+            },
 
-&nbsp;           "course\_mode": {
+            "course\_mode": {
 
-&nbsp;               "course\_mode\_id": 1,
+                "course\_mode\_id": 1,
 
-&nbsp;               "created\_at": "Thu, 20 Apr 2023 17:52:04 GMT",
+                "created\_at": "Thu, 20 Apr 2023 17:52:04 GMT",
 
-&nbsp;               "deleted": 0,
+                "deleted": 0,
 
-&nbsp;               "name": "Classroom",
+                "name": "Classroom",
 
-&nbsp;               "updated\_at": "Thu, 20 Apr 2023 17:52:04 GMT"
+                "updated\_at": "Thu, 20 Apr 2023 17:52:04 GMT"
 
-&nbsp;           },
+            },
 
-&nbsp;           "created\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
+            "created\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
 
-&nbsp;           "deleted": 0,
+            "deleted": 0,
 
-&nbsp;           "is\_active": 1,
+            "is\_active": 1,
 
-&nbsp;           "json\_batch\_ids": "\[45]",
+            "json\_batch\_ids": "\[45]",
 
-&nbsp;           "lecture\_id": 44,
+            "lecture\_id": 44,
 
-&nbsp;           "name": "Vijay Gehlot-18/09/2025-11\[45]2",
+            "name": "Vijay Gehlot-18/09/2025-11\[45]2",
 
-&nbsp;           "topic": "CSS selectors4",
+            "topic": "CSS selectors4",
 
-&nbsp;           "trainer": {
+            "trainer": {
 
-&nbsp;               "created\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+                "created\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
 
-&nbsp;               "deleted": 0,
+                "deleted": 0,
 
-&nbsp;               "email": "vijay\_gehlot\_trainer@test.com",
+                "email": "vijay\_gehlot\_trainer@test.com",
 
-&nbsp;               "name": "Vijay Gehlot",
+                "name": "Vijay Gehlot",
 
-&nbsp;               "phone\_num": "+91-8552077668",
+                "phone\_num": "+91-8552077668",
 
-&nbsp;               "trainer\_id": 1,
+                "trainer\_id": 1,
 
-&nbsp;               "updated\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+                "updated\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
 
-&nbsp;               "user\_id": 2058
+                "user\_id": 2058
 
-&nbsp;           },
+            },
 
-&nbsp;           "updated\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
+            "updated\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
 
-&nbsp;           "user\_id": 2058,
+            "user\_id": 2058,
 
-&nbsp;           "zoom\_link": ""
+            "zoom\_link": ""
 
-&nbsp;       },
+        },
 
-&nbsp;   ]
+    ]
 
 
 
