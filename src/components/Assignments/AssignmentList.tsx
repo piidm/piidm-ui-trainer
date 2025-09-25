@@ -43,19 +43,18 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   // Helper to check batch filter
   const matchesBatchFilter = (assignmentBatchId: string, selectedBatch: string) => {
     if (selectedBatch === 'all') return true;
-    // If batchId is a stringified array, e.g. '["1","2","3"]' or '[1,2,3]'
+    // If batchId is a stringified array, e.g. '[1,2,3]'
     if (assignmentBatchId.startsWith('[')) {
       try {
         const ids = JSON.parse(assignmentBatchId);
-        // Convert all ids to string for comparison
-        return Array.isArray(ids) && ids.map(String).includes(String(selectedBatch));
+        return Array.isArray(ids) && ids.includes(selectedBatch);
       } catch {
         // fallback: try substring match
         return assignmentBatchId.includes(selectedBatch);
       }
     }
-    // Otherwise, direct match (string compare)
-    return String(assignmentBatchId) === String(selectedBatch);
+    // Otherwise, direct match
+    return assignmentBatchId === selectedBatch;
   };
 
   const filteredAndSortedAssignments = useMemo(() => {
