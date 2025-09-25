@@ -101,8 +101,9 @@ export const Assignments: React.FC = () => {
         </button>
       </div>
 
-      {/* Dashboard Stats */}
-      <AssignmentDashboard stats={assignmentStats} />
+
+  {/* Dashboard Stats */}
+  <AssignmentDashboard assignments={assignments} />
 
       {/* Assignment List */}
       <AssignmentList

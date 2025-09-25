@@ -28,18 +28,42 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [itemsPerPage] = useState(10);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
+  const getAssignmentStatus = (assignment: Assignment) => {
+    const now = new Date();
+    const due = new Date(assignment.dueDate);
+
+    if (assignment.status === "draft") {
+      return "draft";
+    }
+
+    return due >= now ? "active" : "expired";
+  };
+
+
+  // Helper to check batch filter
+  const matchesBatchFilter = (assignmentBatchId: string, selectedBatch: string) => {
+    if (selectedBatch === 'all') return true;
+    // If batchId is a stringified array, e.g. '["1","2","3"]' or '[1,2,3]'
+    if (assignmentBatchId.startsWith('[')) {
+      try {
+        const ids = JSON.parse(assignmentBatchId);
+        // Convert all ids to string for comparison
+        return Array.isArray(ids) && ids.map(String).includes(String(selectedBatch));
+      } catch {
+        // fallback: try substring match
+        return assignmentBatchId.includes(selectedBatch);
+      }
+    }
+    // Otherwise, direct match (string compare)
+    return String(assignmentBatchId) === String(selectedBatch);
+  };
+
   const filteredAndSortedAssignments = useMemo(() => {
     let filtered = assignments.filter(assignment => {
-      const now = new Date();
-      const due = new Date(assignment.dueDate);
-      let status = assignment.status;
-      if (status !== "draft") {
-        status = due >= now ? "active" : "expired";
-      }
-
       const matchesSearch = assignment.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesBatch = filterBatch === 'all' || assignment.batchId === filterBatch;
-      const matchesStatus = filterStatus === 'all' || assignment.status === filterStatus;
+      const matchesBatch = matchesBatchFilter(assignment.batchId, filterBatch);
+      const status = getAssignmentStatus(assignment);
+      const matchesStatus = filterStatus === 'all' || status === filterStatus;
       return matchesSearch && matchesBatch && matchesStatus;
     });
 
@@ -73,6 +97,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
     return filtered;
   }, [assignments, searchTerm, filterBatch, filterStatus, sortBy, sortOrder]);
+
 
   const paginatedAssignments = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -110,16 +135,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     }
   };
 
-  const getAssignmentStatus = (assignment: Assignment) => {
-    const now = new Date();
-    const due = new Date(assignment.dueDate);
-
-    if (assignment.status === "draft") {
-      return "draft";
-    }
-
-    return due >= now ? "active" : "expired";
-  };
+  
 
 
   return (

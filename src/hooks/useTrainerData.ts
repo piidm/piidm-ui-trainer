@@ -821,10 +821,29 @@ export const useTrainerData = () => {
       setBatches(batchList);
     } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("Fetch Batches aborted");
       } else {
         console.error(err);
       }
+    }
+  };
+
+
+  const fetchBatchById = async (batchId: string, signal?: AbortSignal) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:3002/api/batch/select/${batchId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        signal,
+      });
+      if (!res.ok) throw new Error("Failed to fetch batch");
+      const data = await res.json();
+      return data; // raw batch object
+    } catch (err) {
+      console.error("Error fetching batch:", err);
+      return null;
     }
   };
 
@@ -868,12 +887,13 @@ export const useTrainerData = () => {
       setStudents(studentList); // assuming setStudents is a state setter
     } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("Fetch Students aborted");
       } else {
         console.error(err);
       }
     }
   };
+
+
 
   // assignment API
   const fetchAssignments = async (signal?: AbortSignal) => {
@@ -925,13 +945,30 @@ export const useTrainerData = () => {
       }))
 
       setAssignments(assignments);
-      console.log("Fetched assignments:", assignments);
     } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("Fetch assignments aborted");
       } else {
         console.error(err);
       }
+    }
+  };
+
+  const fetchAssignmentSubmissions = async (assignmentId: string, signal?: AbortSignal) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:3002/api/assignment/submission/view/${assignmentId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        signal,
+      });
+      if (!res.ok) throw new Error("Failed to fetch submissions");
+      const data = await res.json();
+      return data; // array of submissions
+    } catch (err) {
+      console.error("Error fetching submissions:", err);
+      return [];
     }
   };
 
@@ -952,8 +989,10 @@ export const useTrainerData = () => {
     upcomingExams: exams.filter((e) => new Date(e.scheduledDate) > new Date())
       .length,
   };
-  ``
+
+
   const assignmentStats: AssignmentStats = {
+
     totalAssignments: assignments.length,
     activeAssignments: assignments.filter((a) => a.status === "active").length,
     expiredAssignments: assignments.filter((a) => a.status === "expired")
@@ -1257,7 +1296,7 @@ export const useTrainerData = () => {
     updateAssignmentStatuses();
     const interval = updateAssignmentStatuses; // Check every minute
 
-    return () =>interval
+    return () => interval
   }, []);
 
   return {
@@ -1275,6 +1314,8 @@ export const useTrainerData = () => {
     fetchBatches,
     fetchStudents,
     fetchAssignments,
+    fetchBatchById,
+    fetchAssignmentSubmissions,
     addSession,
     updateSession,
     addAssignment,
