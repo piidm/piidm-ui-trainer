@@ -1279,7 +1279,7 @@ export const useTrainerData = () => {
   };
 
   // Update assignment status based on due date
-  useEffect(() => {
+  useEffect(():any => {
     const updateAssignmentStatuses = () => {
       const now = new Date();
       setAssignments((prev) =>

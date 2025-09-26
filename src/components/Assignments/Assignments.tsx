@@ -5,7 +5,7 @@ import { AssignmentList } from './AssignmentList';
 import { SubmissionManagement } from './SubmissionManagement';
 import { AssignmentDashboard } from './AssignmentDashboard';
 import { useTrainerData } from '../../hooks/useTrainerData';
-import { Assignment } from '../../types';
+import { Assignment, Batch, Student } from '../../types';
 
 export const Assignments: React.FC = () => {
   const {
@@ -27,15 +27,18 @@ export const Assignments: React.FC = () => {
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+  const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
 
   useEffect(() => {
     const controller = new AbortController();
-    
-      fetchAssignments(controller.signal);
-      fetchBatches(controller.signal);
-      fetchStudents(controller.signal);
- 
+
+    fetchAssignments(controller.signal);
+    fetchBatches(controller.signal);
+    fetchStudents(controller.signal);
+
     return () => {
       controller.abort();
     }
@@ -58,9 +61,11 @@ export const Assignments: React.FC = () => {
     }
   };
 
-  const handleViewSubmissions = (assignment: Assignment) => {
+  const handleViewSubmissions = (assignment: Assignment, batch: Batch | null, students: Student[]) => {
     setSelectedAssignment(assignment);
-    setIsSubmissionModalOpen(true);
+    setSelectedBatch(batch);
+    setSelectedStudents(students);
+    setIsModalOpen(true);
   };
 
   const handleEditClick = (assignment: Assignment) => {
@@ -102,8 +107,8 @@ export const Assignments: React.FC = () => {
       </div>
 
 
-  {/* Dashboard Stats */}
-  <AssignmentDashboard assignments={assignments} />
+      {/* Dashboard Stats */}
+      <AssignmentDashboard assignments={assignments} />
 
       {/* Assignment List */}
       <AssignmentList
@@ -124,14 +129,14 @@ export const Assignments: React.FC = () => {
         isEditing={!!editingAssignment}
       />
 
-    
+
       {selectedAssignment && (
         <SubmissionManagement
-          isOpen={isSubmissionModalOpen}
-          onClose={handleCloseSubmissionModal}
-          assignment={selectedAssignment}
-          batch={batches.find(b => b.id === selectedAssignment.batchId)}
-          students={students}
+         isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          assignment={selectedAssignment!}
+          batch={selectedBatch || undefined}
+          students={selectedStudents}
           onReviewSubmission={reviewSubmission}
           onBulkReview={bulkReviewSubmissions}
         />

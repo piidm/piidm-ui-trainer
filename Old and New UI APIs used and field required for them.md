@@ -1,1185 +1,999 @@
-#### **# Trainer Panel (PIIDM) Management API Documentation**
 
 
+	**# Trainer Panel (PIIDM) Management API Documentation**
 
-**## Base URL**
 
 
+	**## Base URL**
 
-`http://127.0.0.1:3002/api`
+	`http://127.0.0.1:3002/api`
 
 
 
-**## Authentication**
+	**## Authentication**
 
+	&nbsp; All API requests require an `Authorization` header with a Bearer token.
 
+	&nbsp;`Authorization: Bearer YOUR\_API\_KEY`
 
-All API requests require an `Authorization` header with a Bearer token.
 
 
+	**## Endpoints**
 
-Authorization: Bearer YOUR\_API\_KEY
+	**### 1. Get Lectures**
 
+	Retrieves a list of all the Lectures.
 
+	* **Method**: GET
+	* **Path**: `/lecture/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=topic&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=batch_date&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=batch_time.name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=course_mode.name&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=zoom_link&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=total_combined_batches&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753018158729`
+	* **Headers**:
 
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
+	* **Responses**:
 
-#### **## Endpoints**
+	  * **Status: 200 OK**
+	  * **Body**:
 
+		```json
+				{
+				  "basic\_stats": {
+					"total\_lectures": 46
+				  },
+				  "data": \[
+					{
+					  "batch\_date": "2025-09-30",
+					  "batch\_time": {
+						"batch\_time\_id": 2,
+						"name": "10:00AM - 12:00PM"
+					  },
+					  "course\_mode": {
+						"course\_mode\_id": 1,
+						"name": "Classroom"
+					  },
+					  "lecture\_id": 44,
+					  "topic": "CSS selectors4",
+					  "trainer": {
+						"name": "Vijay Gehlot",
+						"trainer\_id": 1
+					  },
+					  "zoom\_link": ""
+					}
+				  ]
+				}
+		```
 
+	---
 
-**### 1. Get Lectures**
+	**### 2. Create Lecture**
 
+	Adds a single Lecture.
 
+	* **Method**: POST
+	* **Path**: `/lecture/add`
+	* **Headers**:
 
-Retrieves a list of all the Lectures.
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
+	* **Request Body**:
 
+	&nbsp;   
+		```json
+			\[
+			  {
+				"name": "Vijay Gehlot-18/09/2025-11\[45]2",
+				"topic": "JAVA9",
+				"course\_mode\_id": 1,
+				"json\_batch\_ids": "\[45]",
+				"batch\_time\_id": 2,
+				"trainer\_id": "1",
+				"user\_id": "2058",
+				"zoom\_link": "",
+				"batch\_date": "20/09/2025"
+			  }
+			]
+		```
 
-* Method: GET
-* Path: /lecture/select-paginate-advanced?columns%5B0%5D%5Bdata%5D=topic\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=batch\_date\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=batch\_time.name\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=course\_mode.name\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=zoom\_link\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B5%5D%5Bdata%5D=total\_combined\_batches\&columns%5B5%5D%5Bname%5D=\&columns%5B5%5D%5Bsearchable%5D=true\&columns%5B5%5D%5Borderable%5D=false\&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B6%5D%5Bdata%5D=\&columns%5B6%5D%5Bname%5D=\&columns%5B6%5D%5Bsearchable%5D=true\&columns%5B6%5D%5Borderable%5D=false\&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false\&\_=1753018158729\&draw=2\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=
-* Headers:
+	* **Responses**:
 
-     - Authorization: Bearer YOUR\_API\_KEY (Required) Responses:
+	  * **Status: 201 Created**
+	  * **Body**:
 
-* Responses:
+		```json
+				{
+				  "message": "Lecture is created."
+				}
+				```
 
-     - Status: 200 OK:
+	---
 
-    "basic\_stats": {
+	**### 3. Get Assignments**
+
+	Retrieves a list of all the Assignments.
+
+	* **Method**: GET
+	* **Path**: `/assignment/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=title&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=description&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment_date&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=total_combined_batches&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=total_marks&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1757251982282`
+	* **Headers**:
+
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
+
+	* **Responses**:
+
+	  * **Status: 200 OK**
+	  * **Body**:
+
+		```json
+				{
+				  "basic\_stats": {
+					"total\_assignments": 10
+				  },
+				  "data": \[
+					{
+					  "assignment\_date": "2025-09-25",
+					  "assignment\_id": 9,
+					  "description": "<p>CSS Head</p>",
+					  "json\_batch\_ids": "\[91]",
+					  "title": "CSS Head",
+					  "total\_marks": 100,
+					  "trainer": {
+						"name": "Vijay Gehlot",
+						"trainer\_id": 1
+					  }
+					}
+				  ]
+				}
+				```
+
+	---
+
+	**### 4. Create Assignment**
+
+	Adds a single Assignment.
+
+	* **Method**: POST
+	* **Path**: `/assignment/add`
+	* **Headers**:
+
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
+
+	* **Request Body**:
+
+	&nbsp;   ```json
+		\[
+		  {
+			"title": "Documentation of GEN AI",
+			"description": "Documentation of GEN AI",
+			"json\_batch\_ids": "\[30]",
+			"trainer\_id": "1",
+			"user\_id": "2058",
+			"assignment\_date": "22/09/2025",
+			"total\_marks": "500"
+		  }
+		]
+		```
+
+	* **Responses**:
+
+	  * **Status: 201 Created**
+	  * **Body**:
+
+		```json
+				{
+				  "message": "Assignment is created."
+				}
+				```
+
+	---
+
+	**### 5. Get Batches**
 
-        "total\_lectures": 46
+	Retrieves a list of all the Batches.
 
-    },
+	* **Method**: GET
+	* **Path**: `/batch/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=batch_num&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=batch_date&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=batch_time.name&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=branch.name&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=course.name&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=course_mode.name&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=trainer.name&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=false&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=total_seats&columns%5B9%5D%5Bname%5D=&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=false&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false`
+	* **Headers**:
 
-    "data": \[
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-        {
+	* **Responses**:
 
-            "batch\_date": "2025-09-30",
+	  * **Status: 200 OK**
+	  * **Body**:
 
-            "batch\_time": {
+		```json
+				{
+				  "basic\_stats": {
+					"total\_batches": 21
+				  },
+				  "data": \[
+					{
+					  "batch\_date": "2024-05-03",
+					  "batch\_id": 91,
+					  "batch\_num": 1091,
+					  "name": "fcvijay10-12pm-May",
+					  "seats\_occupied": 23,
+					  "seats\_vacant": 17,
+					  "total\_seats": 40
+					}
+				  ]
+				}
+				```
 
-                "batch\_time\_id": 2,
+	---
 
-                "created\_at": "Thu, 20 Apr 2023 17:46:06 GMT",
+	**### 6. Get Students**
 
-                "name": "10:00AM - 12:00PM",
+	Retrieves a list of all the Students.
 
-                "updated\_at": "Thu, 20 Apr 2023 17:46:06 GMT"
+	* **Method**: GET
+	* **Path**: `/students_report/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=student.name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=attendance&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=exam&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=score&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=certificate&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=mock_interview&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=placement_status&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false`
+	* **Headers**:
 
-            },
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-            "course\_mode": {
+	* **Responses**:
 
-                "course\_mode\_id": 1,
+	  * **Status: 200 OK**
+	  * **Body**:
 
-                "created\_at": "Thu, 20 Apr 2023 17:52:04 GMT",
+		```json
+				{
+				  "basic\_stats": {
+					"total\_student\_reports": 3075
+				  },
+				  "data": \[
+					{
+					  "assignment": "",
+					  "attendance": "",
+					  "certificate": "",
+					  "exam": "",
+					  "mock\_interview": "",
+					  "placement\_status": null,
+					  "score": "",
+					  "student": {
+						"name": "yash ghadghe",
+						"phone\_num": "+91-8983383844",
+						"student\_id": 373
+					  }
+					}
+				  ]
+				}
+				```
 
-                "deleted": 0,
+	---
 
-                "name": "Classroom",
+	**### 7. Get Lecture Attendance By ID**
 
-                "updated\_at": "Thu, 20 Apr 2023 17:52:04 GMT"
+	Retrieves the attendance for a specific lecture.
 
-            },
+	* **Method**: GET
+	* **Path**: `/lecture/attendance/:lecture\_id`
+	* **Parameters**:
 
-            "created\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
+	  * `/:lecture\_id` (e.g., `/lecture/attendance/44`)
 
-            "deleted": 0,
+	* **Headers**:
 
-            "is\_active": 1,
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-            "json\_batch\_ids": "\[45]",
+	* **Responses**:
 
-            "lecture\_id": 44,
+	  * **Status: 200 OK**
+	  * **Body**:
 
-            "name": "Vijay Gehlot-18/09/2025-11\[45]2",
+		```json
+			   \[
 
-            "topic": "CSS selectors4",
+		&nbsp;   {
 
-            "trainer": {
+		&nbsp;       "attendance\_id": 1442,
 
-                "created\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+		&nbsp;       "attendance\_status": 2,
 
-                "deleted": 0,
+		&nbsp;       "created\_at": "Sun, 21 Sep 2025 05:30:53 GMT",
 
-                "email": "vijay\_gehlot\_trainer@test.com",
+		&nbsp;       "deleted": 0,
 
-                "name": "Vijay Gehlot",
+		&nbsp;       "lecture": {
 
-                "phone\_num": "+91-8552077668",
+		&nbsp;           "batch\_date": "Wed, 10 Sep 2025 00:00:00 GMT",
 
-                "trainer\_id": 1,
+		&nbsp;           "batch\_time\_id": 6,
 
-                "updated\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+		&nbsp;           "course\_mode\_id": 1,
 
-                "user\_id": 2058
+		&nbsp;           "created\_at": "Sun, 21 Sep 2025 05:30:53 GMT",
 
-            },
+		&nbsp;           "deleted": 0,
 
-            "updated\_at": "Mon, 22 Sep 2025 06:35:51 GMT",
+		&nbsp;           "is\_active": 1,
 
-            "user\_id": 2058,
+		&nbsp;           "json\_batch\_ids": "\[82]",
 
-            "zoom\_link": ""
+		&nbsp;           "lecture\_id": 34,
 
-        },
+		&nbsp;           "name": "Vijay Gehlot-10/09/2025-11\[82]6",
 
-    ]
+		&nbsp;           "topic": "HTML Semantics",
 
+		&nbsp;           "trainer\_id": 1,
 
+		&nbsp;           "updated\_at": "Sun, 21 Sep 2025 05:30:53 GMT",
 
+		&nbsp;           "user\_id": 2058,
 
+		&nbsp;           "zoom\_link": ""
 
+		&nbsp;       },
 
+		&nbsp;       "student": {
 
-**### 2. Create Lectures**
+		&nbsp;           "admission\_date": "Tue, 05 Mar 2024 00:00:00 GMT",
 
+		&nbsp;           "agent\_id": 11,
 
+		&nbsp;           "alternate\_phone\_num": null,
 
-Add a single Lecture.
+		&nbsp;           "area": null,
 
+		&nbsp;           "back\_image\_path": null,
 
+		&nbsp;           "batch\_id": 82,
 
-* Method: POST
-* Path: /lecture/add
-* Headers:
+		&nbsp;           "batch\_time\_id": 2,
 
-    - Authorization: Bearer YOUR\_API\_KEY (Required) Responses
+		&nbsp;           "branch\_id": 1,
 
-    - Request Body: \[
+		&nbsp;           "city\_id": 1,
 
- 		{"name":"Vijay Gehlot-18/09/2025-11\[45]2",
+		&nbsp;           "country\_id": 98,
 
- 		"topic":"JAVA9",
+		&nbsp;           "course\_content\_class\_recording\_id": 1,
 
- 		"course\_mode\_id":1,
+		&nbsp;           "course\_content\_id": 1,
 
- 		"json\_batch\_ids":"\[45]",
+		&nbsp;           "course\_id": 7,
 
- 		"batch\_time\_id":2,
+		&nbsp;           "course\_mode\_id": 1,
 
- 		"trainer\_id":"1",
+		&nbsp;           "created\_at": "Tue, 05 Mar 2024 05:39:04 GMT",
 
- 		"user\_id":"2058",
+		&nbsp;           "deleted": 0,
 
- 		"zoom\_link":"",
+		&nbsp;           "dob": null,
 
- 		"batch\_date":"20/09/2025"}
+		&nbsp;           "email": "samarthranjeetwankar200@gmail.com",
 
- 	    ]
+		&nbsp;           "front\_image\_path": null,
 
-* Responses:
+		&nbsp;           "highest\_education": null,
 
-    - Status: 201 Created:
+		&nbsp;           "is\_active": 1,
 
-    - Body: {
+		&nbsp;           "is\_document\_verified": 0,
 
-    	"message": "Lecture is created."
+		&nbsp;           "json\_course\_learning\_progress": null,
 
- 	    }
+		&nbsp;           "json\_course\_learning\_progress\_class\_recording": null,
 
+		&nbsp;           "lead\_id": 21480,
 
+		&nbsp;           "name": "samarth wankar",
 
+		&nbsp;           "occupation": null,
 
+		&nbsp;           "passport\_image\_path": null,
 
+		&nbsp;           "phone\_num": "+91-8668458060",
 
+		&nbsp;           "pincode": null,
 
+		&nbsp;           "purpose\_for\_course": null,
 
+		&nbsp;           "referred\_by": null,
 
-**### 3. GET Assignments**
+		&nbsp;           "source\_id": 1,
 
+		&nbsp;           "state\_id": 21,
 
+		&nbsp;           "student\_id": 3640,
 
-Retrieves a list of all the Assignments.
+		&nbsp;           "total\_fee": 50000,
 
+		&nbsp;           "total\_fee\_paid": 50000,
 
+		&nbsp;           "total\_pending\_fee": 0,
 
-* Method: GET
-* Path: /assignment/select-paginate-advanced?draw=1\&columns%5B0%5D%5Bdata%5D=title\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=description\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=assignment\_date\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=total\_combined\_batches\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=total\_marks\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B5%5D%5Bdata%5D=\&columns%5B5%5D%5Bname%5D=\&columns%5B5%5D%5Bsearchable%5D=true\&columns%5B5%5D%5Borderable%5D=false\&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false\&\_=1757152792120
-* Headers:
+		&nbsp;           "trainer\_id": 1,
 
-     - Authorization: Bearer YOUR\_API\_KEY (Required) Responses:
+		&nbsp;           "updated\_at": "Tue, 05 Mar 2024 05:39:04 GMT",
 
-* Responses:
+		&nbsp;           "user\_id": 3656,
 
-     - Status: 200 OK:
+		&nbsp;           "who\_you\_are": null
 
-     - Response Body: {
+		&nbsp;       },
 
-    "basic\_stats": {
+		&nbsp;       "updated\_at": "Sun, 21 Sep 2025 11:01:27 GMT"
 
-        "total\_assignments": 10
+		&nbsp;   }
 
-    },
+		]    
 
-    "data": \[
+		```
 
-        {
+	---
 
-            "assignment\_date": "2025-09-25",
+	**### 8. Get Batch by ID**
 
-            "assignment\_id": 9,
+	Retrieves a specific batch by its ID.
 
-            "created\_at": "Tue, 23 Sep 2025 06:29:07 GMT",
+	* **Method**: GET
+	* **Path**: `/batch/select/:batch\_id`
+	* **Parameters**:
 
-            "deleted": 0,
+	  * `/:batch\_id` (e.g., `/batch/select/47`)
 
-            "description": "<p>CSS Head</p>",
+	* **Headers**:
 
-            "is\_active": 1,
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-            "is\_assigned\_to\_students": 0,
+	* **Responses**:
 
-            "json\_batch\_ids": "\[91]",
+	  * **Status: 200 OK**
+	  * **Body**:
 
-            "title": "CSS Head",
+		```json
+				{
 
-            "total\_marks": 100,
+		&nbsp;   "batch\_date": "2023-09-18",
 
-            "trainer": {
+		&nbsp;   "batch\_id": 3,
 
-                "created\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+		&nbsp;   "batch\_num": 1003,
 
-                "deleted": 0,
+		&nbsp;   "batch\_time": {
 
-                "email": "vijay\_gehlot\_trainer@test.com",
+		&nbsp;       "batch\_time\_id": 7,
 
-                "name": "Vijay Gehlot",
+		&nbsp;       "created\_at": "Thu, 20 Apr 2023 17:46:06 GMT",
 
-                "phone\_num": "+91-8552077668",
+		&nbsp;       "name": "07:00PM - 09:00PM",
 
-                "trainer\_id": 1,
+		&nbsp;       "updated\_at": "Thu, 20 Apr 2023 17:46:06 GMT"
 
-                "updated\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+		&nbsp;   },
 
-                "user\_id": 2058
+		&nbsp;   "branch": {
 
-            },
+		&nbsp;       "branch\_id": 1,
 
-            "updated\_at": "Tue, 23 Sep 2025 06:29:07 GMT",
+		&nbsp;       "created\_at": "Mon, 13 Mar 2023 22:37:26 GMT",
 
-            "user\_id": 2058
+		&nbsp;       "name": "FC Road, Pune",
 
-        }
+		&nbsp;       "updated\_at": "Mon, 13 Mar 2023 22:37:26 GMT"
 
-      ]
+		&nbsp;   },
 
-    }
+		&nbsp;   "course": {
 
+		&nbsp;       "course\_category\_id": 1,
 
+		&nbsp;       "course\_id": 1,
 
-**### 4. Create Assignments:**
+		&nbsp;       "created\_at": "Thu, 20 Apr 2023 17:46:29 GMT",
 
+		&nbsp;       "deleted": 0,
 
+		&nbsp;       "name": "Advanced Digital Marketing Course",
 
-Add a single Assignment.
+		&nbsp;       "updated\_at": "Thu, 20 Apr 2023 17:46:29 GMT"
 
+		&nbsp;   },
 
+		&nbsp;   "course\_mode": {
 
-* Method: POST
-* Path: /assignment/add
-* Headers:
+		&nbsp;       "course\_mode\_id": 1,
 
-    - Authorization: Bearer YOUR\_API\_KEY (Required) Responses
+		&nbsp;       "created\_at": "Thu, 20 Apr 2023 17:52:04 GMT",
 
-    - Request Body: \[
+		&nbsp;       "deleted": 0,
 
-                     {
+		&nbsp;       "name": "Classroom",
 
-       			 "title": "Documentation of GEN AI",
+		&nbsp;       "updated\_at": "Thu, 20 Apr 2023 17:52:04 GMT"
 
- 	        	 "description": "Documentation of GEN AI",
+		&nbsp;   },
 
-       			 "json\_batch\_ids": "\[30]",
+		&nbsp;   "deleted": 0,
 
-        		 "trainer\_id": "1",
+		&nbsp;   "name": "fcvijay7-9pm",
 
-        		 "user\_id": "2058",
+		&nbsp;   "seats\_occupied": 12,
 
-       			 "assignment\_date": "22/09/2025",
+		&nbsp;   "seats\_vacant": 33,
 
-        		 "total\_marks": "500"
+		&nbsp;   "total\_seats": 50,
 
-   			 }
+		&nbsp;   "trainer": {
 
- 		       ]
+		&nbsp;       "created\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
 
-* Responses:
+		&nbsp;       "deleted": 0,
 
-    - Status: 201 Created:
+		&nbsp;       "email": "vijay\_gehlot\_trainer@test.com",
 
-    - Body: {
+		&nbsp;       "name": "Vijay Gehlot",
 
-    	       "message": "Assignment is created."
+		&nbsp;       "phone\_num": "+91-8552077668",
 
- 	    }
+		&nbsp;       "trainer\_id": 1,
 
+		&nbsp;       "updated\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
 
+		&nbsp;       "user\_id": 2058
 
+		&nbsp;   }
 
+		}     
 
-**### 5. GET Batches:**
+		&nbsp;  ```
 
+	---
 
+	**### 9. Update Attendance**
 
-Retrieves a list of all the Batches.
+	Updates the attendance status for students in a lecture.
 
+	* **Method**: PUT
+	* **Path**: `/lecture/attendance/update`
+	* **Headers**:
 
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-* Method: GET
-* Path: /batch/select-paginate-advanced?draw=1\&columns%5B0%5D%5Bdata%5D=batch\_num\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=name\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=batch\_date\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=batch\_time.name\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B5%5D%5Bdata%5D=branch.name\&columns%5B5%5D%5Bname%5D=\&columns%5B5%5D%5Bsearchable%5D=true\&columns%5B5%5D%5Borderable%5D=false\&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B6%5D%5Bdata%5D=course.name\&columns%5B6%5D%5Bname%5D=\&columns%5B6%5D%5Bsearchable%5D=true\&columns%5B6%5D%5Borderable%5D=false\&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B7%5D%5Bdata%5D=course\_mode.name\&columns%5B7%5D%5Bname%5D=\&columns%5B7%5D%5Bsearchable%5D=true\&columns%5B7%5D%5Borderable%5D=false\&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B8%5D%5Bdata%5D=trainer.name\&columns%5B8%5D%5Bname%5D=\&columns%5B8%5D%5Bsearchable%5D=true\&columns%5B8%5D%5Borderable%5D=false\&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B9%5D%5Bdata%5D=total\_seats\&columns%5B9%5D%5Bname%5D=\&columns%5B9%5D%5Bsearchable%5D=true\&columns%5B9%5D%5Borderable%5D=false\&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false
-* Headers:
+	* **Request Body**:
 
-     - Authorization: Bearer YOUR\_API\_KEY (Required) Responses:
+	&nbsp;   ```json
+		\[
+		  { "attendance\_id": 1546, "attendance\_status": 2 },
+		  { "attendance\_id": 1547, "attendance\_status": 0 },
+		  { "attendance\_id": 1548, "attendance\_status": 0 }
+		]
+		```
 
-* Responses:
+	* **Responses**:
 
-     - Status: 200 OK:
+	  * **Status: 200 OK**
+	  * **Body**:
 
-     - Response Body: {
+		```json
+				{
+					"message": "Attendance updated."
+				}
+				```
 
-    "basic\_stats": {
+	---
 
-        "total\_batches": 21
+	**### 10. Update Lecture (Session)**
 
-    },
+	Updates details for a specific lecture.
 
-    "data": \[
+	* **Method**: PUT
+	* **Path**: `/lecture/update/:lecture\_id`
+	* **Parameters**:
 
-        {
+	  * `/:lecture\_id` (e.g., `/lecture/update/43`)
 
-            "batch\_date": "2024-05-03",
+	* **Headers**:
 
-            "batch\_id": 91,
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-            "batch\_num": 1091,
+	* **Request Body**:
 
-            "batch\_time": {
+	&nbsp;   ```json
+		\[
+		  {
+			"name": "Vijay Gehlot-29/09/2025-11\[45]1",
+			"topic": "JAVA5",
+			"course\_mode\_id": 1,
+			"batch\_time\_id": 1,
+			"trainer\_id": "1",
+			"user\_id": "2058",
+			"zoom\_link": "",
+			"batch\_date": "29/09/2025"
+		  }
+		]
+		```
 
-                "batch\_time\_id": 2,
+	* **Responses**:
 
-                "created\_at": "Thu, 20 Apr 2023 17:46:06 GMT",
+	  * **Status: 200 OK**
+	  * **Body**:
 
-                "name": "10:00AM - 12:00PM",
+		```json
+				{
+					"message": "Lecture is updated."
+				}
+				```
 
-                "updated\_at": "Thu, 20 Apr 2023 17:46:06 GMT"
+	---
 
-            },
+	**### 11. Update Assignment**
 
-            "branch": {
+	Updates details for a specific assignment.
 
-                "branch\_id": 1,
+	* **Method**: PUT
+	* **Path**: `/assignment/update/:assignment\_id`
+	* **Parameters**:
 
-                "created\_at": "Mon, 13 Mar 2023 22:37:26 GMT",
+	  * `/:assignment\_id` (e.g., `/assignment/update/12`)
 
-                "name": "FC Road, Pune",
+	* **Headers**:
 
-                "updated\_at": "Mon, 13 Mar 2023 22:37:26 GMT"
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-            },
+	* **Request Body**:
 
-            "course": {
+	&nbsp;   ```json
+		\[
+		  {
+			"title": "fc-2",
+			"description": "fc-2",
+			"assignment\_date": "29/09/2025",
+			"total\_marks": "2000",
+			"trainer\_id": "1",
+			"user\_id": "2058"
+		  }
+		]
+		```
 
-                "course\_category\_id": 1,
+	* **Responses**:
 
-                "course\_id": 1,
+	  * **Status: 200 OK**
+	  * **Body**:
 
-                "created\_at": "Thu, 20 Apr 2023 17:46:29 GMT",
+		```json
+				{
+					"message": "Assignment is updated."
+				}
+				```
 
-                "deleted": 0,
+	---
 
-                "name": "Advanced Digital Marketing Course",
+	**### 12. View Assignment Submission**
 
-                "updated\_at": "Thu, 20 Apr 2023 17:46:29 GMT"
+	Retrieves submission details for a specific assignment.
 
-            },
+	* **Method**: GET
+	* **Path**: `/assignment/submission/view/:assignment\_id`
+	* **Parameters**:
 
-            "course\_mode": {
+	  * `/:assignment\_id` (e.g., `/assignment/submission/view/8`)
 
-                "course\_mode\_id": 1,
+	* **Headers**:
 
-                "created\_at": "Thu, 20 Apr 2023 17:52:04 GMT",
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-                "deleted": 0,
+	* **Responses**:
 
-                "name": "Classroom",
+	  * **Status: 200 OK**
+	  * **Body**:
 
-                "updated\_at": "Thu, 20 Apr 2023 17:52:04 GMT"
+		```json
+		[
+			{
+				"assignment": {
+					"assignment_date": "Wed, 24 Sep 2025 00:00:00 GMT",
+					"assignment_id": 8,
+					"created_at": "Mon, 22 Sep 2025 11:11:32 GMT",
+					"deleted": 0,
+					"description": "<p>JavaScript8</p>",
+					"is_active": 1,
+					"is_assigned_to_students": 1,
+					"json_batch_ids": "[93]",
+					"title": "JavaScript8",
+					"total_marks": 100,
+					"trainer_id": 1,
+					"updated_at": "Tue, 23 Sep 2025 12:42:38 GMT",
+					"user_id": 2058
+				},
+				"created_at": "Tue, 23 Sep 2025 07:12:38 GMT",
+				"deleted": 0,
+				"document_uploaded_path": null,
+				"marks_obtained": null,
+				"student": {
+					"admission_date": "Sun, 31 Mar 2024 00:00:00 GMT",
+					"agent_id": 3,
+					"alternate_phone_num": null,
+					"area": null,
+					"back_image_path": null,
+					"batch_id": 93,
+					"batch_time_id": 4,
+					"branch_id": 1,
+					"city_id": 1,
+					"country_id": 98,
+					"course_content_class_recording_id": 1,
+					"course_content_id": 1,
+					"course_id": 7,
+					"course_mode_id": 1,
+					"created_at": "Mon, 01 Apr 2024 05:27:26 GMT",
+					"deleted": 0,
+					"dob": null,
+					"email": null,
+					"front_image_path": null,
+					"highest_education": null,
+					"is_active": 1,
+					"is_document_verified": 0,
+					"json_course_learning_progress": null,
+					"json_course_learning_progress_class_recording": null,
+					"lead_id": 26017,
+					"name": "Diksha Kalsaitkar",
+					"occupation": null,
+					"passport_image_path": null,
+					"phone_num": "+91-9112012740",
+					"pincode": null,
+					"purpose_for_course": null,
+					"referred_by": null,
+					"source_id": 1,
+					"state_id": 21,
+					"student_id": 3751,
+					"total_fee": 40000,
+					"total_fee_paid": 5000,
+					"total_pending_fee": 35000,
+					"trainer_id": 1,
+					"updated_at": "Mon, 01 Apr 2024 05:27:26 GMT",
+					"user_id": 3765,
+					"who_you_are": null
+				},
+				"submission_id": 64,
+				"submission_status": 0,
+				"updated_at": "Tue, 23 Sep 2025 07:12:38 GMT"
+			}
+		]
+		```
 
-            },
+	---
 
-            "deleted": 0,
+	**### 13. Update Assignment Submission**
 
-            "name": "fcvijay10-12pm-May",
+	Updates marks and status for an assignment submission.
 
-            "seats\_occupied": 23,
+	* **Method**: PUT
+	* **Path**: `/assignment/submission/update/:submission\_id`
+	* **Parameters**:
 
-            "seats\_vacant": 17,
+	  * `/:submission\_id` (e.g., `/assignment/submission/update/8`)
 
-            "total\_seats": 40,
+	* **Headers**:
 
-            "trainer": {
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-                "created\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+	* **Request Body**:
 
-                "deleted": 0,
+	&nbsp;   ```json
+		\[
+		  { "submission\_id": 86, "marks\_obtained": 80, "submission\_status": 1 },
+		  { "submission\_id": 87, "marks\_obtained": null, "submission\_status": 0 }
+		]
+		```
 
-                "email": "vijay\_gehlot\_trainer@test.com",
+	* **Responses**:
 
-                "name": "Vijay Gehlot",
+	  * **Status: 200 OK**
+	  * **Body**:
 
-                "phone\_num": "+91-8552077668",
+		```json
+				{
+					"message": "Submission updated."
+				}
+				```
 
-                "trainer\_id": 1,
+	---
 
-                "updated\_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+	**### 14. Get Trainers**
 
-                "user\_id": 2058
+	Retrieves a list of all trainers.
 
-            }
+	* **Method**: GET
+	* **Path**: `/trainer/select-paginate-advanced?draw=1\&...`
+	* **Headers**:
 
-        }
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-      ]
+	* **Responses**:
 
-    }
+	  * **Status: 200 OK**
+	  * **Body**:
 
+		```json
+				{
+					"basic_stats": {
+						"total_trainers": 1
+					},
+					"data": [
+						{
+							"created_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+							"deleted": 0,
+							"email": "vijay_gehlot_trainer@test.com",
+							"is_active": 1,
+							"name": "Vijay Gehlot",
+							"phone_num": "+91-8552077668",
+							"trainer_id": 1,
+							"updated_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+							"user_id": 2058
+						}
+					],
+					"draw": 1,
+					"recordsFiltered": 1,
+					"recordsTotal": 1
+				}
+				```
 
+	---
 
+	**### 15. Get Trainer by ID**
 
+	Retrieves a specific trainer by their ID.
 
+	* **Method**: GET
+	* **Path**: `/trainer/select/:trainer\_id`
+	* **Parameters**:
 
+	  * `/:trainer\_id` (e.g., `/trainer/select/1`)
 
-**### 6. GET Students:**
+	* **Headers**:
 
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
+	* **Responses**:
 
-Retrieves a list of all the Students.
+	  * **Status: 200 OK**
+	  * **Body**:
 
+		```json
+				{
+					"created_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+					"deleted": 0,
+					"email": "vijay_gehlot_trainer@test.com",
+					"is_active": 1,
+					"name": "Vijay Gehlot",
+					"phone_num": "+91-8552077668",
+					"trainer_id": 1,
+					"updated_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+					"user_id": 2058
+				}
+				```
 
+	---
 
-* Method: GET
-* Path: /students\_report/select-paginate-advanced?draw=1\&columns%5B0%5D%5Bdata%5D=student.name\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=attendance\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=assignment\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=exam\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=score\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B5%5D%5Bdata%5D=certificate\&columns%5B5%5D%5Bname%5D=\&columns%5B5%5D%5Bsearchable%5D=true\&columns%5B5%5D%5Borderable%5D=false\&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B6%5D%5Bdata%5D=mock\_interview\&columns%5B6%5D%5Bname%5D=\&columns%5B6%5D%5Bsearchable%5D=true\&columns%5B6%5D%5Borderable%5D=false\&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B7%5D%5Bdata%5D=placement\_status\&columns%5B7%5D%5Bname%5D=\&columns%5B7%5D%5Bsearchable%5D=true\&columns%5B7%5D%5Borderable%5D=false\&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false
-* Headers:
+	**### 16. Update Trainer**
 
-     - Authorization: Bearer YOUR\_API\_KEY (Required) Responses:
+	Updates a trainer's user profile information.
 
-* Responses:
+	* **Method**: PUT
+	* **Path**: `/user/update/:user\_id`
+	* **Parameters**:
 
-     - Status: 200 OK:
+	  * `/:user\_id` (e.g., `/user/update/2058`)
 
-     - Response Body: {
+	* **Headers**:
 
-   	{
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
+	* **Request Body**:
 
+	&nbsp;   ```json
+		{
+		  "name": "Vijay Gehlot",
+		  "phone\_num": "+91-8552077668",
+		  "email": "vijay\_gehlot\_trainer@test.com"
+		}
+		```
 
-&nbsp;   "basic\_stats": {
+	* **Responses**:
 
-&nbsp;       "total\_student\_reports": 3075
+	  * **Status: 200 OK**
+	  * **Body**:
 
-&nbsp;   },
+		```json
+				{
+					"message": "User is updated."
+				}
+				```
 
-&nbsp;   "data": \[
+	---
 
-&nbsp;       {
+	**### 17. Get All Batches**
 
-&nbsp;           "assignment": "",
+	Retrieves a complete list of all batches without pagination.
 
-&nbsp;           "attendance": "",
+	* **Method**: GET
+	* **Path**: `/batch/all`
+	* **Headers**:
 
-&nbsp;           "certificate": "",
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-&nbsp;           "exam": "",
+	* **Responses**:
 
-&nbsp;           "mock\_interview": "",
+	  * **Status: 200 OK**
+	  * **Body**:
 
-&nbsp;           "placement\_status": null,
+		```json
+				[
+					{
+						"batch_date": "Fri, 03 May 2024 00:00:00 GMT",
+						"batch_id": 91,
+						"batch_num": 1091,
+						"batch_time_id": 2,
+						"branch_id": 1,
+						"course_id": 1,
+						"course_mode_id": 1,
+						"deleted": 0,
+						"name": "fcvijay10-12pm-May",
+						"seats_occupied": 23,
+						"seats_vacant": 17,
+						"total_seats": 40,
+						"trainer_id": 1
+					}
+				]
+				```
 
-&nbsp;           "score": "",
+	---
 
-&nbsp;           "student": {
+	**### 18. Get All Lectures**
 
-&nbsp;               "admission\_date": "Fri, 04 Mar 2022 00:00:00 GMT",
+	Retrieves a complete list of all lectures without pagination.
 
-&nbsp;               "agent\_id": 5,
+	* **Method**: GET
+	* **Path**: `/lecture/all`
+	* **Headers**:
 
-&nbsp;               "alternate\_phone\_num": null,
+	  * Authorization: Bearer YOUR\_API\_KEY (Required)
 
-&nbsp;               "area": "",
+	* **Responses**:
 
-&nbsp;               "back\_image\_path": "",
+	  * **Status: 200 OK**
+	  * **Body**:
 
-&nbsp;               "batch\_id": null,
-
-&nbsp;               "batch\_time\_id": 1,
-
-&nbsp;               "branch\_id": 1,
-
-&nbsp;               "city\_id": 1,
-
-&nbsp;               "country\_id": 98,
-
-&nbsp;               "course\_content\_class\_recording\_id": 1,
-
-&nbsp;               "course\_content\_id": 1,
-
-&nbsp;               "course\_id": 1,
-
-&nbsp;               "course\_mode\_id": 1,
-
-&nbsp;               "created\_at": "Mon, 13 Mar 2023 22:39:03 GMT",
-
-&nbsp;               "deleted": 0,
-
-&nbsp;               "dob": "Mon, 01 Jan 1990 00:00:00 GMT",
-
-&nbsp;               "email": null,
-
-&nbsp;               "front\_image\_path": "",
-
-&nbsp;               "highest\_education": "",
-
-&nbsp;               "is\_active": 1,
-
-&nbsp;               "is\_document\_verified": 1,
-
-&nbsp;               "json\_course\_learning\_progress": "",
-
-&nbsp;               "json\_course\_learning\_progress\_class\_recording": null,
-
-&nbsp;               "lead\_id": 2219,
-
-&nbsp;               "name": "yash ghadghe",
-
-&nbsp;               "occupation": "",
-
-&nbsp;               "passport\_image\_path": "",
-
-&nbsp;               "phone\_num": "+91-8983383844",
-
-&nbsp;               "pincode": "",
-
-&nbsp;               "purpose\_for\_course": "Other",
-
-&nbsp;               "referred\_by": "",
-
-&nbsp;               "source\_id": 4,
-
-&nbsp;               "state\_id": 21,
-
-&nbsp;               "student\_id": 373,
-
-&nbsp;               "total\_fee": 20000,
-
-&nbsp;               "total\_fee\_paid": 20000,
-
-&nbsp;               "total\_pending\_fee": 0,
-
-&nbsp;               "trainer\_id": 1,
-
-&nbsp;               "updated\_at": "Mon, 13 Mar 2023 22:39:03 GMT",
-
-&nbsp;               "user\_id": 387,
-
-&nbsp;               "who\_you\_are": null
-
-&nbsp;           }
-
-&nbsp;       }
-
-&nbsp;    ]
-
-&nbsp; }
-
-}
-
-
-
-
-
-**### 6. GET Lecture Attendance By Id:**
-
-
-
-Retrieves a list of all the Lecture Attendance.
-
-
-
-* Method: GET
-* Path: /lecture/attendance/:lecture\_id  
-
-&nbsp; - Authorization: Bearer YOUR\_API\_KEY (Required) Responses:
-
-
-
-* Parameters:
-
-&nbsp;  - /:lecture\_id
-
-* Responses:
-
-     - Status: 200 OK:
-
-     - Response Body: 
-
-   	
-
-    "basic\_stats": {
-
-        "total\_student\_reports": 3075
-
-    },
-
-    "data": \[
-
-        {
-
-            "assignment": "",
-
-            "attendance": "",
-
-            "certificate": "",
-
-            "exam": "",
-
-            "mock\_interview": "",
-
-            "placement\_status": null,
-
-            "score": "",
-
-            "student": {
-
-                "admission\_date": "Fri, 04 Mar 2022 00:00:00 GMT",
-
-                "agent\_id": 5,
-
-                "alternate\_phone\_num": null,
-
-                "area": "",
-
-                "back\_image\_path": "",
-
-                "batch\_id": null,
-
-                "batch\_time\_id": 1,
-
-                "branch\_id": 1,
-
-                "city\_id": 1,
-
-                "country\_id": 98,
-
-                "course\_content\_class\_recording\_id": 1,
-
-                "course\_content\_id": 1,
-
-                "course\_id": 1,
-
-                "course\_mode\_id": 1,
-
-                "created\_at": "Mon, 13 Mar 2023 22:39:03 GMT",
-
-                "deleted": 0,
-
-                "dob": "Mon, 01 Jan 1990 00:00:00 GMT",
-
-                "email": null,
-
-                "front\_image\_path": "",
-
-                "highest\_education": "",
-
-                "is\_active": 1,
-
-                "is\_document\_verified": 1,
-
-                "json\_course\_learning\_progress": "",
-
-                "json\_course\_learning\_progress\_class\_recording": null,
-
-                "lead\_id": 2219,
-
-                "name": "yash ghadghe",
-
-                "occupation": "",
-
-                "passport\_image\_path": "",
-
-                "phone\_num": "+91-8983383844",
-
-                "pincode": "",
-
-                "purpose\_for\_course": "Other",
-
-                "referred\_by": "",
-
-                "source\_id": 4,
-
-                "state\_id": 21,
-
-                "student\_id": 373,
-
-                "total\_fee": 20000,
-
-                "total\_fee\_paid": 20000,
-
-                "total\_pending\_fee": 0,
-
-                "trainer\_id": 1,
-
-                "updated\_at": "Mon, 13 Mar 2023 22:39:03 GMT",
-
-                "user\_id": 387,
-
-                "who\_you\_are": null
-
-            }
-
-        }
-
-     ]
-
-  }
-
-}
-
-
-
-
-
-
-
-
-
-&nbsp;	
-
-
-
-
-
-**6. Batch by Id (GET):** curl 'http://127.0.0.1:3002/api/batch/select/47' \\
-
-  -H 'Accept: \*/\*' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=utf-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"'
-
-
-
-**7. Update Attendance (PUT)** --> curl 'http://127.0.0.1:3002/api/lecture/attendance/update' \\
-
-  -X 'PUT' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=UTF-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  --data-raw '\[{"attendance\_id":null,"attendance\_status":null},{"attendance\_id":1546,"attendance\_status":2},{"attendance\_id":1547,"attendance\_status":0},{"attendance\_id":1548,"attendance\_status":0},{"attendance\_id":1549,"attendance\_status":0},{"attendance\_id":1550,"attendance\_status":0},{"attendance\_id":1551,"attendance\_status":0},{"attendance\_id":1552,"attendance\_status":0},{"attendance\_id":1553,"attendance\_status":0},{"attendance\_id":1554,"attendance\_status":0},{"attendance\_id":1555,"attendance\_status":0},{"attendance\_id":1556,"attendance\_status":0},{"attendance\_id":1557,"attendance\_status":0},{"attendance\_id":1558,"attendance\_status":0},{"attendance\_id":1559,"attendance\_status":0},{"attendance\_id":1560,"attendance\_status":0},{"attendance\_id":1561,"attendance\_status":0},{"attendance\_id":1562,"attendance\_status":0},{"attendance\_id":1563,"attendance\_status":0},{"attendance\_id":1564,"attendance\_status":0}]'
-
-
-
-
-
-**8.** **Add Session(Lecture) API (POST)** --> curl 'http://127.0.0.1:3002/api/lecture/add' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=UTF-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  --data-raw '\[{"name":"Vijay Gehlot-22/09/2025-11\[40]2","topic":"GEN AI","course\_mode\_id":1,"json\_batch\_ids":"\[40]","batch\_time\_id":2,"trainer\_id":"1","user\_id":"2058","zoom\_link":"","batch\_date":"22/09/2025"}]'
-
-
-
-
-
-**9. Update Session (PUT)** --> curl 'http://127.0.0.1:3002/api/lecture/update/43' \\
-
-  -X 'PUT' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=UTF-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  --data-raw '\[{"name":"Vijay Gehlot-29/09/2025-11\[45]1","topic":"JAVA5","course\_mode\_id":1,"batch\_time\_id":1,"trainer\_id":"1","user\_id":"2058","zoom\_link":"","batch\_date":"29/09/2025"}]'
-
-
-
-
-
-**10. Add Assignment (POST)** --> curl 'http://127.0.0.1:3002/api/assignment/add' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=UTF-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  --data-raw '\[{"title":"Documentation of GEN AI","description":"Documentation of GEN AI","json\_batch\_ids":"\[30]","trainer\_id":"1","user\_id":"2058","assignment\_date":"22/09/2025","total\_marks":"500"}]'
-
-
-
-
-
-**11. Update Assignment (PUT)** --> curl 'http://127.0.0.1:3002/api/assignment/update/12' \\
-
-  -X 'PUT' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=UTF-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  --data-raw '\[{"title":"fc-2","description":"fc-2","assignment\_date":"29/09/2025","total\_marks":"2000","trainer\_id":"1","user\_id":"2058"}]'
-
-
-
-
-
-**12. Assignment Submission View (GET):** curl 'http://127.0.0.1:3002/api/assignment/submission/view/8' \\
-
-  -H 'Accept: \*/\*' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=utf-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"'
-
-
-
-**13. Assignment Submission Update (PUT):** curl 'http://127.0.0.1:3002/api/assignment/submission/update/8' \\
-
-  -X 'PUT' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=UTF-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  --data-raw '\[{"submission\_id":86,"marks\_obtained":80,"submission\_status":1},{"submission\_id":87,"marks\_obtained":null,"submission\_status":0},{"submission\_id":88,"marks\_obtained":null,"submission\_status":0},{"submission\_id":89,"marks\_obtained":null,"submission\_status":0},{"submission\_id":90,"marks\_obtained":null,"submission\_status":0},{"submission\_id":91,"marks\_obtained":null,"submission\_status":0},{"submission\_id":92,"marks\_obtained":null,"submission\_status":0},{"submission\_id":93,"marks\_obtained":null,"submission\_status":0},{"submission\_id":94,"marks\_obtained":null,"submission\_status":0},{"submission\_id":95,"marks\_obtained":null,"submission\_status":0},{"submission\_id":96,"marks\_obtained":null,"submission\_status":0},{"submission\_id":97,"marks\_obtained":null,"submission\_status":0},{"submission\_id":98,"marks\_obtained":null,"submission\_status":0},{"submission\_id":99,"marks\_obtained":null,"submission\_status":0},{"submission\_id":100,"marks\_obtained":null,"submission\_status":0},{"submission\_id":101,"marks\_obtained":null,"submission\_status":0},{"submission\_id":102,"marks\_obtained":null,"submission\_status":0},{"submission\_id":103,"marks\_obtained":null,"submission\_status":0},{"submission\_id":104,"marks\_obtained":null,"submission\_status":0},{"submission\_id":105,"marks\_obtained":null,"submission\_status":0},{"submission\_id":106,"marks\_obtained":null,"submission\_status":0},{"submission\_id":107,"marks\_obtained":null,"submission\_status":0},{"submission\_id":108,"marks\_obtained":null,"submission\_status":0},{"submission\_id":109,"marks\_obtained":null,"submission\_status":0},{"submission\_id":110,"marks\_obtained":null,"submission\_status":0},{"submission\_id":111,"marks\_obtained":null,"submission\_status":0},{"submission\_id":112,"marks\_obtained":null,"submission\_status":0},{"submission\_id":113,"marks\_obtained":null,"submission\_status":0},{"submission\_id":114,"marks\_obtained":null,"submission\_status":0},{"submission\_id":115,"marks\_obtained":null,"submission\_status":0},{"submission\_id":116,"marks\_obtained":null,"submission\_status":0},{"submission\_id":117,"marks\_obtained":null,"submission\_status":0},{"submission\_id":118,"marks\_obtained":null,"submission\_status":0}]'
-
-
-
-**14. GET Trainer** --> curl 'http://127.0.0.1:3002/api/trainer/select-paginate-advanced?draw=1\&columns%5B0%5D%5Bdata%5D=trainer\_id\&columns%5B0%5D%5Bname%5D=\&columns%5B0%5D%5Bsearchable%5D=true\&columns%5B0%5D%5Borderable%5D=false\&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B1%5D%5Bdata%5D=name\&columns%5B1%5D%5Bname%5D=\&columns%5B1%5D%5Bsearchable%5D=true\&columns%5B1%5D%5Borderable%5D=false\&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B2%5D%5Bdata%5D=phone\_num\&columns%5B2%5D%5Bname%5D=\&columns%5B2%5D%5Bsearchable%5D=true\&columns%5B2%5D%5Borderable%5D=false\&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B3%5D%5Bdata%5D=email\&columns%5B3%5D%5Bname%5D=\&columns%5B3%5D%5Bsearchable%5D=true\&columns%5B3%5D%5Borderable%5D=false\&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false\&columns%5B4%5D%5Bdata%5D=\&columns%5B4%5D%5Bname%5D=\&columns%5B4%5D%5Bsearchable%5D=true\&columns%5B4%5D%5Borderable%5D=false\&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=\&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false\&start=0\&length=10\&search%5Bvalue%5D=\&search%5Bregex%5D=false\&\_=1757254092211' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"'
-
-
-
-**15. Trainer By Id (GET)** --> curl 'http://127.0.0.1:3002/api/trainer/select/1' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=utf-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"'
-
-
-
-**16. Update Trainer (PUT)** --> curl 'http://127.0.0.1:3002/api/user/update/2058' \\
-
-  -X 'PUT' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=UTF-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  --data-raw '{"name":"Vijay Gehlot","phone\_num":"+91-8552077668","email":"vijay\_gehlot\_trainer@test.com"}'
-
-
-
-
-
-**17.All Batches (GET)** --> curl 'http://127.0.0.1:3002/api/batch/all' \\
-
-  -H 'sec-ch-ua-platform: "Android"' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Referer;' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'Accept: application/json, text/javascript, \*/\*; q=0.01' \\
-
-  -H 'Content-Type: application/json; charset=utf-8'
-
-
-
-
-
-**18. All Lecture (GET)** --> curl 'http://127.0.0.1:3002/api/lecture/all' \\
-
-  -H 'Accept: \*/\*' \\
-
-  -H 'Accept-Language: en-US,en-IN;q=0.9,en;q=0.8' \\
-
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg' \\
-
-  -H 'Connection: keep-alive' \\
-
-  -H 'Content-Type: application/json; charset=utf-8' \\
-
-  -H 'Origin: https://localhost' \\
-
-  -H 'Sec-Fetch-Dest: empty' \\
-
-  -H 'Sec-Fetch-Mode: cors' \\
-
-  -H 'Sec-Fetch-Site: cross-site' \\
-
-  -H 'User-Agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36' \\
-
-  -H 'sec-ch-ua: "Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"' \\
-
-  -H 'sec-ch-ua-mobile: ?1' \\
-
-  -H 'sec-ch-ua-platform: "Android"'
-
-
-
-
-
-
-
- 
+		```json
+				[
+					{
+						"batch_date": "2024-12-03",
+						"batch_time": {
+							"batch_time_id": 4,
+							"created_at": "Thu, 20 Apr 2023 17:46:06 GMT",
+							"name": "01:00PM - 03:00PM",
+							"updated_at": "Thu, 20 Apr 2023 17:46:06 GMT"
+						},
+						"course_mode": {
+							"course_mode_id": 1,
+							"created_at": "Thu, 20 Apr 2023 17:52:04 GMT",
+							"deleted": 0,
+							"name": "Classroom",
+							"updated_at": "Thu, 20 Apr 2023 17:52:04 GMT"
+						},
+						"created_at": "Sun, 15 Dec 2024 16:11:14 GMT",
+						"deleted": 0,
+						"is_active": 1,
+						"json_batch_ids": null,
+						"lecture_id": 15,
+						"name": "Vijay Gehlot-03/12/24-171934",
+						"topic": null,
+						"trainer": {
+							"created_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+							"deleted": 0,
+							"email": "vijay_gehlot_trainer@test.com",
+							"name": "Vijay Gehlot",
+							"phone_num": "+91-8552077668",
+							"trainer_id": 1,
+							"updated_at": "Sun, 30 Apr 2023 00:40:27 GMT",
+							"user_id": 2058
+						},
+						"updated_at": "Sun, 15 Dec 2024 16:11:14 GMT",
+						"user_id": 2058,
+						"zoom_link": null
+					}
+				]
+				```
 

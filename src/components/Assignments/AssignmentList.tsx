@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
-import { Assignment, Batch } from '../../types';
-
+import { Assignment, Batch, Student } from '../../types';
+import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentListProps {
   assignments: Assignment[];
   batches: Batch[];
-  onViewSubmissions: (assignment: Assignment) => void;
+  onViewSubmissions: (assignment: Assignment, batch: Batch | null, students: Student[]) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
 }
@@ -27,6 +27,10 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+    const {fetchBatchById,fetchAssignmentSubmissions } = useTrainerData();
+
+
 
   const getAssignmentStatus = (assignment: Assignment) => {
     const now = new Date();
@@ -134,7 +138,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     }
   };
 
-  
+
 
 
   return (
@@ -313,11 +317,46 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => onViewSubmissions(assignment)}
+                            onClick={async () => {
+                              try {
+                                // 1. Resolve batchId
+                                let batchId = assignment.batchId;
+                                if (batchId.startsWith("[")) {
+                                  try {
+                                    const ids = JSON.parse(batchId);
+                                    batchId = Array.isArray(ids) ? ids[0] : batchId;
+                                  } catch { }
+                                }
+
+                                // 2. Fetch batch
+                                const batch = await fetchBatchById(batchId);
+
+                                // 3. Fetch submissions
+                                const submissions = await fetchAssignmentSubmissions(assignment.id);
+
+                                // 4. Transform submissions into Student[]
+                                const students = submissions.map((s: any) => ({
+                                  id: s.student_id.toString(),
+                                  name: s.student_name,
+                                  email: s.student_email,
+                                  batchId,
+                                  enrollmentDate: s.enrollment_date,
+                                  overallAttendance: s.attendance || 0,
+                                  overallGrade: s.grade || 0,
+                                }));
+
+                                // 5. Open modal with all data
+                                onViewSubmissions(assignment, batch, students);
+                              } catch (error) {
+                                console.error("Failed to fetch details:", error);
+                                onViewSubmissions(assignment, null, []);
+                              }
+                            }}
+
                             className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs"
                           >
                             <Eye className="w-3 h-3" />
-                            View ({submittedCount})
+                            View ({assignment.submissions.length})
                           </button>
 
                           <div className="relative">
