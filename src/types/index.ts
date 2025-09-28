@@ -11,6 +11,31 @@ export interface Batch {
   isActive: boolean;
 }
 
+export interface AllBatches {
+  id: string;
+  name: string;
+  timing: '10am-12pm' | '3pm-6pm' | '7pm-9pm';
+  students: Student[];
+  startDate: string;
+  endDate: string;
+  courseTitle: string;
+  totalStudents?: number;
+  isActive: boolean;
+}
+
+export interface Trainer {
+  id: string;
+  length: number;
+  name: string;
+  timing: '10am-12pm' | '3pm-6pm' | '7pm-9pm';
+  students: Student[];
+  startDate: string;
+  endDate: string;
+  courseTitle: string;
+  totalStudents?: number;
+  isActive: boolean;
+}
+
 export interface Student {
   id: string;
   length?:number;

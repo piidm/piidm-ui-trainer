@@ -783,7 +783,6 @@ export const useTrainerData = () => {
           startTime24hr = "00:00";
         }
 
-
         return {
           id: item.lecture_id.toString(),
           topic: item.topic || item.title || "Untitled",
@@ -840,6 +839,7 @@ export const useTrainerData = () => {
 
       }));
 
+
       setBatches(batchList);
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -875,15 +875,13 @@ export const useTrainerData = () => {
       const batchList: Batch[] = batchesArray.map((item: any) => ({
         id: item.batch_id?.toString() || "0",
         name: item.name || `Batch ${item.batch_num || "Unknown"}`,
-        timing: item.batch_time_id
-          ? `Time Slot #${item.batch_time_id}`
-          : "Not Assigned",
+        timing: item.batch_time_id  || "00:00 - 00:00",
         students:  Array(item.seats_occupied || 0).fill(null),
         startDate: item.batch_date || "1970-01-01",
         endDate: item.batch_date || "1970-01-01",
         courseTitle: `Course #${item.course_id}`,
         totalStudents: item.seats_occupied || 0,
-        isActive: item.deleted === 0, // ✅ Keep only non-deleted
+        isActive: item.deleted === 0, // Keep only non-deleted
       }));
 
       setAllBatches(batchList);

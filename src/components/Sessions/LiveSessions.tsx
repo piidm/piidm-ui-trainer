@@ -10,7 +10,7 @@ export const LiveSessions: React.FC = () => {
   useEffect(() => {
     const controller = new AbortController();
     const timeout = setTimeout(async () => {
-      await fetchBatches(controller.signal);     // ✅ dropdown
+      await fetchBatches(controller.signal);
       await fetchAllBatches(controller.signal);
       await fetchSessions(controller.signal);
 
@@ -70,7 +70,7 @@ export const LiveSessions: React.FC = () => {
     if (!batchId) return "Unknown Batch";
 
     try {
-      // ✅ Clean and split the comma-separated string
+      //Clean and split the comma-separated string
       const ids = batchId
         .toString()
         .replace(/[\[\]\s"]/g, "") // remove [ ], spaces, and quotes
@@ -79,7 +79,6 @@ export const LiveSessions: React.FC = () => {
 
       if (!ids.length) return "Unknown Batch";
 
-      // ✅ Match each ID with allBatches
       const names = ids
         .map((id) => {
           const batch = allBatches.find((b) => b.id === id.toString());
@@ -137,9 +136,6 @@ export const LiveSessions: React.FC = () => {
 
     return total;
   };
-
-
-
 
 
   const SessionTable = ({ sessions, title }: { sessions: any[], title: string }) => (

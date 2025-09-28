@@ -11,9 +11,11 @@ export const Assignments: React.FC = () => {
   const {
     assignments,
     batches,
+    allBatches,
     students,
     fetchAssignments,
     fetchBatches,
+    fetchAllBatches,
     fetchStudents,
     assignmentStats,
     addAssignment,
@@ -34,11 +36,10 @@ export const Assignments: React.FC = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-
     fetchAssignments(controller.signal);
     fetchBatches(controller.signal);
+    fetchAllBatches(controller.signal);
     fetchStudents(controller.signal);
-
     return () => {
       controller.abort();
     }
@@ -116,6 +117,7 @@ export const Assignments: React.FC = () => {
       <AssignmentList
         assignments={assignments}
         batches={batches}
+        allBatches={allBatches}
         onViewSubmissions={handleViewSubmissions}
         onEditAssignment={handleEditClick}
         onDeleteAssignment={handleDeleteAssignment}

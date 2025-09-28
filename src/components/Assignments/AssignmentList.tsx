@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
-import { Assignment, Batch, Student } from '../../types';
+import { AllBatches, Assignment, Batch, Student } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentListProps {
   assignments: Assignment[];
   batches: Batch[];
+  allBatches: AllBatches[];
   onViewSubmissions: (assignment: Assignment, batch: Batch | null, students: Student[]) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
@@ -14,6 +15,7 @@ interface AssignmentListProps {
 export const AssignmentList: React.FC<AssignmentListProps> = ({
   assignments,
   batches,
+  allBatches,
   onViewSubmissions,
   onEditAssignment,
   onDeleteAssignment
@@ -27,9 +29,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-
-  const { fetchBatchById, fetchAssignmentSubmissions } = useTrainerData();
-
+  const { fetchBatchById, fetchAssignmentSubmissions} = useTrainerData();
 
 
   const getAssignmentStatus = (assignment: Assignment) => {
@@ -110,8 +110,30 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const totalPages = Math.ceil(filteredAndSortedAssignments.length / itemsPerPage);
 
   const getBatchName = (batchId: string) => {
+    if (!batchId) return "Unknown Batch";
 
-    return batches.find(batch => batch.id === batchId)?.name || 'Unknown Batch';
+    try {
+      //Clean and split the comma-separated string
+      const ids = batchId
+        .toString()
+        .replace(/[\[\]\s"]/g, "") // remove [ ], spaces, and quotes
+        .split(",")
+        .filter(Boolean);
+      console.log("Getting batch name for ID:", batchId, "Parsed IDs:", ids); // 👈 DEBUG
+      if (!ids.length) return "Unknown Batch";
+
+      const names = ids
+        .map((id) => {
+          const batch = allBatches.find((b) => b.id === id.toString());
+          return batch?.name || null;
+        })
+        .filter(Boolean);
+      console.log("Resolved batch names:Assignment", names); // 👈 DEBUG
+      return names.length > 0 ? names.join(",\n ") : "Unknown Batch";
+    } catch (err) {
+      console.error("Batch name error:", err);
+      return "Unknown Batch";
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -271,7 +293,17 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-900">
                           <Users className="w-4 h-4 mr-2 text-gray-400" />
-                          {getBatchName(assignment.batchId.split(",")[0].substring(1, assignment.batchId.indexOf(']')))}
+                          <span>
+                          {getBatchName(assignment.batchId).split("\n")
+                          .map((line, i) => (
+                            <span key={i}>
+                              {line}
+                              <br />
+                            </span>
+                          ))}
+                          </span>
+                           
+                          
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

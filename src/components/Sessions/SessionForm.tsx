@@ -12,8 +12,6 @@ interface SessionFormProps {
 
 export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSubmit, batches }) => {
 
-
-
   const [formData, setFormData] = useState({
     topic: '',
     batchId: '',
