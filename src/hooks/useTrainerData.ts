@@ -698,6 +698,7 @@ const mockExams: Exam[] = [
 
 export const useTrainerData = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
+  const [allBatches, setAllBatches] = useState<Batch[]>([]); // ✅ add this
   const [students, setStudents] = useState<Student[]>([]);
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -705,6 +706,7 @@ export const useTrainerData = () => {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [reviewActions, setReviewActions] = useState<ReviewAction[]>([]);
   const [loading, setLoading] = useState(false);
+
 
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
@@ -752,23 +754,43 @@ export const useTrainerData = () => {
           batchIds = [];
         }
 
-        const firstBatchId = batchIds[0]?.toString() || "0";
+        const firstBatchId = batchIds?.toString() || "0";
         const today = new Date().toISOString().split("T")[0];
-
         const batchDate = item.batch_date?.split("T")[0] || today;
         const status = batchDate < today ? "completed" : "scheduled";
 
-        let startTime12hr = item.batch_time?.name.split(" - ")[0];
-        let startTime24hr = startTime12hr
-          ? convertTo24Hour(startTime12hr)
-          : "00:00";
+        // ✅ Safely handle missing batch_time
+        let displayTime = "00:00 AM - 00:00 PM";
+        if (item.batch_time && typeof item.batch_time.name === "string") {
+          displayTime = item.batch_time.name;
+        }
+
+        // ✅ Safely extract start time
+        let startTime12hr = "00:00 AM";
+        try {
+          if (displayTime && displayTime.includes(" - ")) {
+            startTime12hr = displayTime.split(" - ")[0];
+          }
+        } catch {
+          startTime12hr = "00:00 AM";
+        }
+
+        // ✅ Convert to 24-hour
+        let startTime24hr = "00:00";
+        try {
+          startTime24hr = convertTo24Hour(startTime12hr);
+        } catch {
+          startTime24hr = "00:00";
+        }
+
 
         return {
           id: item.lecture_id.toString(),
           topic: item.topic || item.title || "Untitled",
           batchId: firstBatchId,
-          date: item.batch_date,
-          time: startTime24hr || "00:00",
+          date: batchDate,
+          time: startTime24hr,
+          displayTime,
           mode: item.course_mode?.name.toLowerCase() || "unknown",
           lectureLink: item.zoom_link || "",
           status,
@@ -826,6 +848,55 @@ export const useTrainerData = () => {
       }
     }
   };
+
+  const fetchAllBatches = async (signal?: AbortSignal) => {
+    try {
+
+      const res = await fetch("http://127.0.0.1:3002/api/batch/all", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        signal,
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch all batches");
+
+      const resData = await res.json();
+      // Handle both: array response OR wrapped { data: [...] }
+      const batchesArray = Array.isArray(resData)
+        ? resData
+        : Array.isArray(resData.data)
+          ? resData.data
+          : [];
+
+      // Map batches correctly
+      const batchList: Batch[] = batchesArray.map((item: any) => ({
+        id: item.batch_id?.toString() || "0",
+        name: item.name || `Batch ${item.batch_num || "Unknown"}`,
+        timing: item.batch_time_id
+          ? `Time Slot #${item.batch_time_id}`
+          : "Not Assigned",
+        students:  Array(item.seats_occupied || 0).fill(null),
+        startDate: item.batch_date || "1970-01-01",
+        endDate: item.batch_date || "1970-01-01",
+        courseTitle: `Course #${item.course_id}`,
+        totalStudents: item.seats_occupied || 0,
+        isActive: item.deleted === 0, // ✅ Keep only non-deleted
+      }));
+
+      setAllBatches(batchList);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Fetch all batches aborted");
+      } else {
+        console.error("Error fetching all batches:", err);
+      }
+    }
+  };
+
+
 
 
   const fetchBatchById = async (batchId: string, signal?: AbortSignal) => {
@@ -1279,7 +1350,7 @@ export const useTrainerData = () => {
   };
 
   // Update assignment status based on due date
-  useEffect(():any => {
+  useEffect((): any => {
     const updateAssignmentStatuses = () => {
       const now = new Date();
       setAssignments((prev) =>
@@ -1300,7 +1371,8 @@ export const useTrainerData = () => {
   }, []);
 
   return {
-    batches,
+    batches, // used for dropdowns
+    allBatches,
     students,
     sessions,
     assignments,
@@ -1312,6 +1384,7 @@ export const useTrainerData = () => {
     loading,
     fetchSessions,
     fetchBatches,
+    fetchAllBatches,
     fetchStudents,
     fetchAssignments,
     fetchBatchById,

@@ -55,7 +55,14 @@ console.log("assignment",assignment);
 
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
-    const batchStudents = students.filter(student => student.batchId === assignment.batchId);
+      let assignmentBatchId = assignment.batchId;
+      if (assignmentBatchId.startsWith("[")) {
+        try {
+          const ids = JSON.parse(assignmentBatchId);
+          assignmentBatchId = Array.isArray(ids) ? ids[0].toString() : assignmentBatchId;
+        } catch {}
+      }
+    const batchStudents = students.filter(student => student.batchId === assignmentBatchId);
 
     return batchStudents.map(student => {
       const submission = assignment.submissions.find(sub => sub.studentId === student.id);

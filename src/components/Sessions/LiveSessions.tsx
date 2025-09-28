@@ -5,18 +5,20 @@ import { useTrainerData } from '../../hooks/useTrainerData';
 import { LiveSession } from '../../types';
 
 export const LiveSessions: React.FC = () => {
-  const { sessions, batches, fetchBatches, fetchSessions, addSession } = useTrainerData();
+  const { sessions, batches, allBatches, fetchBatches, fetchAllBatches, fetchSessions, addSession } = useTrainerData();
 
   useEffect(() => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      fetchSessions();
-      fetchBatches();
+    const timeout = setTimeout(async () => {
+      await fetchBatches(controller.signal);     // ✅ dropdown
+      await fetchAllBatches(controller.signal);
+      await fetchSessions(controller.signal);
+
     }, 500);
     return () => {
       clearTimeout(timeout);
       controller.abort();
-    }
+    };
   }, []);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -54,19 +56,44 @@ export const LiveSessions: React.FC = () => {
   };
 
   const handleScheduleSession = async (session: Omit<LiveSession, 'id'>) => {
-  try {
-    await addSession(session);
-    await fetchSessions();
-    setIsFormOpen(false);
-  } catch (err) {
-    alert("Failed to schedule session. Please check your network or backend.");
-    setIsFormOpen(false); // Optionally close the form even on error
-  }
+    try {
+      await addSession(session);
+      await fetchSessions();
+      setIsFormOpen(false);
+    } catch (err) {
+      alert("Failed to schedule session. Please check your network or backend.");
+      setIsFormOpen(false); // Optionally close the form even on error
+    }
   };
 
   const getBatchName = (batchId: string) => {
-    return batches.find(batch => batch.id === batchId)?.name || 'Unknown Batch';
+    if (!batchId) return "Unknown Batch";
+
+    try {
+      // ✅ Clean and split the comma-separated string
+      const ids = batchId
+        .toString()
+        .replace(/[\[\]\s"]/g, "") // remove [ ], spaces, and quotes
+        .split(",")
+        .filter(Boolean);
+
+      if (!ids.length) return "Unknown Batch";
+
+      // ✅ Match each ID with allBatches
+      const names = ids
+        .map((id) => {
+          const batch = allBatches.find((b) => b.id === id.toString());
+          return batch?.name || null;
+        })
+        .filter(Boolean);
+
+      return names.length > 0 ? names.join(",\n ") : "Unknown Batch";
+    } catch (err) {
+      console.error("Batch name error:", err);
+      return "Unknown Batch";
+    }
   };
+
 
   const getModeColor = (mode: string) => {
     switch (mode) {
@@ -95,6 +122,23 @@ export const LiveSessions: React.FC = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getTotalStudentsByBatchId = (batchId: string) => {
+    if (!batchId || !allBatches?.length) return 0;
+
+    // Handle comma-separated IDs like "91,92"
+    const ids = batchId.toString().replace(/[\[\]\s"]/g, "").split(",").filter(Boolean);
+
+    // Sum totalStudents for all matching batches
+    const total = ids.reduce((sum, id) => {
+      const match = allBatches.find(b => b.id === id.toString());
+      return sum + (match?.totalStudents || 0);
+    }, 0);
+
+    return total;
+  };
+
+
 
 
 
@@ -144,13 +188,16 @@ export const LiveSessions: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
+
+
               {sessions.map((session) => {
+
                 const ModeIcon = getModeIcon(session.mode);
                 const isToday = session.date === new Date().toISOString().split('T')[0];
                 const isUpcoming = new Date(`${session.date}T${session.time}`) > new Date();
 
                 return (
-                  <tr key={session.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={session.id} className="hover:bg-gray-50 transition-colors  ">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div>
@@ -172,7 +219,7 @@ export const LiveSessions: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-900">
                         <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                        {session.time}
+                        {session.displayTime || session.time}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -182,12 +229,19 @@ export const LiveSessions: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {getBatchName(session.batchId)}
-                      </div>
+                      <span className="text-sm text-gray-900">
+                        {getBatchName(session.batchId).split("\n")
+                          .map((line, i) => (
+                            <span key={i}>
+                              {line}
+                              <br />
+                            </span>
+                          ))}
+                      </span>
                       <div className="text-xs text-gray-500">
-                        {batches.find(b => b.id === session.batchId)?.totalStudents || 0} students
+                        {getTotalStudentsByBatchId(session.batchId)} Students
                       </div>
+
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {session.lectureLink ? (
@@ -285,7 +339,7 @@ export const LiveSessions: React.FC = () => {
 
       {/* Upcoming Sessions Table */}
       {upcomingSessions.length > 0 && (
-        <SessionTable sessions={upcomingSessions} title="Upcoming Sessions"   />
+        <SessionTable sessions={upcomingSessions} title="Upcoming Sessions" />
       )}
 
       {/* Past Sessions Table */}
@@ -319,7 +373,7 @@ export const LiveSessions: React.FC = () => {
       <SessionForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        onSubmit={ handleScheduleSession}
+        onSubmit={handleScheduleSession}
         batches={batches}
       />
     </div>

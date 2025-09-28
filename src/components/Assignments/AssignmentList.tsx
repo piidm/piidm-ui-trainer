@@ -28,7 +28,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [itemsPerPage] = useState(10);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-    const {fetchBatchById,fetchAssignmentSubmissions } = useTrainerData();
+  const { fetchBatchById, fetchAssignmentSubmissions } = useTrainerData();
 
 
 
@@ -333,16 +333,19 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
                                 // 3. Fetch submissions
                                 const submissions = await fetchAssignmentSubmissions(assignment.id);
+                                console.log("submissions raw:", submissions);
 
                                 // 4. Transform submissions into Student[]
                                 const students = submissions.map((s: any) => ({
-                                  id: s.student_id.toString(),
-                                  name: s.student_name,
-                                  email: s.student_email,
-                                  batchId,
-                                  enrollmentDate: s.enrollment_date,
-                                  overallAttendance: s.attendance || 0,
-                                  overallGrade: s.grade || 0,
+                                  id: String(s.student.student_id),          // student ID
+                                  name: s.student.name,                      // student name
+                                  email: s.student.email || "",              // might be null
+                                  batchId: String(s.student.batch_id),       // batchId from student object
+                                  enrollmentDate: s.student.admission_date,  // admission date
+                                  overallAttendance: 0,                      // not in API, keep default
+                                  overallGrade: s.marks_obtained || 0,       // marks from submission
+                                  submissionId: s.submission_id,             // useful for review
+                                  status: s.submission_status === 1 ? "submitted" : "pending", // map status
                                 }));
 
                                 // 5. Open modal with all data

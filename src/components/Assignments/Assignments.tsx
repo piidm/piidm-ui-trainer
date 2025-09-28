@@ -62,6 +62,8 @@ export const Assignments: React.FC = () => {
   };
 
   const handleViewSubmissions = (assignment: Assignment, batch: Batch | null, students: Student[]) => {
+    console.log("Students passed to modal:", students); // 👈 DEBUG
+
     setSelectedAssignment(assignment);
     setSelectedBatch(batch);
     setSelectedStudents(students);

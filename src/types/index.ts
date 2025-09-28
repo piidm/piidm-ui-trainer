@@ -7,7 +7,7 @@ export interface Batch {
   startDate: string;
   endDate: string;
   courseTitle: string;
-  totalStudents: number;
+  totalStudents?: number;
   isActive: boolean;
 }
 
@@ -29,6 +29,7 @@ export interface LiveSession {
   batchId: string;
   date: string;
   time: string;
+  displayTime?: string; 
   mode: 'classroom' | 'online' | 'hybrid';
   lectureLink?: string;
   status: 'scheduled' | 'ongoing' | 'completed';
