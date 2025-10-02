@@ -9,6 +9,8 @@ export interface Batch {
   courseTitle: string;
   totalStudents?: number;
   isActive: boolean;
+  courseMode?: string; 
+
 }
 
 export interface AllBatches {

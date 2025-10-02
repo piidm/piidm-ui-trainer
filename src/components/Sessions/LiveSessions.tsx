@@ -5,16 +5,18 @@ import { useTrainerData } from '../../hooks/useTrainerData';
 import { LiveSession } from '../../types';
 
 export const LiveSessions: React.FC = () => {
-  const { sessions, batches, allBatches, fetchBatches, fetchAllBatches, fetchSessions, addSession } = useTrainerData();
+  const { sessions, batches, allBatches, fetchBatches, fetchAllBatches, fetchAllLectureTimes, fetchSessions, addSession } = useTrainerData();
+
 
   useEffect(() => {
     const controller = new AbortController();
     const timeout = setTimeout(async () => {
+      await fetchAllLectureTimes(controller.signal);
       await fetchBatches(controller.signal);
       await fetchAllBatches(controller.signal);
       await fetchSessions(controller.signal);
 
-    }, 500);
+    }, 0);
     return () => {
       clearTimeout(timeout);
       controller.abort();
@@ -366,6 +368,7 @@ export const LiveSessions: React.FC = () => {
       )}
 
       {/* Session Form Modal */}
+
       <SessionForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}

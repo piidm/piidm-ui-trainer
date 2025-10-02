@@ -11,15 +11,59 @@ interface SessionFormProps {
 }
 
 export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSubmit, batches }) => {
+  const { allBatches } = useTrainerData();
 
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<{
+    topic: string;
+    batchId: string;
+    date: string;
+    time: string;
+    mode: 'classroom' | 'online' | 'hybrid';
+    lectureLink: string;
+  }>({
     topic: '',
     batchId: '',
     date: '',
     time: '',
-    mode: 'classroom' as 'classroom' | 'online' | 'hybrid',
+    mode: 'classroom',
     lectureLink: ''
   });
+
+
+  useEffect(() => {
+    if (!formData.batchId) return;
+    console.log("Selected batch ID:", formData.batchId, allBatches);
+    const selectedBatch = allBatches.find(b => b.id === formData.batchId);
+    if (selectedBatch) {
+      // Extract starting time if timing is like "10:00 AM - 12:00 PM"
+      let startTime = '';
+      if (typeof selectedBatch.timing === 'string' && selectedBatch.timing.includes('-')) {
+        const firstPart = selectedBatch.timing.split('-')[0].trim(); // "10:00 AM"
+        // Convert "10:00 AM" to 24-hour format
+        const [time, modifier] = firstPart.split(' ');
+        if (time) {
+          let [hours, minutes] = time.split(':').map(Number);
+          if (modifier?.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+          if (modifier?.toUpperCase() === 'AM' && hours === 12) hours = 0;
+          startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+      }
+
+      // Normalize mode safely
+      const modeValue = (selectedBatch.courseMode?.toLowerCase() || 'classroom') as
+        | 'classroom'
+        | 'online'
+        | 'hybrid';
+
+      setFormData(prev => ({
+        ...prev,
+        time: startTime || prev.time,
+        mode: modeValue
+      }));
+    }
+  }, [formData.batchId, allBatches]);
+
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -63,7 +107,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
     }
   };
 
-  const handleSubmit =  async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -163,6 +207,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                 <input
                   type="time"
                   value={formData.time}
+                  disabled={!!formData.batchId}
+
                   onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                   className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.time ? 'border-red-300' : 'border-gray-300'
                     }`}

@@ -706,6 +706,7 @@ export const useTrainerData = () => {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [reviewActions, setReviewActions] = useState<ReviewAction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [allLectureTimes, setAllLectureTimes] = useState<{ id: number; name: string }[]>([]);
 
 
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
@@ -806,6 +807,8 @@ export const useTrainerData = () => {
     }
   };
 
+
+
   // Batches API
   const fetchBatches = async (signal?: AbortSignal) => {
     setLoading(true);
@@ -825,22 +828,32 @@ export const useTrainerData = () => {
 
       const resData = await res.json();
       const totalBatches = resData.basic_stats.total_batches;
+
+      const getLectureName = (id: number) => {
+        const lecture = allLectureTimes.find(l => l.id == id);
+        return lecture?.name || "";
+      };
+
       const batchList: Batch[] = resData.data.map((item: any) => ({
         id: item.batch_id?.toString() || "0",
         length: totalBatches,
         name: item.name || "Unnamed Batch",
-        timing: item.batch_time?.name || "00:00 - 00:00",
+        timing: getLectureName(item.batch_time.batch_time_id),
+        // courseMode: modeName,
         students: [],
         startDate: item.start_date || "1970-01-01",
         endDate: item.end_date || "1970-01-01",
         courseTitle: item.course?.name || "Unknown Course",
         totalStudents: item.total_seats || 0,
-        isActive: item.is_active !== false,
+        // isActive: item.is_active !== false,
 
       }));
 
 
       setBatches(batchList);
+      console.group();
+      console.log();
+      console.groupEnd();
     } catch (err: any) {
       if (err.name === "AbortError") {
       } else {
@@ -848,6 +861,46 @@ export const useTrainerData = () => {
       }
     }
   };
+
+
+  //fetch all lecture times
+  const fetchAllLectureTimes = async (signal?: AbortSignal) => {
+    try {
+
+      const res = await fetch("http://127.0.0.1:3002/api/lecture/all", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        signal,
+
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch all lectures");
+
+      const resData = await res.json();
+      const allLecturesList = (resData || []).map((item: any) => ({
+        id: item.batch_time.batch_time_id,
+        name: item.batch_time.name || "Untitled", // Fallback to title or "Untitled
+      }));
+
+      setAllLectureTimes(allLecturesList);
+      console.group();
+      console.log("allLecturesList: ",allLecturesList);
+      console.log("allLecturesListTimes: ",allLectureTimes);
+      console.groupEnd();
+
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Fetch all lecture times aborted");
+      } else {
+        console.error(err);
+      }
+    }
+  }
+
+
 
   const fetchAllBatches = async (signal?: AbortSignal) => {
     try {
@@ -871,18 +924,33 @@ export const useTrainerData = () => {
           ? resData.data
           : [];
 
+      const getLectureName = (id: number) => {
+        const lecture = allLectureTimes.find(l => l.id == id);
+        return lecture?.name || "";
+      };
+
       // Map batches correctly
-      const batchList: Batch[] = batchesArray.map((item: any) => ({
-        id: item.batch_id?.toString() || "0",
-        name: item.name || `Batch ${item.batch_num || "Unknown"}`,
-        timing: item.batch_time_id  || "00:00 - 00:00",
-        students:  Array(item.seats_occupied || 0).fill(null),
-        startDate: item.batch_date || "1970-01-01",
-        endDate: item.batch_date || "1970-01-01",
-        courseTitle: `Course #${item.course_id}`,
-        totalStudents: item.seats_occupied || 0,
-        isActive: item.deleted === 0, // Keep only non-deleted
-      }));
+      const batchList: Batch[] = batchesArray.map((item: any) => {
+
+        let modeName = "classroom"; // default
+        if (item.course_mode_id === 2) modeName = "online";
+        else if (item.course_mode_id === 3) modeName = "hybrid";
+
+        return {
+
+          id: item.batch_id?.toString() || "0",
+          name: item.name || `Batch ${item.batch_num || "Unknown"}`,
+          timing: getLectureName(item.batch_time_id),
+          courseMode: modeName,
+          students: Array(item.seats_occupied || 0).fill(null),
+          startDate: item.batch_date || "1970-01-01",
+          endDate: item.batch_date || "1970-01-01",
+          courseTitle: `Course #${item.course_id}`,
+          totalStudents: item.seats_occupied || 0,
+          isActive: item.deleted === 0, // Keep only non-deleted
+        }
+
+      });
 
       setAllBatches(batchList);
     } catch (err: any) {
@@ -892,6 +960,7 @@ export const useTrainerData = () => {
         console.error("Error fetching all batches:", err);
       }
     }
+
   };
 
 
@@ -1371,6 +1440,7 @@ export const useTrainerData = () => {
   return {
     batches, // used for dropdowns
     allBatches,
+    allLectureTimes,
     students,
     sessions,
     assignments,
@@ -1381,6 +1451,7 @@ export const useTrainerData = () => {
     assignmentStats,
     loading,
     fetchSessions,
+    fetchAllLectureTimes,
     fetchBatches,
     fetchAllBatches,
     fetchStudents,
