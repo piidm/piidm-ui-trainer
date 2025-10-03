@@ -12,312 +12,6 @@ import {
   AssignmentStats,
 } from "../types";
 
-// Mock data - in a real app, this would come from an API
-// const mockBatches: Batch[] = [
-//   {
-//     id: "1",
-//     name: "Full Stack Development - Batch A",
-//     timing: "10am-12pm",
-//     students: [],
-//     startDate: "2024-01-15",
-//     endDate: "2024-06-15",
-//     courseTitle: "Full Stack Web Development",
-//     totalStudents: 25,
-//     isActive: true,
-//   },
-//   {
-//     id: "2",
-//     name: "React Advanced - Batch B",
-//     timing: "3pm-6pm",
-//     students: [],
-//     startDate: "2024-02-01",
-//     endDate: "2024-05-01",
-//     courseTitle: "Advanced React Development",
-//     totalStudents: 18,
-//     isActive: true,
-//   },
-//   {
-//     id: "3",
-//     name: "Backend Development - Batch C",
-//     timing: "7pm-9pm",
-//     students: [],
-//     startDate: "2024-01-20",
-//     endDate: "2024-04-20",
-//     courseTitle: "Backend with Node.js",
-//     totalStudents: 22,
-//     isActive: true,
-//   },
-// ];
-
-// const mockStudents: Student[] = [
-//   // Batch A Students
-//   {
-//     id: "1",
-//     name: "John Doe",
-//     email: "john@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 92,
-//     overallGrade: 85,
-//     batchId: "1",
-//   },
-//   {
-//     id: "2",
-//     name: "Jane Smith",
-//     email: "jane@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 88,
-//     overallGrade: 91,
-//     batchId: "1",
-//   },
-//   {
-//     id: "5",
-//     name: "Alex Brown",
-//     email: "alex@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 87,
-//     overallGrade: 89,
-//     batchId: "1",
-//   },
-//   {
-//     id: "6",
-//     name: "Emily Davis",
-//     email: "emily@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 94,
-//     overallGrade: 93,
-//     batchId: "1",
-//   },
-//   {
-//     id: "7",
-//     name: "Michael Chen",
-//     email: "michael@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 89,
-//     overallGrade: 87,
-//     batchId: "1",
-//   },
-//   {
-//     id: "8",
-//     name: "Sarah Wilson",
-//     email: "sarah.w@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 91,
-//     overallGrade: 90,
-//     batchId: "1",
-//   },
-//   {
-//     id: "9",
-//     name: "David Rodriguez",
-//     email: "david@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 85,
-//     overallGrade: 82,
-//     batchId: "1",
-//   },
-//   {
-//     id: "10",
-//     name: "Lisa Thompson",
-//     email: "lisa@example.com",
-//     enrollmentDate: "2024-01-15",
-//     overallAttendance: 96,
-//     overallGrade: 95,
-//     batchId: "1",
-//   },
-//   // Batch B Students
-//   {
-//     id: "3",
-//     name: "Mike Johnson",
-//     email: "mike@example.com",
-//     enrollmentDate: "2024-02-01",
-//     overallAttendance: 95,
-//     overallGrade: 88,
-//     batchId: "2",
-//   },
-//   {
-//     id: "11",
-//     name: "Anna Garcia",
-//     email: "anna@example.com",
-//     enrollmentDate: "2024-02-01",
-//     overallAttendance: 92,
-//     overallGrade: 89,
-//     batchId: "2",
-//   },
-//   {
-//     id: "12",
-//     name: "James Lee",
-//     email: "james@example.com",
-//     enrollmentDate: "2024-02-01",
-//     overallAttendance: 88,
-//     overallGrade: 86,
-//     batchId: "2",
-//   },
-//   {
-//     id: "13",
-//     name: "Maria Martinez",
-//     email: "maria@example.com",
-//     enrollmentDate: "2024-02-01",
-//     overallAttendance: 90,
-//     overallGrade: 91,
-//     batchId: "2",
-//   },
-//   // Batch C Students
-//   {
-//     id: "4",
-//     name: "Sarah Wilson",
-//     email: "sarah@example.com",
-//     enrollmentDate: "2024-01-20",
-//     overallAttendance: 90,
-//     overallGrade: 92,
-//     batchId: "3",
-//   },
-//   {
-//     id: "14",
-//     name: "Robert Taylor",
-//     email: "robert@example.com",
-//     enrollmentDate: "2024-01-20",
-//     overallAttendance: 87,
-//     overallGrade: 84,
-//     batchId: "3",
-//   },
-//   {
-//     id: "15",
-//     name: "Jennifer White",
-//     email: "jennifer@example.com",
-//     enrollmentDate: "2024-01-20",
-//     overallAttendance: 93,
-//     overallGrade: 88,
-//     batchId: "3",
-//   },
-// ];
-
-// Get today's date in YYYY-MM-DD format
-const getTodayDate = () => {
-  const today = new Date();
-  return today.toISOString().split("T")[0];
-};
-
-// const mockSessions: LiveSession[] = [
-//   // Today's sessions for testing attendance
-//   {
-//     id: "today-1",
-//     topic: "React Hooks Deep Dive",
-//     batchId: "1",
-//     date: getTodayDate(),
-//     time: "10:00",
-//     mode: "online",
-//     lectureLink: "https://meet.google.com/react-hooks-session",
-//     status: "scheduled",
-//   },
-//   {
-//     id: "today-2",
-//     topic: "Advanced State Management with Redux",
-//     batchId: "2",
-//     date: getTodayDate(),
-//     time: "15:00",
-//     mode: "hybrid",
-//     lectureLink: "https://meet.google.com/redux-advanced",
-//     status: "scheduled",
-//   },
-//   {
-//     id: "today-3",
-//     topic: "Node.js Performance Optimization",
-//     batchId: "3",
-//     date: getTodayDate(),
-//     time: "19:00",
-//     mode: "classroom",
-//     status: "scheduled",
-//   },
-//   // Original sessions
-//   {
-//     id: "1",
-//     topic: "Introduction to React Hooks",
-//     batchId: "1",
-//     date: "2024-12-20",
-//     time: "10:00",
-//     mode: "online",
-//     lectureLink: "https://meet.google.com/abc-defg-hij",
-//     status: "scheduled",
-//   },
-//   {
-//     id: "2",
-//     topic: "Advanced State Management",
-//     batchId: "2",
-//     date: "2024-12-20",
-//     time: "15:00",
-//     mode: "hybrid",
-//     lectureLink: "https://meet.google.com/xyz-defg-hij",
-//     status: "scheduled",
-//   },
-//   {
-//     id: "3",
-//     topic: "Database Design Principles",
-//     batchId: "3",
-//     date: "2024-12-20",
-//     time: "19:00",
-//     mode: "classroom",
-//     status: "scheduled",
-//   },
-//   // Additional past sessions for better calendar view
-//   {
-//     id: "4",
-//     topic: "JavaScript Fundamentals Review",
-//     batchId: "1",
-//     date: "2024-12-18",
-//     time: "10:00",
-//     mode: "online",
-//     lectureLink: "https://meet.google.com/js-fundamentals",
-//     status: "completed",
-//   },
-//   {
-//     id: "5",
-//     topic: "Component Lifecycle Methods",
-//     batchId: "2",
-//     date: "2024-12-19",
-//     time: "15:00",
-//     mode: "hybrid",
-//     lectureLink: "https://meet.google.com/lifecycle-methods",
-//     status: "completed",
-//   },
-//   {
-//     id: "6",
-//     topic: "Express.js Middleware Deep Dive",
-//     batchId: "3",
-//     date: "2024-12-17",
-//     time: "19:00",
-//     mode: "classroom",
-//     status: "completed",
-//   },
-//   // Future sessions
-//   {
-//     id: "7",
-//     topic: "Testing React Applications",
-//     batchId: "1",
-//     date: "2024-12-22",
-//     time: "10:00",
-//     mode: "online",
-//     lectureLink: "https://meet.google.com/react-testing",
-//     status: "scheduled",
-//   },
-//   {
-//     id: "8",
-//     topic: "GraphQL Implementation",
-//     batchId: "2",
-//     date: "2024-12-23",
-//     time: "15:00",
-//     mode: "hybrid",
-//     lectureLink: "https://meet.google.com/graphql-impl",
-//     status: "scheduled",
-//   },
-//   {
-//     id: "9",
-//     topic: "Microservices Architecture",
-//     batchId: "3",
-//     date: "2024-12-24",
-//     time: "19:00",
-//     mode: "classroom",
-//     status: "scheduled",
-//   },
-// ];
 
 const mockAssignments: Assignment[] = [
   {
@@ -706,8 +400,7 @@ export const useTrainerData = () => {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [reviewActions, setReviewActions] = useState<ReviewAction[]>([]);
   const [loading, setLoading] = useState(false);
-  const [allLectureTimes, setAllLectureTimes] = useState<{ id: number; name: string }[]>([]);
-
+  const [allLectureTimes, setAllLectureTimes] = useState([]);
 
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
 
@@ -830,7 +523,7 @@ export const useTrainerData = () => {
       const totalBatches = resData.basic_stats.total_batches;
 
       const getLectureName = (id: number) => {
-        const lecture = allLectureTimes.find(l => l.id == id);
+        const lecture: any = allLectureTimes.find((l: any) => l.id == id);
         return lecture?.name || "";
       };
 
@@ -851,9 +544,7 @@ export const useTrainerData = () => {
 
 
       setBatches(batchList);
-      console.group();
-      console.log();
-      console.groupEnd();
+
     } catch (err: any) {
       if (err.name === "AbortError") {
       } else {
@@ -865,6 +556,7 @@ export const useTrainerData = () => {
 
   //fetch all lecture times
   const fetchAllLectureTimes = async (signal?: AbortSignal) => {
+
     try {
 
       const res = await fetch("http://127.0.0.1:3002/api/lecture/all", {
@@ -880,16 +572,13 @@ export const useTrainerData = () => {
       if (!res.ok) throw new Error("Failed to fetch all lectures");
 
       const resData = await res.json();
+
       const allLecturesList = (resData || []).map((item: any) => ({
         id: item.batch_time.batch_time_id,
         name: item.batch_time.name || "Untitled", // Fallback to title or "Untitled
       }));
 
       setAllLectureTimes(allLecturesList);
-      console.group();
-      console.log("allLecturesList: ",allLecturesList);
-      console.log("allLecturesListTimes: ",allLectureTimes);
-      console.groupEnd();
 
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -902,7 +591,10 @@ export const useTrainerData = () => {
 
 
 
-  const fetchAllBatches = async (signal?: AbortSignal) => {
+
+  const fetchAllBatches =  async(signal?: AbortSignal) => {
+
+
     try {
 
       const res = await fetch("http://127.0.0.1:3002/api/batch/all", {
@@ -925,7 +617,7 @@ export const useTrainerData = () => {
           : [];
 
       const getLectureName = (id: number) => {
-        const lecture = allLectureTimes.find(l => l.id == id);
+        const lecture: any = allLectureTimes.find((l: any) => l.id == id);
         return lecture?.name || "";
       };
 
@@ -952,7 +644,9 @@ export const useTrainerData = () => {
 
       });
 
+
       setAllBatches(batchList);
+
     } catch (err: any) {
       if (err.name === "AbortError") {
         console.log("Fetch all batches aborted");
@@ -962,6 +656,8 @@ export const useTrainerData = () => {
     }
 
   };
+
+
 
 
 
@@ -1437,6 +1133,7 @@ export const useTrainerData = () => {
     return () => interval
   }, []);
 
+
   return {
     batches, // used for dropdowns
     allBatches,
@@ -1471,4 +1168,10 @@ export const useTrainerData = () => {
     updateExam,
     markAttendance,
   };
+
 };
+
+
+
+
+

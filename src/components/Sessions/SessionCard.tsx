@@ -7,6 +7,7 @@ interface SessionCardProps {
   batch: Batch | undefined;
   onJoin?: (session: LiveSession) => void;
   onEdit?: (session: LiveSession) => void;
+  
 }
 
 

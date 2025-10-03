@@ -40,9 +40,9 @@ export const Assignments: React.FC = () => {
     fetchBatches(controller.signal);
     fetchAllBatches(controller.signal);
     fetchStudents(controller.signal);
-    return () => {
-      controller.abort();
-    }
+    // return () => {
+    //   controller.abort();
+    // }
   }, []);
 
 

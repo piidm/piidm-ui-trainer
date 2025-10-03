@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Calendar, Clock, Users, Monitor, Link2 } from 'lucide-react';
-import { LiveSession, Batch } from '../../types';
+import { LiveSession, Batch, AllBatches } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface SessionFormProps {
@@ -8,10 +8,10 @@ interface SessionFormProps {
   onClose: () => void;
   onSubmit: (session: Omit<LiveSession, 'id'>) => void;
   batches: Batch[];
+  allBatches:AllBatches[];
 }
 
-export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSubmit, batches }) => {
-  const { allBatches } = useTrainerData();
+export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSubmit, batches, allBatches }) => {
 
 
   const [formData, setFormData] = useState<{
@@ -33,8 +33,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
 
   useEffect(() => {
     if (!formData.batchId) return;
-    console.log("Selected batch ID:", formData.batchId, allBatches);
     const selectedBatch = allBatches.find(b => b.id === formData.batchId);
+    console.log("formData.batchId: ",formData.batchId,"selectedBatch: ",selectedBatch);
     if (selectedBatch) {
       // Extract starting time if timing is like "10:00 AM - 12:00 PM"
       let startTime = '';

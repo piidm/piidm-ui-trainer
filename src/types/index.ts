@@ -21,6 +21,7 @@ export interface AllBatches {
   startDate: string;
   endDate: string;
   courseTitle: string;
+  courseMode:string;
   totalStudents?: number;
   isActive: boolean;
 }
@@ -179,3 +180,8 @@ export interface DashboardStats {
   averageAttendance: number;
   upcomingExams: number;
 }
+
+export interface  Timing {
+  id: number;
+  name: string;
+};

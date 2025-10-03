@@ -5,47 +5,70 @@ import { useTrainerData } from '../../hooks/useTrainerData';
 import { LiveSession } from '../../types';
 
 export const LiveSessions: React.FC = () => {
-  const { sessions, batches, allBatches, fetchBatches, fetchAllBatches, fetchAllLectureTimes, fetchSessions, addSession } = useTrainerData();
+  const { sessions, batches, allBatches, allLectureTimes, fetchBatches, fetchAllBatches, fetchAllLectureTimes, fetchSessions, addSession } = useTrainerData();
+
 
 
   useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(async () => {
-      await fetchAllLectureTimes(controller.signal);
-      await fetchBatches(controller.signal);
-      await fetchAllBatches(controller.signal);
-      await fetchSessions(controller.signal);
-
-    }, 0);
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
+    const loadLectureTimes = async () => {
+      try {
+        await fetchAllLectureTimes(); // Wait until allLectureTimes is fetched
+      } catch (err) {
+        console.error("Error fetching lecture times:", err);
+      }
     };
+
+    loadLectureTimes();
   }, []);
+
+
+  useEffect(() => {
+    if (allLectureTimes.length === 0) return; // only run after data is loaded
+
+    const loadDependentData = async () => {
+      try {
+        await fetchAllBatches();   // Depends on allLectureTimes
+        await fetchBatches();      // Also uses lecture times
+        await fetchSessions();     // Optional but useful
+
+      } catch (err) {
+        console.error("Error fetching batches/sessions:", err);
+      }
+    };
+
+    loadDependentData();
+  }, [allLectureTimes]);
+
+
+
+  console.log("allLectureTimess:", allLectureTimes);
+  console.log("allBatches:::", allBatches);
+    console.log("batches:::", batches);
+
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const filteredSessions = sessions.filter(session => {
+  const filteredSessions: any = sessions.filter((session: { topic: string; status: string; }) => {
     const matchesSearch = session.topic.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || session.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
-  const upcomingSessions = filteredSessions.filter(session => {
+  const upcomingSessions = filteredSessions.filter((session: { date: any; time: any; }) => {
     const sessionDateTime = new Date(`${session.date}T${session.time}`);
     return sessionDateTime > new Date();
-  }).sort((a, b) => {
+  }).sort((a: { date: any; time: any; }, b: { date: any; time: any; }) => {
     const dateTimeA = new Date(`${a.date}T${a.time}`);
     const dateTimeB = new Date(`${b.date}T${b.time}`);
     return dateTimeA.getTime() - dateTimeB.getTime();
   });
 
-  const pastSessions = filteredSessions.filter(session => {
+  const pastSessions = filteredSessions.filter((session: { date: any; time: any; }) => {
     const sessionDateTime = new Date(`${session.date}T${session.time}`);
     return sessionDateTime <= new Date();
-  }).sort((a, b) => {
+  }).sort((a: { date: any; time: any; }, b: { date: any; time: any; }) => {
     const dateTimeA = new Date(`${a.date}T${a.time}`);
     const dateTimeB = new Date(`${b.date}T${b.time}`);
     return dateTimeB.getTime() - dateTimeA.getTime();
@@ -83,7 +106,7 @@ export const LiveSessions: React.FC = () => {
 
       const names = ids
         .map((id) => {
-          const batch = allBatches.find((b) => b.id === id.toString());
+          const batch = allBatches.find((b: any) => b.id === id.toString());
           return batch?.name || null;
         })
         .filter(Boolean);
@@ -132,12 +155,14 @@ export const LiveSessions: React.FC = () => {
 
     // Sum totalStudents for all matching batches
     const total = ids.reduce((sum, id) => {
-      const match = allBatches.find(b => b.id === id.toString());
+      const match = allBatches.find((b: any) => b.id === id.toString());
       return sum + (match?.totalStudents || 0);
     }, 0);
 
     return total;
   };
+
+
 
 
   const SessionTable = ({ sessions, title }: { sessions: any[], title: string }) => (
@@ -374,6 +399,7 @@ export const LiveSessions: React.FC = () => {
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleScheduleSession}
         batches={batches}
+        allBatches={allBatches}
       />
     </div>
   );

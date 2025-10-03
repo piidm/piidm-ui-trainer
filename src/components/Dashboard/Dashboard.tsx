@@ -9,18 +9,9 @@ export default function Dashboard() {
   const { dashboardStats, sessions, batches, fetchStudents, fetchSessions, fetchBatches } = useTrainerData();
 
   useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      fetchSessions(controller.signal);
-      fetchBatches(controller.signal);
-      fetchStudents(controller.signal);
-    }, 500);
-
-    return () => {
-      clearTimeout(timeout);  // ❌ prevents requests from ever starting
-      controller.abort();
-
-    };
+    fetchSessions();
+    fetchBatches();
+    fetchStudents();
   }, []);
 
 
