@@ -7,8 +7,6 @@ import { LiveSession } from '../../types';
 export const LiveSessions: React.FC = () => {
   const { sessions, batches, allBatches, allLectureTimes, fetchBatches, fetchAllBatches, fetchAllLectureTimes, fetchSessions, addSession } = useTrainerData();
 
-
-
   useEffect(() => {
     const loadLectureTimes = async () => {
       try {
@@ -38,13 +36,6 @@ export const LiveSessions: React.FC = () => {
 
     loadDependentData();
   }, [allLectureTimes]);
-
-
-
-  console.log("allLectureTimess:", allLectureTimes);
-  console.log("allBatches:::", allBatches);
-    console.log("batches:::", batches);
-
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -400,6 +391,7 @@ export const LiveSessions: React.FC = () => {
         onSubmit={handleScheduleSession}
         batches={batches}
         allBatches={allBatches}
+
       />
     </div>
   );

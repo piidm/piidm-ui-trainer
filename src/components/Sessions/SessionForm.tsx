@@ -8,11 +8,10 @@ interface SessionFormProps {
   onClose: () => void;
   onSubmit: (session: Omit<LiveSession, 'id'>) => void;
   batches: Batch[];
-  allBatches:AllBatches[];
+  allBatches: AllBatches[];
 }
 
 export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSubmit, batches, allBatches }) => {
-
 
   const [formData, setFormData] = useState<{
     topic: string;
@@ -31,37 +30,40 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
   });
 
 
+  const batchObj = JSON.parse(localStorage.getItem("batch_obj")!);
+
   useEffect(() => {
     if (!formData.batchId) return;
     const selectedBatch = allBatches.find(b => b.id === formData.batchId);
-    console.log("formData.batchId: ",formData.batchId,"selectedBatch: ",selectedBatch);
-    if (selectedBatch) {
-      // Extract starting time if timing is like "10:00 AM - 12:00 PM"
-      let startTime = '';
-      if (typeof selectedBatch.timing === 'string' && selectedBatch.timing.includes('-')) {
-        const firstPart = selectedBatch.timing.split('-')[0].trim(); // "10:00 AM"
-        // Convert "10:00 AM" to 24-hour format
-        const [time, modifier] = firstPart.split(' ');
-        if (time) {
-          let [hours, minutes] = time.split(':').map(Number);
-          if (modifier?.toUpperCase() === 'PM' && hours !== 12) hours += 12;
-          if (modifier?.toUpperCase() === 'AM' && hours === 12) hours = 0;
-          startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        }
+    if (!selectedBatch) return;
+
+    // Extract starting time if timing is like "10:00 AM - 12:00 PM"
+    let startTime = '';
+    if (typeof selectedBatch.timing === 'string' && selectedBatch.timing.includes('-')) {
+      const firstPart = selectedBatch.timing.split('-')[0].trim();
+      const match = firstPart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (match) {
+        let [_, hourStr, minuteStr, modifier] = match;
+        let hours = parseInt(hourStr, 10);
+        const minutes = parseInt(minuteStr, 10);
+        if (modifier?.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+        if (modifier?.toUpperCase() === 'AM' && hours === 12) hours = 0;
+        startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
       }
-
-      // Normalize mode safely
-      const modeValue = (selectedBatch.courseMode?.toLowerCase() || 'classroom') as
-        | 'classroom'
-        | 'online'
-        | 'hybrid';
-
-      setFormData(prev => ({
-        ...prev,
-        time: startTime || prev.time,
-        mode: modeValue
-      }));
+      console.log("startTime", startTime);
     }
+
+    //  Safe mode normalization
+    const modeValue =
+      typeof selectedBatch.courseMode === "string"
+        ? (selectedBatch.courseMode.toLowerCase() as 'classroom' | 'online' | 'hybrid')
+        : 'classroom';
+
+    setFormData(prev => ({
+      ...prev,
+      time: startTime || prev.time,
+      mode: modeValue
+    }));
   }, [formData.batchId, allBatches]);
 
 
@@ -229,14 +231,15 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                 value={formData.batchId}
                 onChange={(e) => setFormData(prev => ({ ...prev, batchId: e.target.value }))}
                 className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  }`
+
+                }
               >
                 <option value="">Choose a batch</option>
-                {batches.map(batch => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch.name} ({batch.timing})
-                  </option>
-                ))}
+                {batchObj.map((item: any) => (
+                  <option key={item.batch_id} value={item.batch_id}>
+                    {item.name}
+                  </option>))}
               </select>
             </div>
             {errors.batchId && <p className="text-red-500 text-sm mt-1">{errors.batchId}</p>}

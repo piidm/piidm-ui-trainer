@@ -9,14 +9,14 @@ export interface Batch {
   courseTitle: string;
   totalStudents?: number;
   isActive: boolean;
-  courseMode?: string; 
+  courseMode?: string;
 
 }
 
 export interface AllBatches {
   id: string;
   name: string;
-  timing: '10am-12pm' | '3pm-6pm' | '7pm-9pm';
+  timing: string;
   students: Student[];
   startDate: string;
   endDate: string;
@@ -57,7 +57,7 @@ export interface LiveSession {
   batchId: string;
   date: string;
   time: string;
-  displayTime?: string; 
+  displayTime?: string;
   mode: 'classroom' | 'online' | 'hybrid';
   lectureLink?: string;
   status: 'scheduled' | 'ongoing' | 'completed';

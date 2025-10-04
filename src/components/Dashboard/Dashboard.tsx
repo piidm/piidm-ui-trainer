@@ -4,6 +4,17 @@ import { StatsCard } from './StatsCard';
 import { TodaySchedule } from './TodaySchedule';
 import { RecentActivity } from './RecentActivity';
 import { useTrainerData } from '../../hooks/useTrainerData';
+import $ from "jquery";
+(window as any).$ = $;
+(window as any).jQuery = $;
+
+import "jquery-toast-plugin/dist/jquery.toast.min.css";
+import "jquery-toast-plugin/dist/jquery.toast.min.js";
+
+
+
+(window as any).$ = $;
+(window as any).jQuery = $;
 
 export default function Dashboard() {
   const { dashboardStats, sessions, batches, fetchStudents, fetchSessions, fetchBatches } = useTrainerData();
@@ -13,6 +24,48 @@ export default function Dashboard() {
     fetchBatches();
     fetchStudents();
   }, []);
+
+
+  function load_prerequisite_data() {
+    localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg');
+    // Retreive dependent data through Endpoints
+    let BASE_URL = "http://127.0.0.1:3002/api/";
+    let display_objects = ['course', 'course_mode', 'branch', 'batch_time', 'source', 'payment_mode', 'trainer', 'country', 'state', 'city', 'agent', 'batch'];
+    $.each(display_objects, function (index, display_obj) {
+      $.ajax({
+        type: "GET",
+        async: false,
+        url: BASE_URL + `${display_obj}/all `,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("token")}`
+        },
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+          if (display_obj == 'course') { localStorage.setItem('course_obj', JSON.stringify(response)) }
+          if (display_obj == 'course_mode') { localStorage.setItem('course_mode_obj', JSON.stringify(response)) }
+          if (display_obj == 'branch') { localStorage.setItem('branch_obj', JSON.stringify(response)) }
+          if (display_obj == 'batch_time') { localStorage.setItem('batch_time_obj', JSON.stringify(response)) }
+          if (display_obj == 'batch') { localStorage.setItem('batch_obj', JSON.stringify(response)) }
+          if (display_obj == 'source') { localStorage.setItem('source_obj', JSON.stringify(response)) }
+          if (display_obj == 'payment_mode') { localStorage.setItem('payment_mode_obj', JSON.stringify(response)) }
+          if (display_obj == 'trainer') { localStorage.setItem('trainer_obj', JSON.stringify(response)) }
+          if (display_obj == 'country') { localStorage.setItem('country_obj', JSON.stringify(response)) }
+          if (display_obj == 'state') { localStorage.setItem('state_obj', JSON.stringify(response)) }
+          if (display_obj == 'city') { localStorage.setItem('city_obj', JSON.stringify(response)) }
+          if (display_obj == 'agent') { localStorage.setItem('agent_obj', JSON.stringify(response)) }
+
+        },
+
+        error: function (response) {
+          console.error("Error:", response);
+        }
+
+      });
+    });
+  }
+
+  load_prerequisite_data();
 
 
   return (

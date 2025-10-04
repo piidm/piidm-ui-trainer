@@ -576,6 +576,7 @@ export const useTrainerData = () => {
       const allLecturesList = (resData || []).map((item: any) => ({
         id: item.batch_time.batch_time_id,
         name: item.batch_time.name || "Untitled", // Fallback to title or "Untitled
+        mode: item.course_mode.course_mode_id
       }));
 
       setAllLectureTimes(allLecturesList);
@@ -592,7 +593,7 @@ export const useTrainerData = () => {
 
 
 
-  const fetchAllBatches =  async(signal?: AbortSignal) => {
+  const fetchAllBatches = async (signal?: AbortSignal) => {
 
 
     try {
@@ -621,19 +622,30 @@ export const useTrainerData = () => {
         return lecture?.name || "";
       };
 
+      const getCourseModeName = (courseModeId: number) => {
+     
+        switch (courseModeId) {
+          case 1:
+            return "classroom";
+          case 2:
+            return "online";
+          case 3:
+            return "hybrid";
+          default:
+            return "unknown";
+        }
+      };
+
+
       // Map batches correctly
       const batchList: Batch[] = batchesArray.map((item: any) => {
-
-        let modeName = "classroom"; // default
-        if (item.course_mode_id === 2) modeName = "online";
-        else if (item.course_mode_id === 3) modeName = "hybrid";
 
         return {
 
           id: item.batch_id?.toString() || "0",
           name: item.name || `Batch ${item.batch_num || "Unknown"}`,
           timing: getLectureName(item.batch_time_id),
-          courseMode: modeName,
+          courseMode: "online",
           students: Array(item.seats_occupied || 0).fill(null),
           startDate: item.batch_date || "1970-01-01",
           endDate: item.batch_date || "1970-01-01",
