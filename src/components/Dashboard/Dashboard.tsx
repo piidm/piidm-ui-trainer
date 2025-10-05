@@ -4,17 +4,6 @@ import { StatsCard } from './StatsCard';
 import { TodaySchedule } from './TodaySchedule';
 import { RecentActivity } from './RecentActivity';
 import { useTrainerData } from '../../hooks/useTrainerData';
-import $ from "jquery";
-(window as any).$ = $;
-(window as any).jQuery = $;
-
-import "jquery-toast-plugin/dist/jquery.toast.min.css";
-import "jquery-toast-plugin/dist/jquery.toast.min.js";
-
-
-
-(window as any).$ = $;
-(window as any).jQuery = $;
 
 export default function Dashboard() {
   const { dashboardStats, sessions, batches, fetchStudents, fetchSessions, fetchBatches } = useTrainerData();

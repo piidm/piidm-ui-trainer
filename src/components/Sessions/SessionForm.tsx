@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Calendar, Clock, Users, Monitor, Link2 } from 'lucide-react';
 import { LiveSession, Batch, AllBatches } from '../../types';
-import { useTrainerData } from '../../hooks/useTrainerData';
+// import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface SessionFormProps {
   isOpen: boolean;
@@ -13,9 +13,14 @@ interface SessionFormProps {
 
 export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSubmit, batches, allBatches }) => {
 
+  const batchObj = localStorage.getItem("batch_obj") ? JSON.parse(localStorage.getItem("batch_obj")!) : [];
+  const batchtimeObj = localStorage.getItem("batch_time_obj") ? JSON.parse(localStorage.getItem("batch_time_obj")!) : [];
+  const courseModeObj = localStorage.getItem("course_mode_obj") ? JSON.parse(localStorage.getItem("course_mode_obj")!) : [];
+
   const [formData, setFormData] = useState<{
     topic: string;
     batchId: string;
+    batchTimeId?: string;
     date: string;
     time: string;
     mode: 'classroom' | 'online' | 'hybrid';
@@ -23,25 +28,27 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
   }>({
     topic: '',
     batchId: '',
+    batchTimeId: '',
     date: '',
     time: '',
     mode: 'classroom',
     lectureLink: ''
   });
 
-
-  const batchObj = JSON.parse(localStorage.getItem("batch_obj")!);
-
   useEffect(() => {
-    if (!formData.batchId) return;
-    const selectedBatch = allBatches.find(b => b.id === formData.batchId);
-    if (!selectedBatch) return;
+    if (!formData.batchTimeId) return;
+    let selectedBatch = batchObj.find((b: { batch_time_id: number; }) => b.batch_time_id === Number(formData.batchTimeId));
+    let timing = "";
+    if (batchtimeObj && Array.isArray(batchtimeObj)) {
+      const batchTime = batchtimeObj.find((b: { batch_time_id: string | number; }) => String(b.batch_time_id) === String(formData.batchTimeId));
+      timing = batchTime?.name;
+    }
 
-    // Extract starting time if timing is like "10:00 AM - 12:00 PM"
+    // Extract starting time if timing or name is like "8:00AM - 10:00AM"
     let startTime = '';
-    if (typeof selectedBatch.timing === 'string' && selectedBatch.timing.includes('-')) {
-      const firstPart = selectedBatch.timing.split('-')[0].trim();
-      const match = firstPart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (typeof timing === 'string' && timing.includes('-')) {
+      const firstPart = timing.split('-')[0].trim();
+      const match = firstPart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i) || firstPart.match(/(\d{1,2}):(\d{2})(AM|PM)/i);
       if (match) {
         let [_, hourStr, minuteStr, modifier] = match;
         let hours = parseInt(hourStr, 10);
@@ -50,21 +57,26 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
         if (modifier?.toUpperCase() === 'AM' && hours === 12) hours = 0;
         startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
       }
-      console.log("startTime", startTime);
     }
 
-    //  Safe mode normalization
-    const modeValue =
-      typeof selectedBatch.courseMode === "string"
-        ? (selectedBatch.courseMode.toLowerCase() as 'classroom' | 'online' | 'hybrid')
-        : 'classroom';
+    // Set mode from course_mode_obj using course_mode_id from selectedBatch
+    let modeValue: 'classroom' | 'online' | 'hybrid' = 'classroom';
+    if (selectedBatch && courseModeObj && Array.isArray(courseModeObj)) {
+      const courseMode = courseModeObj.find((c: { course_mode_id: number }) => c.course_mode_id === selectedBatch.course_mode_id);
+      if (courseMode && courseMode.name) {
+        const name = courseMode.name.toLowerCase();
+        if (name.includes('classroom')) modeValue = 'classroom';
+        else if (name.includes('online')) modeValue = 'online';
+        else if (name.includes('hybrid')) modeValue = 'hybrid';
+      }
+    }
 
     setFormData(prev => ({
       ...prev,
       time: startTime || prev.time,
       mode: modeValue
     }));
-  }, [formData.batchId, allBatches]);
+  }, [formData.batchTimeId, allBatches]);
 
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -76,7 +88,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
       newErrors.topic = 'Topic is required';
     }
 
-    if (!formData.batchId) {
+    if (!formData.batchTimeId) {
       newErrors.batchId = 'Please select a batch';
     }
 
@@ -126,6 +138,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
     onClose();
     setFormData({
       topic: '',
+      batchTimeId: '',
       batchId: '',
       date: '',
       time: '',
@@ -209,7 +222,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                 <input
                   type="time"
                   value={formData.time}
-                  disabled={!!formData.batchId}
+                  disabled={!!formData.batchTimeId}
 
                   onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                   className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.time ? 'border-red-300' : 'border-gray-300'
@@ -228,21 +241,21 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
             <div className="relative">
               <Users className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <select
-                value={formData.batchId}
-                onChange={(e) => setFormData(prev => ({ ...prev, batchId: e.target.value }))}
+                value={formData.batchTimeId}
+                onChange={(e) => setFormData(prev => ({ ...prev, batchTimeId: e.target.value }))}
                 className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300' : 'border-gray-300'
                   }`
 
                 }
               >
                 <option value="">Choose a batch</option>
-                {batchObj.map((item: any) => (
-                  <option key={item.batch_id} value={item.batch_id}>
+                {batchObj.map((item: any, index: number) => (
+                  <option key={`${item.batch_id}-${index}`} value={item.batch_time_id} >
                     {item.name}
                   </option>))}
               </select>
             </div>
-            {errors.batchId && <p className="text-red-500 text-sm mt-1">{errors.batchId}</p>}
+            {errors.batch_time_id && <p className="text-red-500 text-sm mt-1">{errors.batch_time_id}</p>}
           </div>
 
           {/* Mode */}
