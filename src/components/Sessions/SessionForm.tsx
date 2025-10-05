@@ -222,7 +222,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                 <input
                   type="time"
                   value={formData.time}
-                  disabled={!!formData.batchTimeId}
+                  disabled
 
                   onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                   className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.time ? 'border-red-300' : 'border-gray-300'
@@ -242,11 +242,17 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
               <Users className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <select
                 value={formData.batchTimeId}
-                onChange={(e) => setFormData(prev => ({ ...prev, batchTimeId: e.target.value }))}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300' : 'border-gray-300'
-                  }`
+                onChange={(e) => {
+                  const selectedBatchTimeId = e.target.value;
+                  const selectedBatch = batchObj.find((b: { batch_time_id: string | number; }) => String(b.batch_time_id) === String(selectedBatchTimeId));
 
-                }
+                  setFormData(prev => ({
+                    ...prev, batchTimeId: selectedBatchTimeId,
+                    batchId: selectedBatch ? String(selectedBatch.batch_id) : ''
+                  }))
+                }}
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300' : 'border-gray-300'
+                  }`}
               >
                 <option value="">Choose a batch</option>
                 {batchObj.map((item: any, index: number) => (
@@ -272,6 +278,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                 <button
                   key={value}
                   type="button"
+                  disabled
                   onClick={() => handleModeChange(value as 'classroom' | 'online' | 'hybrid')}
                   className={`flex flex-col items-center gap-2 p-3 border-2 rounded-lg transition-all ${formData.mode === value
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -328,7 +335,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };

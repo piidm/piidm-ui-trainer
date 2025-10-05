@@ -144,6 +144,7 @@ export const LiveSessions: React.FC = () => {
     // Handle comma-separated IDs like "91,92"
     const ids = batchId.toString().replace(/[\[\]\s"]/g, "").split(",").filter(Boolean);
 
+    
     // Sum totalStudents for all matching batches
     const total = ids.reduce((sum, id) => {
       const match = allBatches.find((b: any) => b.id === id.toString());
