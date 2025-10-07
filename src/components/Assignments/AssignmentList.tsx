@@ -119,7 +119,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
         .replace(/[\[\]\s"]/g, "") // remove [ ], spaces, and quotes
         .split(",")
         .filter(Boolean);
-      console.log("Getting batch name for ID:", batchId, "Parsed IDs:", ids); // 👈 DEBUG
       if (!ids.length) return "Unknown Batch";
 
       const names = ids
@@ -128,7 +127,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
           return batch?.name || null;
         })
         .filter(Boolean);
-      console.log("Resolved batch names:Assignment", names); // 👈 DEBUG
       return names.length > 0 ? names.join(",\n ") : "Unknown Batch";
     } catch (err) {
       console.error("Batch name error:", err);
@@ -159,9 +157,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       onDeleteAssignment(assignment.id);
     }
   };
-
-
-
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100">

@@ -17,6 +17,7 @@ export const Assignments: React.FC = () => {
     fetchBatches,
     fetchAllBatches,
     fetchStudents,
+    fetchAllLectureTimes,
     assignmentStats,
     addAssignment,
     updateAssignment,
@@ -37,6 +38,7 @@ export const Assignments: React.FC = () => {
   useEffect(() => {
     const controller = new AbortController();
     fetchAssignments(controller.signal);
+    fetchAllLectureTimes(controller.signal);
     fetchBatches(controller.signal);
     fetchAllBatches(controller.signal);
     fetchStudents(controller.signal);
@@ -58,12 +60,10 @@ export const Assignments: React.FC = () => {
       updateAssignment(editingAssignment.id, assignmentData);
       setEditingAssignment(null);
       // Show success notification
-      console.log('Assignment updated successfully!');
     }
   };
 
   const handleViewSubmissions = (assignment: Assignment, batch: Batch | null, students: Student[]) => {
-    console.log("Students passed to modal:", students); // 👈 DEBUG
 
     setSelectedAssignment(assignment);
     setSelectedBatch(batch);
@@ -79,7 +79,6 @@ export const Assignments: React.FC = () => {
   const handleDeleteAssignment = (assignmentId: string) => {
     deleteAssignment(assignmentId);
     // Show success notification
-    console.log('Assignment deleted successfully!');
   };
 
   const handleCloseForm = () => {

@@ -33,6 +33,10 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const batchTimeObj = localStorage.getItem("batch_time_obj") ? JSON.parse(localStorage.getItem("batch_time_obj")!) : [];
+
+
+  console.log("batchTimeObj in assignment form:", batchTimeObj,  "batches:",batches );
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};

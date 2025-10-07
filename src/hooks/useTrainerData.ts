@@ -531,15 +531,17 @@ export const useTrainerData = () => {
         id: item.batch_id?.toString() || "0",
         length: totalBatches,
         name: item.name || "Unnamed Batch",
-        timing: getLectureName(item.batch_time.batch_time_id),
+        timing:
+          item.batch_time && item.batch_time.batch_time_id
+            ? getLectureName(item.batch_time.batch_time_id) || "Unknown"
+            : "Unknown",
         // courseMode: modeName,
         students: [],
         startDate: item.start_date || "1970-01-01",
         endDate: item.end_date || "1970-01-01",
         courseTitle: item.course?.name || "Unknown Course",
         totalStudents: item.total_seats || 0,
-        // isActive: item.is_active !== false,
-
+        isActive: item.is_active !== false,
       }));
 
 
@@ -590,6 +592,9 @@ export const useTrainerData = () => {
     }
   }
 
+  useEffect(() => {
+    setAllLectureTimes(allLectureTimes);
+  }, [allLectureTimes]);
 
 
 
@@ -623,7 +628,7 @@ export const useTrainerData = () => {
       };
 
       const getCourseModeName = (courseModeId: number) => {
-     
+
         switch (courseModeId) {
           case 1:
             return "classroom";
@@ -644,9 +649,13 @@ export const useTrainerData = () => {
 
           id: item.batch_id?.toString() || "0",
           name: item.name || `Batch ${item.batch_num || "Unknown"}`,
-          timing: getLectureName(item.batch_time_id),
+          timing:
+          item.batch_time && item.batch_time.batch_time_id
+            ? getLectureName(item.batch_time.batch_time_id) || "Unknown"
+            : "Unknown",
+        // courseMode: modeName,
+          students: [],
           courseMode: "online",
-          students: Array(item.seats_occupied || 0).fill(null),
           startDate: item.batch_date || "1970-01-01",
           endDate: item.batch_date || "1970-01-01",
           courseTitle: `Course #${item.course_id}`,
