@@ -51,14 +51,15 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     if (assignmentBatchId.startsWith('[')) {
       try {
         const ids = JSON.parse(assignmentBatchId);
-        return Array.isArray(ids) && ids.includes(selectedBatch);
+        // Ensure all ids are strings for comparison
+        return Array.isArray(ids) && ids.map(String).includes(selectedBatch);
       } catch {
         // fallback: try substring match
         return assignmentBatchId.includes(selectedBatch);
       }
     }
-    // Otherwise, direct match
-    return assignmentBatchId === selectedBatch;
+    // Otherwise, direct match (as string)
+    return assignmentBatchId.toString() === selectedBatch;
   };
 
   const filteredAndSortedAssignments = useMemo(() => {
@@ -186,7 +187,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
               >
                 <option value="all">All Batches</option>
                 {batches.map(batch => (
-                  <option key={batch.id} value={batch.id}>{batch.name}</option>
+                  <option key={batch.id} value={batch.id.toString()}>{batch.name}</option>
                 ))}
               </select>
             </div>

@@ -767,7 +767,7 @@ export const useTrainerData = () => {
         }
       );
       const resData = await res.json();
-
+      // console.log()("Fetched assignments:", resData);
       const assignments: Assignment[] = resData.data.map((item: any) => ({
         id: item.assignment_id.toString(),
         title: item.title || "Untitled Assignment",
@@ -778,7 +778,7 @@ export const useTrainerData = () => {
         status: item.is_active == 1 ? "active" : "submitted",
         createdAt: item.created_at || new Date().toISOString(),
         updatedAt: item.updated_at || new Date().toISOString(),
-        submissions: (item.submissions || []).map((submission: any) => ({
+        submissions: (item.submission || []).map((submission: any) => ({
           id: submission.id.toString(),
           studentId: submission.student_id.toString(),
           studentName: submission.student_name || "Unnamed",

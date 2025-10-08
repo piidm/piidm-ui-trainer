@@ -33,8 +33,23 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const batchTimeObj = localStorage.getItem("batch_time_obj") ? JSON.parse(localStorage.getItem("batch_time_obj")!) : [];
+  const batchObj = localStorage.getItem("batch_obj") ? JSON.parse(localStorage.getItem("batch_obj")!) : [];
 
+
+  // Helper to get timing name for a batch
+  function getBatchTimingName(batchId: string) {
+    // Find batch in batchObj
+    const batch = batchObj.find((b: any) => String(b.batch_id) === String(batchId));
+    if (!batch) return "";
+    // batch_time_id may be a number or string
+    const batchTimeId = batch.batch_time_id?.toString();
+    if (!batchTimeId) return "";
+    // Find timing in batchTimeObj
+    const timing = batchTimeObj.find((t: any) => String(t.id) === batchTimeId || String(t.batch_time_id) === batchTimeId);
+    return timing?.name || "";
+  }
 
   console.log("batchTimeObj in assignment form:", batchTimeObj,  "batches:",batches );
 
@@ -224,11 +239,16 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
                     }`}
                 >
                   <option value="">Choose target batch</option>
-                  {activeBatches.map(batch => (
-                    <option key={batch.id} value={batch.id}>
-                      {batch.name} ({batch.timing}) - {batch.totalStudents} students
-                    </option>
-                  ))}
+                  {activeBatches.map(batch => {
+                    const timingName = getBatchTimingName(batch.id);
+                    return (
+                      <option key={batch.id} value={batch.id}>
+                        {batch.name}
+                        {timingName ? ` (${timingName})` : ""}
+                        {" - "}{batch.totalStudents} students
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               {errors.batchId && (

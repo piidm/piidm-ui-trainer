@@ -136,6 +136,8 @@ console.log("assignment",assignment);
     }
   };
 
+  console.log("filteredSubmissions",filteredSubmissions);
+
   const submitBulkReview = () => {
     const reviews = Array.from(bulkSelectedIds).map(submissionId => ({
       assignmentId: assignment.id,
@@ -202,8 +204,7 @@ console.log("assignment",assignment);
           <div className="p-6 border-b bg-gray-50">
             <div className="grid grid-cols-4 gap-4 mb-4">
               <div className="bg-white rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-
-                ]gray-900">{stats.total}</div>
+                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                 <div className="text-sm text-gray-600">Total Students</div>
               </div>
               <div className="bg-white rounded-lg p-4 text-center">
