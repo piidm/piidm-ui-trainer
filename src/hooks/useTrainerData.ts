@@ -453,13 +453,11 @@ export const useTrainerData = () => {
         const batchDate = item.batch_date?.split("T")[0] || today;
         const status = batchDate < today ? "completed" : "scheduled";
 
-        // ✅ Safely handle missing batch_time
         let displayTime = "00:00 AM - 00:00 PM";
         if (item.batch_time && typeof item.batch_time.name === "string") {
           displayTime = item.batch_time.name;
         }
 
-        // ✅ Safely extract start time
         let startTime12hr = "00:00 AM";
         try {
           if (displayTime && displayTime.includes(" - ")) {
@@ -469,7 +467,6 @@ export const useTrainerData = () => {
           startTime12hr = "00:00 AM";
         }
 
-        // ✅ Convert to 24-hour
         let startTime24hr = "00:00";
         try {
           startTime24hr = convertTo24Hour(startTime12hr);
@@ -650,10 +647,10 @@ export const useTrainerData = () => {
           id: item.batch_id?.toString() || "0",
           name: item.name || `Batch ${item.batch_num || "Unknown"}`,
           timing:
-          item.batch_time && item.batch_time.batch_time_id
-            ? getLectureName(item.batch_time.batch_time_id) || "Unknown"
-            : "Unknown",
-        // courseMode: modeName,
+            item.batch_time && item.batch_time.batch_time_id
+              ? getLectureName(item.batch_time.batch_time_id) || "Unknown"
+              : "Unknown",
+          // courseMode: modeName,
           students: [],
           courseMode: "online",
           startDate: item.batch_date || "1970-01-01",
@@ -677,11 +674,6 @@ export const useTrainerData = () => {
     }
 
   };
-
-
-
-
-
 
   const fetchBatchById = async (batchId: string, signal?: AbortSignal) => {
     try {
@@ -847,7 +839,6 @@ export const useTrainerData = () => {
 
 
   const assignmentStats: AssignmentStats = {
-
     totalAssignments: assignments.length,
     activeAssignments: assignments.filter((a) => a.status === "active").length,
     expiredAssignments: assignments.filter((a) => a.status === "expired")
@@ -954,7 +945,6 @@ export const useTrainerData = () => {
       "id" | "createdAt" | "updatedAt" | "createdBy" | "submissions" | "status"
     >
   ) => {
-
     try {
       function formatAssignmentDate(isoDate: string) {
         const date = new Date(isoDate);
@@ -964,7 +954,7 @@ export const useTrainerData = () => {
         return `${day}/${month}/${year}`;
       }
 
-      const payload = [{
+      const body = [{
         title: assignment.title,
         description: assignment.details,
         json_batch_ids: `[${assignment.batchId}]`,
@@ -981,7 +971,7 @@ export const useTrainerData = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error("Failed to create assignment");
@@ -991,20 +981,37 @@ export const useTrainerData = () => {
       const newAssignment: Assignment = {
         ...assignment,
         id: Date.now().toString(),
-        submissions: [],
+        submissions: [
+          {
+            "id": "1",
+            "studentId": "2683",
+            "studentName": "Unnati Mohta",
+            "assignmentId": "9",
+            "submittedAt": "2024-12-18T14:30:00",
+            "files": [],
+            "marks": 85,
+            "feedback": "Great job!",
+            "status": "submitted",
+            "reviewedAt": undefined,
+            "reviewedBy": undefined,
+          }],
         status: "active",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        createdBy: "Dr. Sarah Johnson",
+        createdBy: "",
       };
-
       setAssignments((prev) => [...prev, newAssignment]);
+
+      console.log("New assignment added:", newAssignment);
       return resData;
     } catch (err) {
       console.error("Error adding session:", err);
       throw err;
     }
   };
+
+  useEffect(() => {
+  }, [assignments]);
 
   const updateAssignment = (id: string, updates: Partial<Assignment>) => {
     setAssignments((prev) =>

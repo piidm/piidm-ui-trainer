@@ -51,7 +51,6 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     return timing?.name || "";
   }
 
-  console.log("batchTimeObj in assignment form:", batchTimeObj,  "batches:",batches );
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};

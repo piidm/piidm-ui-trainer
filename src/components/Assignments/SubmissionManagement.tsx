@@ -33,11 +33,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   onBulkReview
 }) => {
 
-
-console.log("batches",batch);
-
-console.log("assignment",assignment);
-
   const [filter, setFilter] = useState<'all' | 'pending' | 'submitted' | 'reviewed'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmission | null>(null);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
@@ -65,7 +60,9 @@ console.log("assignment",assignment);
     const batchStudents = students.filter(student => student.batchId === assignmentBatchId);
 
     return batchStudents.map(student => {
-      const submission = assignment.submissions.find(sub => sub.studentId === student.id);
+      // Ensure both IDs are strings for comparison
+      const studentIdStr = student.id?.toString();
+      const submission = assignment.submissions.find(sub => sub.studentId?.toString() === studentIdStr);
       return {
         student,
         submission: submission || null,
@@ -80,8 +77,6 @@ console.log("assignment",assignment);
       return item.status === filter;
     });
   }, [studentSubmissions, filter]);
-
-
 
   const stats = useMemo(() => {
     const total = studentSubmissions.length;
@@ -135,8 +130,6 @@ console.log("assignment",assignment);
       setBulkSelectedIds(new Set(submittedSubmissions));
     }
   };
-
-  console.log("filteredSubmissions",filteredSubmissions);
 
   const submitBulkReview = () => {
     const reviews = Array.from(bulkSelectedIds).map(submissionId => ({
@@ -523,7 +516,7 @@ console.log("assignment",assignment);
 
         {/* Bulk Review Modal */}
         {showBulkReview && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
               <div className="p-6 border-b">
                 <h3 className="text-lg font-semibold text-gray-900">Bulk Review</h3>
