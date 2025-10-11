@@ -18,6 +18,7 @@ export const Assignments: React.FC = () => {
     fetchAllBatches,
     fetchStudents,
     fetchAllLectureTimes,
+    fetchAssignmentSubmissions,
     assignmentStats,
     addAssignment,
     updateAssignment,
@@ -34,14 +35,20 @@ export const Assignments: React.FC = () => {
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  console.log("selectedStudents:", selectedStudents);
+  console.log("selectedBatch:", selectedBatch);
+  console.log("selectedAssignment:", selectedAssignment);
+
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetchAssignments(controller.signal);
-    fetchAllLectureTimes(controller.signal);
-    fetchBatches(controller.signal);
-    fetchAllBatches(controller.signal);
-    fetchStudents(controller.signal);
+
+    fetchAssignments();
+    fetchAllLectureTimes();
+    fetchBatches();
+    fetchAllBatches();
+    fetchStudents();
+    // fetchAssignmentSubmissions(selectedAssignment!.id);
+
     // return () => {
     //   controller.abort();
     // }
@@ -135,7 +142,7 @@ export const Assignments: React.FC = () => {
 
       {selectedAssignment && (
         <SubmissionManagement
-         isOpen={isModalOpen}
+          isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           assignment={selectedAssignment!}
           batch={selectedBatch || undefined}

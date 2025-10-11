@@ -55,14 +55,17 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         try {
           const ids = JSON.parse(assignmentBatchId);
           assignmentBatchId = Array.isArray(ids) ? ids[0].toString() : assignmentBatchId;
-        } catch {}
+        } catch {
+          
+        }
       }
     const batchStudents = students.filter(student => student.batchId === assignmentBatchId);
 
     return batchStudents.map(student => {
       // Ensure both IDs are strings for comparison
-      const studentIdStr = student.id?.toString();
+      const studentIdStr = student.id;
       const submission = assignment.submissions.find(sub => sub.studentId?.toString() === studentIdStr);
+      console.log("Mapping student:", student, "to assignment:", assignment);
       return {
         student,
         submission: submission || null,
@@ -130,6 +133,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       setBulkSelectedIds(new Set(submittedSubmissions));
     }
   };
+
+  console.log("filteredSubmissions:", filteredSubmissions);
 
   const submitBulkReview = () => {
     const reviews = Array.from(bulkSelectedIds).map(submissionId => ({

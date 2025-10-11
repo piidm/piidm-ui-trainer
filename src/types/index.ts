@@ -21,7 +21,7 @@ export interface AllBatches {
   startDate: string;
   endDate: string;
   courseTitle: string;
-  courseMode:string;
+  courseMode: string;
   totalStudents?: number;
   isActive: boolean;
 }
@@ -41,7 +41,7 @@ export interface Trainer {
 
 export interface Student {
   id: string;
-  length?:number;
+  length?: number;
   name: string;
   email: string;
   avatar?: string;
@@ -181,7 +181,7 @@ export interface DashboardStats {
   upcomingExams: number;
 }
 
-export interface  Timing {
+export interface Timing {
   id: number;
   name: string;
 };

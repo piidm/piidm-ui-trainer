@@ -422,7 +422,7 @@ export const useTrainerData = () => {
   }
 
   // Sessions API
-  const fetchSessions = async (signal?: AbortSignal) => {
+  const fetchSessions = async () => {
 
     try {
 
@@ -433,8 +433,7 @@ export const useTrainerData = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-          },
-          signal
+          }
         }
       )
       if (!res.ok) throw new Error("Failed to fetch sessions");
@@ -500,7 +499,7 @@ export const useTrainerData = () => {
 
 
   // Batches API
-  const fetchBatches = async (signal?: AbortSignal) => {
+  const fetchBatches = async () => {
     setLoading(true);
     try {
 
@@ -511,8 +510,7 @@ export const useTrainerData = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-          },
-          signal
+          }
         }
       );
 
@@ -554,17 +552,14 @@ export const useTrainerData = () => {
 
 
   //fetch all lecture times
-  const fetchAllLectureTimes = async (signal?: AbortSignal) => {
-
+  const fetchAllLectureTimes = async () => {
     try {
-
       const res = await fetch("http://127.0.0.1:3002/api/lecture/all", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        signal,
 
       });
 
@@ -595,7 +590,7 @@ export const useTrainerData = () => {
 
 
 
-  const fetchAllBatches = async (signal?: AbortSignal) => {
+  const fetchAllBatches = async () => {
 
 
     try {
@@ -606,7 +601,7 @@ export const useTrainerData = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        signal,
+
       });
 
       if (!res.ok) throw new Error("Failed to fetch all batches");
@@ -675,7 +670,7 @@ export const useTrainerData = () => {
 
   };
 
-  const fetchBatchById = async (batchId: string, signal?: AbortSignal) => {
+  const fetchBatchById = async (batchId: string,) => {
     try {
       const res = await fetch(`http://127.0.0.1:3002/api/batch/select/${batchId}`, {
         method: "GET",
@@ -683,7 +678,7 @@ export const useTrainerData = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        signal,
+
       });
       if (!res.ok) throw new Error("Failed to fetch batch");
       const data = await res.json();
@@ -694,10 +689,8 @@ export const useTrainerData = () => {
     }
   };
 
-
-
   // Students API
-  const fetchStudents = async (signal?: AbortSignal) => {
+  const fetchStudents = async () => {
     setLoading(true);
     try {
 
@@ -707,8 +700,7 @@ export const useTrainerData = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-          },
-          signal
+          }
         }
       )
 
@@ -743,7 +735,7 @@ export const useTrainerData = () => {
 
 
   // assignment API
-  const fetchAssignments = async (signal?: AbortSignal) => {
+  const fetchAssignments = async () => {
     setLoading(true);
     try {
 
@@ -755,11 +747,10 @@ export const useTrainerData = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          signal,
+
         }
       );
       const resData = await res.json();
-      // console.log()("Fetched assignments:", resData);
       const assignments: Assignment[] = resData.data.map((item: any) => ({
         id: item.assignment_id.toString(),
         title: item.title || "Untitled Assignment",
@@ -800,7 +791,7 @@ export const useTrainerData = () => {
     }
   };
 
-  const fetchAssignmentSubmissions = async (assignmentId: string, signal?: AbortSignal) => {
+  const fetchAssignmentSubmissions = async (assignmentId: string,) => {
     try {
       const res = await fetch(`http://127.0.0.1:3002/api/assignment/submission/view/${assignmentId}`, {
         method: "GET",
@@ -808,7 +799,7 @@ export const useTrainerData = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        signal,
+
       });
       if (!res.ok) throw new Error("Failed to fetch submissions");
       const data = await res.json();
@@ -902,8 +893,6 @@ export const useTrainerData = () => {
         batch_date,
       }];
 
-
-
       const res = await fetch("http://127.0.0.1:3002/api/lecture/add", {
         method: "POST",
         headers: {
@@ -981,20 +970,7 @@ export const useTrainerData = () => {
       const newAssignment: Assignment = {
         ...assignment,
         id: Date.now().toString(),
-        submissions: [
-          {
-            "id": "1",
-            "studentId": "2683",
-            "studentName": "Unnati Mohta",
-            "assignmentId": "9",
-            "submittedAt": "2024-12-18T14:30:00",
-            "files": [],
-            "marks": 85,
-            "feedback": "Great job!",
-            "status": "submitted",
-            "reviewedAt": undefined,
-            "reviewedBy": undefined,
-          }],
+        submissions: [],
         status: "active",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
