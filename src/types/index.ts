@@ -83,7 +83,7 @@ export interface AssignmentSubmission {
   studentName: string;
   assignmentId: string;
   submittedAt: string;
-  files: SubmissionFile[];
+  document: string;
   marks?: number;
   feedback?: string;
   status: 'pending' | 'submitted' | 'reviewed';
@@ -91,13 +91,13 @@ export interface AssignmentSubmission {
   reviewedBy?: string;
 }
 
-export interface SubmissionFile {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  size: number;
-}
+// export interface SubmissionFile {
+//   id: string;
+//   name: string;
+//   url: string;
+//   type: string;
+//   size: number;
+// }
 
 export interface ReviewAction {
   id: string;

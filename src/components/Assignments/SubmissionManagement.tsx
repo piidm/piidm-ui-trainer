@@ -50,28 +50,47 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
-      let assignmentBatchId = assignment.batchId;
-      if (assignmentBatchId.startsWith("[")) {
-        try {
-          const ids = JSON.parse(assignmentBatchId);
-          assignmentBatchId = Array.isArray(ids) ? ids[0].toString() : assignmentBatchId;
-        } catch {
-          
-        }
-      }
-    const batchStudents = students.filter(student => student.batchId === assignmentBatchId);
 
-    return batchStudents.map(student => {
-      // Ensure both IDs are strings for comparison
-      const studentIdStr = student.id;
-      const submission = assignment.submissions.find(sub => sub.studentId?.toString() === studentIdStr);
-      console.log("Mapping student:", student, "to assignment:", assignment);
+    let assignmentBatchId = assignment.batchId;
+    if (assignmentBatchId.startsWith("[")) {
+      try {
+        const ids = JSON.parse(assignmentBatchId);
+        assignmentBatchId = Array.isArray(ids) ? ids[0].toString() : assignmentBatchId;
+      } catch {
+      }
+    }
+
+    // ✅ Use assignment.submissions as the primary source
+    const result = assignment.submissions.map(submission => {
+      // Find matching student data if available
+      const matchingStudent = students.find(s => s.id === submission.studentId);
+      
+      const student: Student = matchingStudent || {
+        id: submission.studentId,
+        name: submission.studentName,
+        email: "N/A",
+        batchId: assignmentBatchId,
+        enrollmentDate: "N/A",
+        overallAttendance: 0,
+        overallGrade: submission.marks || 0,
+        assignment: "N/A",
+        exam: "N/A",
+        certificate: "Pending",
+        mockInterview: "Not Attempted",
+        placementStatus: "Not Placed",
+      };
+
+    
+
       return {
         student,
-        submission: submission || null,
-        status: submission ? submission.status : 'pending' as 'pending' | 'submitted' | 'reviewed'
+        submission: submission, // ✅ Direct submission object from assignment
+        status: submission.status as 'pending' | 'submitted' | 'reviewed'
       };
     });
+
+    console.log("🟣 [MODAL] Final studentSubmissions:", result);
+    return result;
   }, [students, assignment]);
 
   const filteredSubmissions = useMemo(() => {
@@ -289,6 +308,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                     const StatusIcon = getStatusIcon(item.status);
                     const isSelected = item.submission && bulkSelectedIds.has(item.submission.id);
 
+                    // console.log("filteredSubmissions",filteredSubmissions);
                     return (
                       <div key={item.student.id} className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${isSelected ? 'ring-2 ring-blue-500' : 'border-gray-200'}`}>
                         <div className="flex items-start justify-between">
@@ -319,7 +339,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   {item.status}
                                 </span>
                               </div>
-
+                            
                               {item.submission ? (
                                 <>
                                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
@@ -333,19 +353,18 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   <div className="mb-3">
                                     <h4 className="text-sm font-medium text-gray-700 mb-2">Submitted Files:</h4>
                                     <div className="space-y-1">
-                                      {item.submission.files.map(file => (
-                                        <div key={file.id} className="flex items-center gap-2 text-sm">
+                                      
+                                        <div className="flex items-center gap-2 text-sm">
                                           <FileText className="w-4 h-4 text-gray-400" />
-                                          <span className="text-gray-700">{file.name}</span>
-                                          <span className="text-gray-500">({formatFileSize(file.size)})</span>
+                                          <span className="text-gray-700">{item.submission.document}</span>
                                           <button
-                                            onClick={() => window.open(file.url, '_blank')}
+                                            onClick={() => window.open(item.submission.document, '_blank')}
                                             className="text-blue-600 hover:text-blue-700 ml-auto"
                                           >
                                             <Download className="w-4 h-4" />
                                           </button>
                                         </div>
-                                      ))}
+                                     
                                     </div>
                                   </div>
 

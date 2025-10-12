@@ -392,7 +392,7 @@ const mockExams: Exam[] = [
 
 export const useTrainerData = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [allBatches, setAllBatches] = useState<Batch[]>([]); // ✅ add this
+  const [allBatches, setAllBatches] = useState<Batch[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -422,7 +422,7 @@ export const useTrainerData = () => {
   }
 
   // Sessions API
-  const fetchSessions = async () => {
+  const fetchSessions = async (signal?: AbortSignal) => {
 
     try {
 
@@ -433,7 +433,8 @@ export const useTrainerData = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-          }
+          },
+          signal
         }
       )
       if (!res.ok) throw new Error("Failed to fetch sessions");
@@ -452,11 +453,13 @@ export const useTrainerData = () => {
         const batchDate = item.batch_date?.split("T")[0] || today;
         const status = batchDate < today ? "completed" : "scheduled";
 
+        // ✅ Safely handle missing batch_time
         let displayTime = "00:00 AM - 00:00 PM";
         if (item.batch_time && typeof item.batch_time.name === "string") {
           displayTime = item.batch_time.name;
         }
 
+        // ✅ Safely extract start time
         let startTime12hr = "00:00 AM";
         try {
           if (displayTime && displayTime.includes(" - ")) {
@@ -466,6 +469,7 @@ export const useTrainerData = () => {
           startTime12hr = "00:00 AM";
         }
 
+        // ✅ Convert to 24-hour
         let startTime24hr = "00:00";
         try {
           startTime24hr = convertTo24Hour(startTime12hr);
@@ -499,7 +503,7 @@ export const useTrainerData = () => {
 
 
   // Batches API
-  const fetchBatches = async () => {
+  const fetchBatches = async (signal?: AbortSignal) => {
     setLoading(true);
     try {
 
@@ -510,7 +514,8 @@ export const useTrainerData = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-          }
+          },
+          signal
         }
       );
 
@@ -552,14 +557,17 @@ export const useTrainerData = () => {
 
 
   //fetch all lecture times
-  const fetchAllLectureTimes = async () => {
+  const fetchAllLectureTimes = async (signal?: AbortSignal) => {
+
     try {
+
       const res = await fetch("http://127.0.0.1:3002/api/lecture/all", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        signal,
 
       });
 
@@ -590,7 +598,7 @@ export const useTrainerData = () => {
 
 
 
-  const fetchAllBatches = async () => {
+  const fetchAllBatches = async (signal?: AbortSignal) => {
 
 
     try {
@@ -601,7 +609,7 @@ export const useTrainerData = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-
+        signal,
       });
 
       if (!res.ok) throw new Error("Failed to fetch all batches");
@@ -670,7 +678,12 @@ export const useTrainerData = () => {
 
   };
 
-  const fetchBatchById = async (batchId: string,) => {
+
+
+
+
+
+  const fetchBatchById = async (batchId: string, signal?: AbortSignal) => {
     try {
       const res = await fetch(`http://127.0.0.1:3002/api/batch/select/${batchId}`, {
         method: "GET",
@@ -678,7 +691,7 @@ export const useTrainerData = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-
+        signal,
       });
       if (!res.ok) throw new Error("Failed to fetch batch");
       const data = await res.json();
@@ -689,26 +702,30 @@ export const useTrainerData = () => {
     }
   };
 
+
+
   // Students API
-  const fetchStudents = async () => {
+  const fetchStudents = async (signal?: AbortSignal) => {
     setLoading(true);
     try {
-
       const res = await fetch(
         "http://127.0.0.1:3002/api/students_report/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=student.name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=attendance&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=exam&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=score&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=certificate&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=mock_interview&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=placement_status&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
         {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-          }
+          },
+          signal
         }
       )
 
+      if (!res.ok) throw new Error("Failed to fetch students");
+
       const resData = await res.json();
 
-      const totalStudents = resData.basic_stats.total_student_reports;
-      const studentList: Student[] = resData.data.map((item: any) => ({
-        id: item.student_id?.toString(),
+      const totalStudents = resData.basic_stats?.total_student_reports || 0;
+      const studentList: Student[] = (resData.data || []).map((item: any) => ({
+        id: item.student_id?.toString() || String(Math.random()),
         length: totalStudents,
         name: item.student?.name || "Unnamed",
         email: item.student?.email || "N/A",
@@ -723,19 +740,30 @@ export const useTrainerData = () => {
         batchId: item.batch_id?.toString() || "0",
       }));
 
-      setStudents(studentList); // assuming setStudents is a state setter
+      setStudents(studentList);
+      setLoading(false);
     } catch (err: any) {
       if (err.name === "AbortError") {
+        console.log("Fetch students aborted");
       } else {
-        console.error(err);
+        console.error("Error fetching students:", err);
       }
+      setLoading(false);
     }
   };
 
+  // Helper function to get students by batch ID
+  const getStudentsByBatch = (batchId: string): Student[] => {
+    return students.filter((student) => student.batchId === batchId);
+  };
 
+  // Helper function to get student by ID
+  const getStudentById = (studentId: string): Student | undefined => {
+    return students.find((student) => student.id === studentId);
+  };
 
   // assignment API
-  const fetchAssignments = async () => {
+  const fetchAssignments = async (signal?: AbortSignal) => {
     setLoading(true);
     try {
 
@@ -747,7 +775,7 @@ export const useTrainerData = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-
+          signal,
         }
       );
       const resData = await res.json();
@@ -791,7 +819,7 @@ export const useTrainerData = () => {
     }
   };
 
-  const fetchAssignmentSubmissions = async (assignmentId: string,) => {
+  const fetchAssignmentSubmissions = async (assignmentId: string, signal?: AbortSignal) => {
     try {
       const res = await fetch(`http://127.0.0.1:3002/api/assignment/submission/view/${assignmentId}`, {
         method: "GET",
@@ -799,7 +827,7 @@ export const useTrainerData = () => {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-
+        signal,
       });
       if (!res.ok) throw new Error("Failed to fetch submissions");
       const data = await res.json();
@@ -830,6 +858,7 @@ export const useTrainerData = () => {
 
 
   const assignmentStats: AssignmentStats = {
+
     totalAssignments: assignments.length,
     activeAssignments: assignments.filter((a) => a.status === "active").length,
     expiredAssignments: assignments.filter((a) => a.status === "expired")
@@ -893,6 +922,8 @@ export const useTrainerData = () => {
         batch_date,
       }];
 
+
+
       const res = await fetch("http://127.0.0.1:3002/api/lecture/add", {
         method: "POST",
         headers: {
@@ -934,6 +965,7 @@ export const useTrainerData = () => {
       "id" | "createdAt" | "updatedAt" | "createdBy" | "submissions" | "status"
     >
   ) => {
+
     try {
       function formatAssignmentDate(isoDate: string) {
         const date = new Date(isoDate);
@@ -943,7 +975,7 @@ export const useTrainerData = () => {
         return `${day}/${month}/${year}`;
       }
 
-      const body = [{
+      const payload = [{
         title: assignment.title,
         description: assignment.details,
         json_batch_ids: `[${assignment.batchId}]`,
@@ -960,7 +992,7 @@ export const useTrainerData = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Failed to create assignment");
@@ -974,20 +1006,16 @@ export const useTrainerData = () => {
         status: "active",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        createdBy: "",
+        createdBy: "Dr. Sarah Johnson",
       };
-      setAssignments((prev) => [...prev, newAssignment]);
 
-      console.log("New assignment added:", newAssignment);
+      setAssignments((prev) => [...prev, newAssignment]);
       return resData;
     } catch (err) {
       console.error("Error adding session:", err);
       throw err;
     }
   };
-
-  useEffect(() => {
-  }, [assignments]);
 
   const updateAssignment = (id: string, updates: Partial<Assignment>) => {
     setAssignments((prev) =>
@@ -1139,7 +1167,7 @@ export const useTrainerData = () => {
 
 
   return {
-    batches, // used for dropdowns
+    batches,
     allBatches,
     allLectureTimes,
     students,
@@ -1159,6 +1187,8 @@ export const useTrainerData = () => {
     fetchAssignments,
     fetchBatchById,
     fetchAssignmentSubmissions,
+    getStudentsByBatch, // ✅ Add this
+    getStudentById, // ✅ Add this
     addSession,
     updateSession,
     addAssignment,

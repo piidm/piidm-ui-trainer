@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
-import { AllBatches, Assignment, Batch, Student } from '../../types';
+import { AllBatches, Assignment, Batch, Student, AssignmentSubmission } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentListProps {
@@ -347,47 +347,103 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                           <button
                             onClick={async () => {
                               try {
+                                
                                 // 1. Resolve batchId
                                 let batchId = assignment.batchId;
+                                console.log("🔵 [VIEW] Raw batchId:", batchId);
+                                
                                 if (batchId.startsWith("[")) {
                                   try {
                                     const ids = JSON.parse(batchId);
-                                    batchId = Array.isArray(ids) ? ids[0] : batchId;
-                                  } catch { }
+                                    batchId = Array.isArray(ids) ? ids[0].toString() : batchId;
+                                    console.log("🔵 [VIEW] Parsed batchId:", batchId);
+                                  } catch (e) {
+                                    console.error("🔴 [VIEW] Failed to parse batchId:", e);
+                                  }
                                 }
-
+                          
                                 // 2. Fetch batch
-                                const batch = await fetchBatchById(batchId);
-
+                                const batchData = await fetchBatchById(batchId);
+                                console.log("🔵 [VIEW] Fetched batch data:", batchData);
+                                
+                                const batch: Batch | null = batchData ? {
+                                  id: batchData.batch_id?.toString() || batchId,
+                                  length: 1,
+                                  name: batchData.name || `Batch ${batchData.batch_num || "Unknown"}`,
+                                  timing: batchData.batch_time?.name || "Unknown" as any,
+                                  students: [],
+                                  courseMode: "online",
+                                  startDate: batchData.batch_date || batchData.start_date || "1970-01-01",
+                                  endDate: batchData.batch_date || batchData.end_date || "1970-01-01",
+                                  courseTitle: batchData.course?.name || `Course #${batchData.course_id}`,
+                                  totalStudents: batchData.seats_occupied || batchData.total_seats || 0,
+                                  isActive: batchData.deleted === 0 || batchData.is_active !== false,
+                                } : null;
+                          
+                                console.log("🔵 [VIEW] Transformed batch:", batch);
+                          
                                 // 3. Fetch submissions
                                 const submissions = await fetchAssignmentSubmissions(assignment.id);
-                                console.log("submissions raw:", submissions);
-
-                                // 4. Transform submissions into Student[]
-                                const students = submissions.map((s: any) => ({
-                                  id: String(s.student.student_id),          // student ID
-                                  name: s.student.name,                      // student name
-                                  email: s.student.email || "",              // might be null
-                                  batchId: String(s.student.batch_id),       // batchId from student object
-                                  enrollmentDate: s.student.admission_date,  // admission date
-                                  overallAttendance: 0,                      // not in API, keep default
-                                  overallGrade: s.marks_obtained || 0,       // marks from submission
-                                  submissionId: s.submission_id,             // useful for review
-                                  status: s.submission_status === 1 ? "submitted" : "pending", // map status
+                                console.log("🔵 [VIEW] Fetched submissions from API:", submissions);
+                                console.log("🔵 [VIEW] Submissions count:", Array.isArray(submissions) ? submissions.length : 0);
+                              
+                                // 4. Transform API submissions into AssignmentSubmission[] format
+                                const assignmentSubmissions: AssignmentSubmission[] = Array.isArray(submissions) 
+                                  ? submissions
+                                      .filter((s: any) => s && s.student)
+                                      .map((s: any) => {
+                                        const submission: AssignmentSubmission = {
+                                          id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,
+                                          studentId: String(s.student?.student_id || ""),
+                                          studentName: s.student?.name || "Unnamed Student",
+                                          assignmentId: assignment.id,
+                                          submittedAt: s.updated_at || "",
+                                          status: s.submission_status === 1 ? "submitted" : s.marks_obtained ? "reviewed" : "pending",
+                                          marks: s.marks_obtained || undefined,
+                                          feedback: s.feedback || undefined,
+                                          reviewedAt: s.updated_at || undefined,
+                                          reviewedBy: s.reviewed_by || undefined,
+                                          document: s.document_uploaded_path || "https://drive.google.com/file/d/1CNCKZBogTHvySBn8CuuIhiYcmYdjVsRo/view?usp=sharing" || undefined,
+                                        };
+                                        return submission;
+                                      })
+                                  : [];
+                          
+                          
+                                // 5. Create updated assignment with merged submissions
+                                const updatedAssignment: Assignment = {
+                                  ...assignment,
+                                  submissions: assignmentSubmissions,
+                                };
+                          
+                          
+                                // 6. Transform submissions into Student[] for compatibility
+                                const students = assignmentSubmissions.map((sub) => ({
+                                  id: sub.studentId,
+                                  name: sub.studentName,
+                                  email: "", // Email not available in submission data
+                                  batchId: batchId,
+                                  enrollmentDate: "N/A",
+                                  overallAttendance: 0,
+                                  overallGrade: sub.marks || 0,
+                                  assignment: "N/A",
+                                  exam: "N/A",
+                                  certificate: "Pending",
+                                  mockInterview: "Not Attempted",
+                                  placementStatus: "Not Placed",
                                 }));
-
-                                // 5. Open modal with all data
-                                onViewSubmissions(assignment, batch, students);
+                          
+                                // 7. Pass updated assignment with full submission data
+                                onViewSubmissions(updatedAssignment, batch, students);
                               } catch (error) {
-                                console.error("Failed to fetch details:", error);
                                 onViewSubmissions(assignment, null, []);
                               }
                             }}
-
+                          
                             className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs"
                           >
                             <Eye className="w-3 h-3" />
-                            View ({assignment.submissions.length})
+                            View {submittedCount}
                           </button>
 
                           <div className="relative">
