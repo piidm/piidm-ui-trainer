@@ -79,7 +79,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
   // Utility function to fetch and update attendance data
   const fetchAttendanceData = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:3002/api/lecture/attendance/" + session.id, {
+      const res = await fetch("https://many-zebras-behave.loca.lt/api/lecture/attendance/" + session.id, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -206,7 +206,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
     try {
       const res = await fetch(
-        "http://127.0.0.1:3002/api/lecture/attendance/update",
+        "https://many-zebras-behave.loca.lt/api/lecture/attendance/update",
         {
           method: "PUT",
           headers: {
@@ -511,7 +511,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                         ];
 
                         try {
-                          await fetch("http://127.0.0.1:3002/api/lecture/attendance/update", {
+                          await fetch("https://many-zebras-behave.loca.lt/api/lecture/attendance/update", {
                             method: "PUT", // If backend uses PUT/PATCH, change here
                             headers: {
                               Authorization: `Bearer ${token}`,
@@ -522,7 +522,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
                           // Refresh list from GET API
                           const res = await fetch(
-                            `http://127.0.0.1:3002/api/lecture/attendance/${session.id}`,
+                            `https://many-zebras-behave.loca.lt/api/lecture/attendance/${session.id}`,
                             {
                               headers: {
                                  method: "get", 
