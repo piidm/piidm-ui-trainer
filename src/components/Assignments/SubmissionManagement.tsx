@@ -50,47 +50,39 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
-
+    // Resolve primary batch id from assignment.batchId (handles "[...]" case)
     let assignmentBatchId = assignment.batchId;
-    if (assignmentBatchId.startsWith("[")) {
+    if (typeof assignmentBatchId === 'string' && assignmentBatchId.startsWith("[")) {
       try {
         const ids = JSON.parse(assignmentBatchId);
         assignmentBatchId = Array.isArray(ids) ? ids[0].toString() : assignmentBatchId;
       } catch {
+        // keep original if parse fails
       }
     }
 
-    // ✅ Use assignment.submissions as the primary source
-    const result = assignment.submissions.map(submission => {
-      // Find matching student data if available
-      const matchingStudent = students.find(s => s.id === submission.studentId);
-      
-      const student: Student = matchingStudent || {
-        id: submission.studentId,
-        name: submission.studentName,
-        email: "N/A",
-        batchId: assignmentBatchId,
-        enrollmentDate: "N/A",
-        overallAttendance: 0,
-        overallGrade: submission.marks || 0,
-        assignment: "N/A",
-        exam: "N/A",
-        certificate: "Pending",
-        mockInterview: "Not Attempted",
-        placementStatus: "Not Placed",
-      };
+    // Get students from provided prop who belong to the assignment's batch
+    const batchStudents = students.filter(student => (student.batchId ?? "").toString() === (assignmentBatchId ?? "").toString());
 
-    
+    // Map every student => attach submission if exists
+    const mapped = batchStudents.map(student => {
+      const studentIdStr = (student.id ?? "").toString().trim();
+
+      // Find matching submission (robust string compare)
+      const submission = (assignment.submissions || []).find(sub =>
+        (sub.studentId ?? "").toString().trim() === studentIdStr
+      ) || null;
+
+      const status = submission ? (submission.status ?? 'submitted') : 'pending';
 
       return {
         student,
-        submission: submission, // ✅ Direct submission object from assignment
-        status: submission.status as 'pending' | 'submitted' | 'reviewed'
+        submission,
+        status: status as 'pending' | 'submitted' | 'reviewed'
       };
     });
 
-    console.log("🟣 [MODAL] Final studentSubmissions:", result);
-    return result;
+    return mapped;
   }, [students, assignment]);
 
   const filteredSubmissions = useMemo(() => {
@@ -153,7 +145,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     }
   };
 
-  console.log("filteredSubmissions:", filteredSubmissions);
+  // console.log("filteredSubmissions:", filteredSubmissions);
 
   const submitBulkReview = () => {
     const reviews = Array.from(bulkSelectedIds).map(submissionId => ({
@@ -340,12 +332,12 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                 </span>
                               </div>
                             
-                              {item.submission ? (
+                              {item.status === 'submitted' || item.status === 'reviewed' ? (
                                 <>
                                   <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                                     <div className="flex items-center gap-1">
                                       <Calendar className="w-4 h-4" />
-                                      Submitted: {new Date(item.submission.submittedAt).toLocaleString()}
+                                      Submitted: {item.submission?.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
                                     </div>
                                   </div>
 
@@ -353,18 +345,23 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   <div className="mb-3">
                                     <h4 className="text-sm font-medium text-gray-700 mb-2">Submitted Files:</h4>
                                     <div className="space-y-1">
-                                      
-                                        <div className="flex items-center gap-2 text-sm">
-                                          <FileText className="w-4 h-4 text-gray-400" />
-                                          <span className="text-gray-700">{item.submission.document}</span>
-                                          <button
-                                            onClick={() => window.open(item.submission.document, '_blank')}
-                                            className="text-blue-600 hover:text-blue-700 ml-auto"
-                                          >
-                                            <Download className="w-4 h-4" />
-                                          </button>
-                                        </div>
-                                     
+                                      {item.submission && Array.isArray(item.submission.files) && item.submission.files.length > 0 ? (
+                                        item.submission.files.map(file => (
+                                          <div key={file.id} className="flex items-center gap-2 text-sm">
+                                            <FileText className="w-4 h-4 text-gray-400" />
+                                            <span className="text-gray-700">{file.name}</span>
+                                            <span className="text-gray-500">({formatFileSize(file.size)})</span>
+                                            <button
+                                              onClick={() => window.open(file.url, '_blank')}
+                                              className="text-blue-600 hover:text-blue-700 ml-auto"
+                                            >
+                                              <Download className="w-4 h-4" />
+                                            </button>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <div className="text-sm text-gray-500">No files uploaded</div>
+                                      )}
                                     </div>
                                   </div>
 
