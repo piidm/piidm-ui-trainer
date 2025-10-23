@@ -188,6 +188,44 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // New helper: normalize files from submission object (files[], document array, or single document path)
+  const getSubmissionFiles = (submission?: AssignmentSubmission | null) => {
+    if (!submission) return [];
+    const s: any = submission;
+
+    // 1) Prefer explicit files array
+    if (Array.isArray(s.files) && s.files.length > 0) {
+      return s.files;
+    }
+
+    // 2) If document / documents field is an array of file-like objects
+    const docArray = s.document || s.documents;
+    if (Array.isArray(docArray) && docArray.length > 0) {
+      return docArray.map((d: any, i: number) => ({
+        id: (d.id ?? `doc-${submission.id}-${i}`).toString(),
+        name: d.name || d.filename || `document-${i}`,
+        url: d.url || d.path || d.document_url || '',
+        type: d.type || 'application/octet-stream',
+        size: d.size || 0,
+      }));
+    }
+
+    // 3) Single document path fallback (string)
+    const singleDoc = s.document || s.document_uploaded_path || s.documentUrl || s.url;
+    if (typeof singleDoc === 'string' && singleDoc.trim()) {
+      const name = s.document_filename || singleDoc.split('/').pop() || `document-${submission.id}`;
+      return [{
+        id: `doc-${submission.id}`,
+        name,
+        url: singleDoc,
+        type: s.document_type || 'application/octet-stream',
+        size: s.document_size || 0,
+      }];
+    }
+
+    return [];
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -345,23 +383,25 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   <div className="mb-3">
                                     <h4 className="text-sm font-medium text-gray-700 mb-2">Submitted Files:</h4>
                                     <div className="space-y-1">
-                                      {item.submission && Array.isArray(item.submission.files) && item.submission.files.length > 0 ? (
-                                        item.submission.files.map(file => (
+                                      {(() => {
+                                        const files = getSubmissionFiles(item.submission);
+                                        if (!files || files.length === 0) {
+                                          return <div className="text-sm text-gray-500">No files uploaded</div>;
+                                        }
+                                        return files.map((file: any) => (
                                           <div key={file.id} className="flex items-center gap-2 text-sm">
                                             <FileText className="w-4 h-4 text-gray-400" />
                                             <span className="text-gray-700">{file.name}</span>
-                                            <span className="text-gray-500">({formatFileSize(file.size)})</span>
+                                            <span className="text-gray-500">({formatFileSize(file.size || 0)})</span>
                                             <button
-                                              onClick={() => window.open(file.url, '_blank')}
+                                              onClick={() => file?.url && window.open(file.url, '_blank')}
                                               className="text-blue-600 hover:text-blue-700 ml-auto"
                                             >
                                               <Download className="w-4 h-4" />
                                             </button>
                                           </div>
-                                        ))
-                                      ) : (
-                                        <div className="text-sm text-gray-500">No files uploaded</div>
-                                      )}
+                                        ));
+                                      })()}
                                     </div>
                                   </div>
 
@@ -398,9 +438,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                               <>
                                 <button
                                   onClick={() => {
-                                    item.submission?.files.forEach(file => {
-                                      window.open(file.url, '_blank');
-                                    });
+                                    const filesToOpen = getSubmissionFiles(item.submission);
+                                    filesToOpen.forEach((f: any) => f?.url && window.open(f.url, '_blank'));
                                   }}
                                   className="flex items-center gap-1 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm"
                                 >

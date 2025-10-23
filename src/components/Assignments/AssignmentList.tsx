@@ -380,12 +380,10 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   isActive: batchData.deleted === 0 || batchData.is_active !== false,
                                 } : null;
                           
-                                console.log("🔵 [VIEW] Transformed batch:", batch);
                           
                                 // 3. Fetch submissions
                                 const submissions = await fetchAssignmentSubmissions(assignment.id);
                                 console.log("🔵 [VIEW] Fetched submissions from API:", submissions);
-                                console.log("🔵 [VIEW] Submissions count:", Array.isArray(submissions) ? submissions.length : 0);
                               
                                 // 4. Transform API submissions into AssignmentSubmission[] format
                                 const assignmentSubmissions: AssignmentSubmission[] = Array.isArray(submissions) 

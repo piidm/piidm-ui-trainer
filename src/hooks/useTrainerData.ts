@@ -402,7 +402,7 @@ export const useTrainerData = () => {
   const [loading, setLoading] = useState(false);
   const [allLectureTimes, setAllLectureTimes] = useState([]);
 
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg"
 
   //Convert 12-hour time format to 24-hour format
   function convertTo24Hour(time12h: any) {

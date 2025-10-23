@@ -78,6 +78,7 @@ export interface Assignment {
 }
 
 export interface AssignmentSubmission {
+  files(files: any): unknown;
   id: string;
   studentId: string;
   studentName: string;
