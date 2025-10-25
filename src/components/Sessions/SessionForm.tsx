@@ -16,6 +16,9 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
   const batchObj = localStorage.getItem("batch_obj") ? JSON.parse(localStorage.getItem("batch_obj")!) : [];
   const batchtimeObj = localStorage.getItem("batch_time_obj") ? JSON.parse(localStorage.getItem("batch_time_obj")!) : [];
   const courseModeObj = localStorage.getItem("course_mode_obj") ? JSON.parse(localStorage.getItem("course_mode_obj")!) : [];
+  console.log("Batch Object:", batchObj);
+  console.log("Batch Time Object:", batchtimeObj);
+  console.log("Course Mode Object:", courseModeObj);
 
   const [formData, setFormData] = useState<{
     topic: string;
@@ -34,13 +37,15 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
     mode: 'classroom',
     lectureLink: ''
   });
+  console.log("Form Data:", formData);
 
   useEffect(() => {
-    if (!formData.batchTimeId) return;
-    let selectedBatch = batchObj.find((b: { batch_time_id: number; }) => b.batch_time_id === Number(formData.batchTimeId));
+    // Run when a batch is selected; compute timing and mode from localStorage objects
+    if (!formData.batchId) return;
+    const selectedBatch = batchObj.find((b: { batch_id: string | number; }) => String(b.batch_id) === String(formData.batchId));
     let timing = "";
-    if (batchtimeObj && Array.isArray(batchtimeObj)) {
-      const batchTime = batchtimeObj.find((b: { batch_time_id: string | number; }) => String(b.batch_time_id) === String(formData.batchTimeId));
+    if (selectedBatch && batchtimeObj && Array.isArray(batchtimeObj)) {
+      const batchTime = batchtimeObj.find((b: { batch_time_id: string | number; }) => String(b.batch_time_id) === String(selectedBatch.batch_time_id));
       timing = batchTime?.name;
     }
 
@@ -73,10 +78,14 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
 
     setFormData(prev => ({
       ...prev,
+      // keep existing time if we couldn't parse one
       time: startTime || prev.time,
-      mode: modeValue
+      mode: modeValue,
+      // ensure batchTimeId is also kept in sync with selected batch
+      batchTimeId: selectedBatch && selectedBatch.batch_time_id ? String(selectedBatch.batch_time_id) : prev.batchTimeId
     }));
-  }, [formData.batchTimeId, allBatches]);
+  }, [formData.batchId, allBatches]);
+  // }, [formData.batchTimeId, allBatches]);
 
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -241,27 +250,31 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
             <div className="relative">
               <Users className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <select
-                value={formData.batchTimeId}
+                value={formData.batchId}
                 onChange={(e) => {
-                  const selectedBatchTimeId = e.target.value;
-                  const selectedBatch = batchObj.find((b: { batch_time_id: string | number; }) => String(b.batch_time_id) === String(selectedBatchTimeId));
+                  const selectedBatchId = e.target.value;
+                  const selectedBatch = batchObj.find((b: { batch_id: string | number; batch_time_id?: string | number; course_mode_id?: number }) => String(b.batch_id) === String(selectedBatchId));
+                  console.log("Selected Batch:", selectedBatch);
 
+                  // Set batchId and batchTimeId (if available). useEffect will compute time & mode.
                   setFormData(prev => ({
-                    ...prev, batchTimeId: selectedBatchTimeId,
-                    batchId: selectedBatch ? String(selectedBatch.batch_id) : ''
+                    ...prev,
+                    batchId: selectedBatch ? String(selectedBatch.batch_id) : '',
+                    batchTimeId: selectedBatch && selectedBatch.batch_time_id ? String(selectedBatch.batch_time_id) : ''
                   }))
+
                 }}
                 className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300' : 'border-gray-300'
                   }`}
               >
                 <option value="">Choose a batch</option>
                 {batchObj.map((item: any, index: number) => (
-                  <option key={`${item.batch_id}-${index}`} value={item.batch_time_id} >
+                  <option key={`${item.batch_id}-${index}`} value={item.batch_id} >
                     {item.name}
                   </option>))}
               </select>
             </div>
-            {errors.batch_time_id && <p className="text-red-500 text-sm mt-1">{errors.batch_time_id}</p>}
+            {errors.batchId && <p className="text-red-500 text-sm mt-1">{errors.batchId}</p>}
           </div>
 
           {/* Mode */}
