@@ -60,7 +60,6 @@ export const Attendance: React.FC = () => {
     }));
 
     markAttendance(attendanceRecords);
-    console.log(`Attendance marked for session ${sessionId}`, attendanceRecords);
   };
 
   return (

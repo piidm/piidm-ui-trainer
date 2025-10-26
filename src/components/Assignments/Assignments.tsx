@@ -35,10 +35,6 @@ export const Assignments: React.FC = () => {
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  console.log("selectedStudents:", selectedStudents);
-  console.log("selectedBatch:", selectedBatch);
-  console.log("selectedAssignment:", selectedAssignment);
-
 
   useEffect(() => {
 

@@ -350,21 +350,19 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                 
                                 // 1. Resolve batchId
                                 let batchId = assignment.batchId;
-                                console.log("🔵 [VIEW] Raw batchId:", batchId);
                                 
                                 if (batchId.startsWith("[")) {
                                   try {
                                     const ids = JSON.parse(batchId);
                                     batchId = Array.isArray(ids) ? ids[0].toString() : batchId;
-                                    console.log("🔵 [VIEW] Parsed batchId:", batchId);
+                                    console.log("Parsed batchId:");
                                   } catch (e) {
-                                    console.error("🔴 [VIEW] Failed to parse batchId:", e);
+                                    console.error("Failed to parse batchId:");
                                   }
                                 }
                           
                                 // 2. Fetch batch
                                 const batchData = await fetchBatchById(batchId);
-                                console.log("🔵 [VIEW] Fetched batch data:", batchData);
                                 
                                 const batch: Batch | null = batchData ? {
                                   id: batchData.batch_id?.toString() || batchId,
@@ -383,7 +381,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                           
                                 // 3. Fetch submissions
                                 const submissions = await fetchAssignmentSubmissions(assignment.id);
-                                console.log("🔵 [VIEW] Fetched submissions from API:", submissions);
                               
                                 // 4. Transform API submissions into AssignmentSubmission[] format
                                 const assignmentSubmissions: AssignmentSubmission[] = Array.isArray(submissions) 

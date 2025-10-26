@@ -16,9 +16,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
   const batchObj = localStorage.getItem("batch_obj") ? JSON.parse(localStorage.getItem("batch_obj")!) : [];
   const batchtimeObj = localStorage.getItem("batch_time_obj") ? JSON.parse(localStorage.getItem("batch_time_obj")!) : [];
   const courseModeObj = localStorage.getItem("course_mode_obj") ? JSON.parse(localStorage.getItem("course_mode_obj")!) : [];
-  console.log("Batch Object:", batchObj);
-  console.log("Batch Time Object:", batchtimeObj);
-  console.log("Course Mode Object:", courseModeObj);
+
 
   const [formData, setFormData] = useState<{
     topic: string;
@@ -37,7 +35,6 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
     mode: 'classroom',
     lectureLink: ''
   });
-  console.log("Form Data:", formData);
 
   useEffect(() => {
     // Run when a batch is selected; compute timing and mode from localStorage objects
@@ -254,7 +251,6 @@ export const SessionForm: React.FC<SessionFormProps> = ({ isOpen, onClose, onSub
                 onChange={(e) => {
                   const selectedBatchId = e.target.value;
                   const selectedBatch = batchObj.find((b: { batch_id: string | number; batch_time_id?: string | number; course_mode_id?: number }) => String(b.batch_id) === String(selectedBatchId));
-                  console.log("Selected Batch:", selectedBatch);
 
                   // Set batchId and batchTimeId (if available). useEffect will compute time & mode.
                   setFormData(prev => ({

@@ -16,9 +16,9 @@ export default function Dashboard() {
 
 
   function load_prerequisite_data() {
-    localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3MDkwfQ.C6BhLFFCetm_GBiklD-04t0nMBoPspl59tZED603vFE');
+    localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg');
     // Retreive dependent data through Endpoints
-    let BASE_URL = "https://64.227.150.234:3002/api/";
+    let BASE_URL = "http://127.0.0.1:3002/api/";
     let display_objects = ['course', 'course_mode', 'branch', 'batch_time', 'source', 'payment_mode', 'trainer', 'country', 'state', 'city', 'agent', 'batch'];
     $.each(display_objects, function (index, display_obj) {
       $.ajax({
