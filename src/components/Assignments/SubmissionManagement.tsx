@@ -33,6 +33,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   onBulkReview
 }) => {
 
+  const { fetchBatchById, fetchAssignmentSubmissions, refreshAssignmentSubmissions} = useTrainerData();
+
+  // Add token for API calls
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+
   const [filter, setFilter] = useState<'all' | 'pending' | 'submitted' | 'reviewed'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmission | null>(null);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
@@ -42,14 +47,25 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     feedback: ''
   });
   const [showBulkReview, setShowBulkReview] = useState(false);
+  const [isUpdatingSubmission, setIsUpdatingSubmission] = useState(false);
   const [assessmentData, setAssessmentData] = useState({
     marks: 0,
     feedback: '',
     action: 'accept' as 'accept' | 'reject'
   });
 
+  // Local overrides so UI updates instantly (before parent/remote refresh)
+  const [submissionOverrides, setSubmissionOverrides] = useState<Record<string, Partial<AssignmentSubmission>>>({});
+
+  const mergeSubmission = (sub: AssignmentSubmission | null) => {
+    if (!sub) return null;
+    const over = submissionOverrides[sub.id] || {};
+    return { ...sub, ...over } as AssignmentSubmission;
+  };
+
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
+    // include overrides in deps so UI recalculates after we set them
     // Resolve primary batch id from assignment.batchId (handles "[...]" case)
     let assignmentBatchId = assignment.batchId;
     if (typeof assignmentBatchId === 'string' && assignmentBatchId.startsWith("[")) {
@@ -64,15 +80,14 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     // Get students from provided prop who belong to the assignment's batch
     const batchStudents = students.filter(student => (student.batchId ?? "").toString() === (assignmentBatchId ?? "").toString());
 
-    // Map every student => attach submission if exists
+    // Map every student => attach submission if exists (apply local overrides)
     const mapped = batchStudents.map(student => {
       const studentIdStr = (student.id ?? "").toString().trim();
-
-      // Find matching submission (robust string compare)
-      const submission = (assignment.submissions || []).find(sub =>
+      const baseSubmission = (assignment.submissions || []).find(sub =>
         (sub.studentId ?? "").toString().trim() === studentIdStr
       ) || null;
 
+      const submission = mergeSubmission(baseSubmission);
       const status = submission ? (submission.status ?? 'submitted') : 'pending';
 
       return {
@@ -83,7 +98,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     });
 
     return mapped;
-  }, [students, assignment]);
+  }, [students, assignment, submissionOverrides]);
 
   const filteredSubmissions = useMemo(() => {
     return studentSubmissions.filter(item => {
@@ -103,23 +118,83 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
 
   const handleAssessment = (submission: AssignmentSubmission) => {
-    setSelectedSubmission(submission);
+    // ensure we use merged submission (in case caller passed base)
+    const merged = mergeSubmission(submission) || submission;
+    setSelectedSubmission(merged);
     setAssessmentData({
-      marks: submission.marks || 0,
-      feedback: submission.feedback || '',
-      action: submission.status === 'reviewed' ? 'accept' : 'accept'
+      marks: merged.marks || 0,
+      feedback: merged.feedback || '',
+      action: merged.status === 'reviewed' ? 'accept' : 'accept'
     });
   };
 
-  const submitAssessment = () => {
+  const submitAssessment = async () => {
     if (selectedSubmission) {
-      onReviewSubmission(assignment.id, selectedSubmission.id, {
-        action: assessmentData.action,
-        marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
-        feedback: assessmentData.feedback
-      });
-      setSelectedSubmission(null);
-      setAssessmentData({ marks: 0, feedback: '', action: 'accept' });
+      setIsUpdatingSubmission(true);
+      try {
+        // Prepare API payload
+        const payload = [{
+          submission_id: parseInt(selectedSubmission.id),
+          marks_obtained: assessmentData.action === 'accept' ? assessmentData.marks : 0,
+          feedback: assessmentData.feedback,
+          submission_status: assessmentData.action === 'accept' ? 1 : 0
+        }];
+
+        // Call API to update submission
+        const response = await fetch(`http://127.0.0.1:3002/api/assignment/submission/update/${assignment.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update submission: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('Submission updated successfully:', result);
+
+        // Build override for immediate UI update
+        const override: Partial<AssignmentSubmission> = {
+          marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
+          feedback: assessmentData.feedback,
+          status: assessmentData.action === 'accept' ? 'reviewed' : (assessmentData.action === 'reject' ? 'submitted' : undefined),
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: 'Dr. Sarah Johnson'
+        };
+        setSubmissionOverrides(prev => ({ ...prev, [selectedSubmission.id]: { ...(prev[selectedSubmission.id] || {}), ...override } }));
+
+        const updatedSubmission = mergeSubmission(selectedSubmission) as AssignmentSubmission;
+
+        // Call the original onReviewSubmission callback to update local state
+        onReviewSubmission(assignment.id, selectedSubmission.id, {
+          action: assessmentData.action,
+          marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
+          feedback: assessmentData.feedback
+        });
+
+        // Refresh assignment data to get latest submission status
+        await refreshAssignmentSubmissions(assignment.id);
+
+        // Update the selected submission to show updated data immediately
+        setSelectedSubmission(updatedSubmission);
+
+        // Reset assessment form but keep the modal open to show updated status
+        setAssessmentData({ 
+          marks: updatedSubmission.marks || 0, 
+          feedback: updatedSubmission.feedback || '', 
+          action: 'accept' 
+        });
+
+      } catch (error) {
+        console.error('Error updating submission:', error);
+        alert('Failed to update submission. Please try again.');
+      } finally {
+        setIsUpdatingSubmission(false);
+      }
     }
   };
 
@@ -147,19 +222,75 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
   // console.log("filteredSubmissions:", filteredSubmissions);
 
-  const submitBulkReview = () => {
-    const reviews = Array.from(bulkSelectedIds).map(submissionId => ({
-      assignmentId: assignment.id,
-      submissionId,
-      action: bulkReviewData.action,
-      marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
-      feedback: bulkReviewData.feedback
-    }));
+  const submitBulkReview = async () => {
+    setIsUpdatingSubmission(true);
+    try {
+      // Prepare API payload for bulk update
+      const payload = Array.from(bulkSelectedIds).map(submissionId => ({
+        submission_id: parseInt(submissionId),
+        marks_obtained: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
+        feedback: bulkReviewData.feedback,
+        submission_status: bulkReviewData.action === 'accept' ? 1 : 0
+      }));
 
-    onBulkReview(reviews);
-    setBulkSelectedIds(new Set());
-    setShowBulkReview(false);
-    setBulkReviewData({ action: 'accept', marks: 0, feedback: '' });
+      // Call API to update multiple submissions
+      const response = await fetch(`http://127.0.0.1:3002/api/assignment/submission/update/${assignment.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update submissions: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Bulk submissions updated successfully:', result);
+
+      // Refresh assignment data immediately to get latest submission status
+      await refreshAssignmentSubmissions(assignment.id);
+
+      // Call the original onBulkReview callback to update local state
+      const reviews = Array.from(bulkSelectedIds).map(submissionId => ({
+        assignmentId: assignment.id,
+        submissionId,
+        action: bulkReviewData.action,
+        marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
+        feedback: bulkReviewData.feedback
+      }));
+
+      onBulkReview(reviews);
+
+      // apply local overrides so list & UI reflect bulk changes immediately
+      setSubmissionOverrides(prev => {
+        const next = { ...prev };
+        Array.from(bulkSelectedIds).forEach(submissionId => {
+          next[submissionId] = {
+            ...(next[submissionId] || {}),
+            marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
+            feedback: bulkReviewData.feedback,
+            status: bulkReviewData.action === 'accept' ? 'reviewed' : 'submitted',
+            reviewedAt: new Date().toISOString(),
+            reviewedBy: 'Dr. Sarah Johnson'
+          };
+        });
+        return next;
+      });
+
+      // Reset form
+      setBulkSelectedIds(new Set());
+      setShowBulkReview(false);
+      setBulkReviewData({ action: 'accept', marks: 0, feedback: '' });
+
+    } catch (error) {
+      console.error('Error updating bulk submissions:', error);
+      alert('Failed to update submissions. Please try again.');
+    } finally {
+      setIsUpdatingSubmission(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -562,12 +693,18 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                 </button>
                 <button
                   onClick={submitAssessment}
-                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${assessmentData.action === 'accept'
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-red-600 hover:bg-red-700'
+                  disabled={isUpdatingSubmission}
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
+                    isUpdatingSubmission 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : assessmentData.action === 'accept'
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-red-600 hover:bg-red-700'
                     }`}
                 >
-                  {assessmentData.action === 'accept' ? 'Submit Review' : 'Reject Submission'}
+                  {isUpdatingSubmission 
+                    ? 'Updating...' 
+                    : assessmentData.action === 'accept' ? 'Submit Review' : 'Reject Submission'}
                 </button>
               </div>
             </div>
@@ -648,18 +785,29 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
               <div className="p-6 border-t flex gap-3">
                 <button
                   onClick={() => setShowBulkReview(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={isUpdatingSubmission}
+                  className={`flex-1 px-4 py-2 border border-gray-300 rounded-lg transition-colors ${
+                    isUpdatingSubmission 
+                      ? 'text-gray-400 bg-gray-100 cursor-not-allowed' 
+                      : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={submitBulkReview}
-                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${bulkReviewData.action === 'accept'
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-red-600 hover:bg-red-700'
+                  disabled={isUpdatingSubmission}
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
+                    isUpdatingSubmission
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : bulkReviewData.action === 'accept'
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-red-600 hover:bg-red-700'
                     }`}
                 >
-                  Apply to {bulkSelectedIds.size} Submissions
+                  {isUpdatingSubmission 
+                    ? 'Updating...' 
+                    : `Apply to ${bulkSelectedIds.size} Submissions`}
                 </button>
               </div>
             </div>

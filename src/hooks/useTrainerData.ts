@@ -1122,7 +1122,7 @@ export const useTrainerData = () => {
     });
   };
 
-  const addExam = (exam: Omit<Exam, "id">) => {
+   const addExam = (exam: Omit<Exam, "id">) => {
     const newExam: Exam = {
       ...exam,
       id: Date.now().toString(),
@@ -1144,8 +1144,51 @@ export const useTrainerData = () => {
     setAttendance((prev) => [...prev, ...newRecords]);
   };
 
+  // Add new function to refresh assignment submissions after API update
+  const refreshAssignmentSubmissions = async (assignmentId: string) => {
+    try {
+      const submissions = await fetchAssignmentSubmissions(assignmentId);
+      
+      // Update the assignment with fresh submission data
+      setAssignments(prev => prev.map(assignment => {
+        if (assignment.id === assignmentId && Array.isArray(submissions)) {
+          const updatedSubmissions = submissions
+            .filter((s: any) => s && s.student)
+            .map((s: any) => ({
+              id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,
+              studentId: String(s.student?.student_id || ""),
+              studentName: s.student?.name || "Unnamed Student",
+              assignmentId: assignment.id,
+              submittedAt: s.updated_at || s.submitted_at || "",
+              status: (s.marks_obtained ? "reviewed" : (s.submission_status === 1 ? "submitted" : "pending")) as "pending" | "submitted" | "reviewed",
+              marks: s.marks_obtained || undefined,
+              feedback: s.feedback || undefined,
+              reviewedAt: s.updated_at || s.reviewed_at || undefined,
+              reviewedBy: s.reviewed_by || undefined,
+              document: s.document_uploaded_path || undefined,
+              files: s.files || [],
+            }));
+        
+          const updatedAssignment = {
+            ...assignment,
+            submissions: updatedSubmissions
+          };
+        
+          return updatedAssignment;
+        }
+        return assignment;
+      }));
+    
+      // Return the updated submissions for immediate use
+      return submissions;
+    } catch (error) {
+      console.error('Error refreshing assignment submissions:', error);
+      return null;
+    }
+  };
+
   // Update assignment status based on due date
-  useEffect((): any => {
+  useEffect(() => {
     const updateAssignmentStatuses = () => {
       const now = new Date();
       setAssignments((prev) =>
@@ -1160,11 +1203,10 @@ export const useTrainerData = () => {
     };
 
     updateAssignmentStatuses();
-    const interval = updateAssignmentStatuses; // Check every minute
+    const interval = setInterval(updateAssignmentStatuses, 60000); // Check every minute
 
-    return () => interval
+    return () => clearInterval(interval);
   }, []);
-
 
   return {
     batches,
@@ -1201,11 +1243,6 @@ export const useTrainerData = () => {
     addExam,
     updateExam,
     markAttendance,
+    refreshAssignmentSubmissions,
   };
-
 };
-
-
-
-
-
