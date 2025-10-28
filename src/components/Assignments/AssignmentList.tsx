@@ -355,7 +355,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   try {
                                     const ids = JSON.parse(batchId);
                                     batchId = Array.isArray(ids) ? ids[0].toString() : batchId;
-                                    console.log("Parsed batchId:");
                                   } catch (e) {
                                     console.error("Failed to parse batchId:");
                                   }

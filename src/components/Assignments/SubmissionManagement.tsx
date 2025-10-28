@@ -60,8 +60,29 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   const mergeSubmission = (sub: AssignmentSubmission | null) => {
     if (!sub) return null;
     const over = submissionOverrides[sub.id] || {};
-    return { ...sub, ...over } as AssignmentSubmission;
+    const merged = { ...sub, ...over } as any;
+    // Normalize numeric/string status coming from API or overrides
+    const s = merged.status;
+    if (s === 0 || s === '0' || s === 'rejected') merged.status = 'rejected';
+    else if (s === 1 || s === '1' || s === 'submitted') merged.status = 'submitted';
+    else if (s === 'reviewed') merged.status = 'reviewed';
+    else merged.status = merged.status || 'pending';
+    return merged as AssignmentSubmission;
   };
+
+  // Sync assessment form with selected submission whenever it changes
+  useEffect(() => {
+    if (selectedSubmission) {
+      const merged = mergeSubmission(selectedSubmission);
+      if (merged) {
+        setAssessmentData({
+          marks: merged.marks || 0,
+          feedback: merged.feedback || '',
+          action: merged.status === 'reviewed' ? 'accept' : (merged.status === 'rejected' ? 'reject' : 'accept')
+        });
+      }
+    }
+  }, [selectedSubmission, submissionOverrides]);
 
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
@@ -155,19 +176,27 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         }
 
         const result = await response.json();
-        console.log('Submission updated successfully:', result);
 
         // Build override for immediate UI update
         const override: Partial<AssignmentSubmission> = {
           marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
           feedback: assessmentData.feedback,
-          status: assessmentData.action === 'accept' ? 'reviewed' : (assessmentData.action === 'reject' ? 'submitted' : undefined),
+          status: assessmentData.action === 'accept' ? 'reviewed' : 'rejected',
           reviewedAt: new Date().toISOString(),
           reviewedBy: 'Dr. Sarah Johnson'
         };
-        setSubmissionOverrides(prev => ({ ...prev, [selectedSubmission.id]: { ...(prev[selectedSubmission.id] || {}), ...override } }));
+        
+        // Apply override immediately
+        setSubmissionOverrides(prev => ({ 
+          ...prev, 
+          [selectedSubmission.id]: { 
+            ...(prev[selectedSubmission.id] || {}), 
+            ...override 
+          } 
+        }));
 
-        const updatedSubmission = mergeSubmission(selectedSubmission) as AssignmentSubmission;
+        // Create updated submission with override applied
+        const updatedSubmission = { ...selectedSubmission, ...override } as AssignmentSubmission;
 
         // Call the original onReviewSubmission callback to update local state
         onReviewSubmission(assignment.id, selectedSubmission.id, {
@@ -176,18 +205,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           feedback: assessmentData.feedback
         });
 
-        // Refresh assignment data to get latest submission status
-        await refreshAssignmentSubmissions(assignment.id);
-
-        // Update the selected submission to show updated data immediately
-        setSelectedSubmission(updatedSubmission);
-
-        // Reset assessment form but keep the modal open to show updated status
-        setAssessmentData({ 
-          marks: updatedSubmission.marks || 0, 
-          feedback: updatedSubmission.feedback || '', 
-          action: 'accept' 
-        });
+        // Refresh assignment data in background to sync with server
+        refreshAssignmentSubmissions(assignment.id);
 
       } catch (error) {
         console.error('Error updating submission:', error);
@@ -272,13 +291,26 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
             ...(next[submissionId] || {}),
             marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
             feedback: bulkReviewData.feedback,
-            status: bulkReviewData.action === 'accept' ? 'reviewed' : 'submitted',
+            status: bulkReviewData.action === 'accept' ? 'reviewed' : 'rejected',
             reviewedAt: new Date().toISOString(),
             reviewedBy: 'Dr. Sarah Johnson'
           };
         });
         return next;
       });
+
+      // If currently selected submission was in bulk update, update it too
+      if (selectedSubmission && bulkSelectedIds.has(selectedSubmission.id)) {
+        const updatedSubmission = {
+          ...selectedSubmission,
+          marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
+          feedback: bulkReviewData.feedback,
+          status: bulkReviewData.action === 'accept' ? 'reviewed' : 'rejected' as const,
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: 'Dr. Sarah Johnson'
+        };
+        setSelectedSubmission(updatedSubmission);
+      }
 
       // Reset form
       setBulkSelectedIds(new Set());
@@ -298,6 +330,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'submitted': return 'bg-orange-100 text-orange-800';
       case 'reviewed': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -307,6 +340,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       case 'pending': return AlertCircle;
       case 'submitted': return FileText;
       case 'reviewed': return Check;
+      case 'rejected': return XCircle;
       default: return FileText;
     }
   };
@@ -555,6 +589,25 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                       </div>
                                     </div>
                                   )}
+                                  {item.submission.status === 'rejected' && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <XCircle className="w-4 h-4 text-red-600" />
+                                        <span className="font-medium text-red-800">
+                                          Rejected
+                                        </span>
+                                      </div>
+                                      {item.submission.feedback && (
+                                        <div className="flex items-start gap-2">
+                                          <MessageSquare className="w-4 h-4 text-red-600 mt-0.5" />
+                                          <p className="text-red-700 text-sm">{item.submission.feedback}</p>
+                                        </div>
+                                      )}
+                                      <div className="text-xs text-red-600 mt-2">
+                                        Reviewed on {item.submission.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy || '—'}
+                                      </div>
+                                    </div>
+                                  )}
                                 </>
                               ) : (
                                 <div className="text-sm text-gray-500 italic">
@@ -614,6 +667,16 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
             <div className="p-6 border-b bg-white">
               <h3 className="text-lg font-semibold text-gray-900">Review Submission</h3>
               <p className="text-gray-600">{selectedSubmission.studentName}</p>
+              {selectedSubmission.status === 'reviewed' && (
+                <div className="mt-2 text-sm text-green-600">
+                  ✓ This submission has been reviewed
+                </div>
+              )}
+              {selectedSubmission.status === 'rejected' && (
+                <div className="mt-2 text-sm text-red-600">
+                  ✕ This submission was rejected
+                </div>
+              )}
             </div>
 
             <div className="flex-1 p-6 space-y-6 overflow-y-auto">
@@ -731,7 +794,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                         value="accept"
                         checked={bulkReviewData.action === 'accept'}
                         onChange={(e) => setBulkReviewData(prev => ({ ...prev, action: e.target.value as 'accept' | 'reject' }))}
-                        className="mr-2"
+                        className="mr-       2"
                       />
                       <span className="text-green-700">Accept & Grade</span>
                     </label>
