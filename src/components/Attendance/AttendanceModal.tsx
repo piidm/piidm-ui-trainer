@@ -51,7 +51,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
   const [updatingIds, setUpdatingIds] = useState<Record<number, boolean>>({});
 
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3MDkwfQ.C6BhLFFCetm_GBiklD-04t0nMBoPspl59tZED603vFE";
 
 
   // Mock students data - in real app, this would come from props or API
@@ -79,7 +79,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
   // Utility function to fetch and update attendance data
   const fetchAttendanceData = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:3002/api/lecture/attendance/" + Number(session.id), {
+      const res = await fetch("https://64.227.150.234:3002/api/lecture/attendance/" + Number(session.id), {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -206,7 +206,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
     try {
       const res = await fetch(
-        "http://127.0.0.1:3002/api/lecture/attendance/update",
+        "https://64.227.150.234:3002/api/lecture/attendance/update",
         {
           method: "PUT",
           headers: {
@@ -511,7 +511,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                         ];
 
                         try {
-                          await fetch("http://127.0.0.1:3002/api/lecture/attendance/update", {
+                          await fetch("https://64.227.150.234:3002/api/lecture/attendance/update", {
                             method: "PUT", // If backend uses PUT/PATCH, change here
                             headers: {
                               Authorization: `Bearer ${token}`,
@@ -522,7 +522,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
                           // Refresh list from GET API
                           const res = await fetch(
-                            ` http://127.0.0.1:3002/api/lecture/attendance/${session.id}`,
+                            ` https://64.227.150.234:3002/api/lecture/attendance/${session.id}`,
                             {
                               headers: {
                                  method: "get", 

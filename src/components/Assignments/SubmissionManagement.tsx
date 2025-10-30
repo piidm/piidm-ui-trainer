@@ -36,9 +36,9 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   const { fetchBatchById, fetchAssignmentSubmissions, refreshAssignmentSubmissions} = useTrainerData();
 
   // Add token for API calls
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg";
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3MDkwfQ.C6BhLFFCetm_GBiklD-04t0nMBoPspl59tZED603vFE";
 
-  const [filter, setFilter] = useState<'all' | 'pending' | 'submitted' | 'reviewed'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'submitted' | 'reviewed' | 'rejected' | 'resubmitted'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmission | null>(null);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
   const [bulkReviewData, setBulkReviewData] = useState({
@@ -53,9 +53,35 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     feedback: '',
     action: 'accept' as 'accept' | 'reject'
   });
+  
+  console.log("assessmentData",assessmentData);
+  console.log("selectedSubmission",selectedSubmission);
 
   // Local overrides so UI updates instantly (before parent/remote refresh)
   const [submissionOverrides, setSubmissionOverrides] = useState<Record<string, Partial<AssignmentSubmission>>>({});
+
+  // Add effect to automatically refresh data when modal opens
+  useEffect(() => {
+    if (isOpen && assignment.id) {
+      // Clear previous overrides when opening modal
+      setSubmissionOverrides({});
+      // Refresh assignment submissions data
+      refreshAssignmentSubmissions(assignment.id);
+    }
+  }, [isOpen, assignment.id]); // Remove refreshAssignmentSubmissions from dependencies
+
+  // Add effect to automatically refresh data periodically while modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const interval = setInterval(() => {
+      if (assignment.id) {
+        refreshAssignmentSubmissions(assignment.id);
+      }
+    }, 10000); // Increase to 10 seconds to reduce API calls
+
+    return () => clearInterval(interval);
+  }, [isOpen, assignment.id]); // Remove refreshAssignmentSubmissions from dependencies
 
   const mergeSubmission = (sub: AssignmentSubmission | null) => {
     if (!sub) return null;
@@ -63,8 +89,10 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     const merged = { ...sub, ...over } as any;
     // Normalize numeric/string status coming from API or overrides
     const s = merged.status;
-    if (s === 0 || s === '0' || s === 'rejected') merged.status = 'rejected';
+    if (s === 0 || s === '0') merged.status = 'pending';
     else if (s === 1 || s === '1' || s === 'submitted') merged.status = 'submitted';
+    else if (s === 2 || s === '2' || s === 'rejected') merged.status = 'rejected';
+    else if (s === 3 || s === '3' || s === 'resubmitted') merged.status = 'resubmitted';
     else if (s === 'reviewed') merged.status = 'reviewed';
     else merged.status = merged.status || 'pending';
     return merged as AssignmentSubmission;
@@ -82,8 +110,33 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         });
       }
     }
-  }, [selectedSubmission, submissionOverrides]);
+  }, [selectedSubmission?.id, selectedSubmission?.status, selectedSubmission?.marks, selectedSubmission?.feedback]); // More specific dependencies
 
+  // Add effect to update selectedSubmission when assignment submissions change
+  useEffect(() => {
+    if (selectedSubmission && assignment.submissions) {
+      const updatedSubmission = assignment.submissions.find(
+        sub => sub.id === selectedSubmission.id
+      );
+      if (updatedSubmission) {
+        const merged = mergeSubmission(updatedSubmission);
+        if (merged) {
+          // Only update if there's a meaningful change
+          const hasChanged = 
+            merged.status !== selectedSubmission.status ||
+            merged.marks !== selectedSubmission.marks ||
+            merged.feedback !== selectedSubmission.feedback;
+          
+          if (hasChanged) {
+            setSelectedSubmission(merged);
+          }
+        }
+      }
+    }
+  }, [assignment.submissions, selectedSubmission?.id]); // Remove submissionOverrides from dependencies
+
+
+  
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
     // include overrides in deps so UI recalculates after we set them
@@ -114,7 +167,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       return {
         student,
         submission,
-        status: status as 'pending' | 'submitted' | 'reviewed'
+        status: status as 'pending' | 'submitted' | 'reviewed' | 'rejected' | 'resubmitted'
       };
     });
 
@@ -128,24 +181,33 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     });
   }, [studentSubmissions, filter]);
 
+
+
   const stats = useMemo(() => {
     const total = studentSubmissions.length;
     const pending = studentSubmissions.filter(item => item.status === 'pending').length;
     const submitted = studentSubmissions.filter(item => item.status === 'submitted').length;
     const reviewed = studentSubmissions.filter(item => item.status === 'reviewed').length;
+    const rejected = studentSubmissions.filter(item => item.status === 'rejected').length;
+    const resubmitted = studentSubmissions.filter(item => item.status === 'resubmitted').length;
 
-    return { total, pending, submitted, reviewed };
+    return { total, pending, submitted, reviewed, rejected, resubmitted };
   }, [studentSubmissions]);
 
-
   const handleAssessment = (submission: AssignmentSubmission) => {
-    // ensure we use merged submission (in case caller passed base)
-    const merged = mergeSubmission(submission) || submission;
+    // Find the latest version of this submission from assignment.submissions
+    const latestSubmission = assignment.submissions.find(
+      sub => sub.id === submission.id
+    ) || submission;
+    
+    // Ensure we use merged submission with latest data
+    const merged = mergeSubmission(latestSubmission) || latestSubmission;
     setSelectedSubmission(merged);
+    
     setAssessmentData({
       marks: merged.marks || 0,
       feedback: merged.feedback || '',
-      action: merged.status === 'reviewed' ? 'accept' : 'accept'
+      action: merged.status === 'reviewed' ? 'accept' : (merged.status === 'rejected' ? 'reject' : 'accept')
     });
   };
 
@@ -158,11 +220,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           submission_id: parseInt(selectedSubmission.id),
           marks_obtained: assessmentData.action === 'accept' ? assessmentData.marks : 0,
           feedback: assessmentData.feedback,
-          submission_status: assessmentData.action === 'accept' ? 1 : 0
+          submission_status: assessmentData.action === 'accept' ? 1 : 2
         }];
 
         // Call API to update submission
-        const response = await fetch(`http://127.0.0.1:3002/api/assignment/submission/update/${assignment.id}`, {
+        const response = await fetch(`https://64.227.150.234:3002/api/assignment/submission/update/${assignment.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -195,8 +257,18 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           } 
         }));
 
-        // Create updated submission with override applied
-        const updatedSubmission = { ...selectedSubmission, ...override } as AssignmentSubmission;
+        // Update selectedSubmission immediately with the new status
+        const updatedSelectedSubmission = { 
+          ...selectedSubmission, 
+          ...override 
+        } as AssignmentSubmission;
+        setSelectedSubmission(updatedSelectedSubmission);
+
+        // Update assessmentData to reflect the new status
+        setAssessmentData(prev => ({
+          ...prev,
+          action: assessmentData.action // Keep the current action for form consistency
+        }));
 
         // Call the original onReviewSubmission callback to update local state
         onReviewSubmission(assignment.id, selectedSubmission.id, {
@@ -229,7 +301,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
   const handleSelectAll = () => {
     const submittedSubmissions = filteredSubmissions
-      .filter(item => item.submission && item.status === 'submitted')
+      .filter(item => item.submission && (item.status === 'submitted' || item.status === 'resubmitted'))
       .map(item => item.submission!.id);
 
     if (bulkSelectedIds.size === submittedSubmissions.length) {
@@ -239,7 +311,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     }
   };
 
-  // console.log("filteredSubmissions:", filteredSubmissions);
+  console.log("filteredSubmissions:", filteredSubmissions);
 
   const submitBulkReview = async () => {
     setIsUpdatingSubmission(true);
@@ -249,11 +321,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         submission_id: parseInt(submissionId),
         marks_obtained: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
         feedback: bulkReviewData.feedback,
-        submission_status: bulkReviewData.action === 'accept' ? 1 : 0
+        submission_status: bulkReviewData.action === 'accept' ? 1 : 2
       }));
 
       // Call API to update multiple submissions
-      const response = await fetch(`http://127.0.0.1:3002/api/assignment/submission/update/${assignment.id}`, {
+      const response = await fetch(`https://64.227.150.234:3002/api/assignment/submission/update/${assignment.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -331,6 +403,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       case 'submitted': return 'bg-orange-100 text-orange-800';
       case 'reviewed': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
+      case 'resubmitted': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -341,6 +414,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       case 'submitted': return FileText;
       case 'reviewed': return Check;
       case 'rejected': return XCircle;
+      case 'resubmitted': return FileText;
       default: return FileText;
     }
   };
@@ -405,8 +479,18 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
               <p className="text-gray-600">{batch?.name} - {stats.total} students</p>
             </div>
             <button
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                // If review panel is open, close it first
+                if (selectedSubmission) {
+                  setSelectedSubmission(null);
+                } else {
+                  // If no review panel is open, close the main modal
+                  onClose();
+                }
+              }}
               className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-white rounded-lg"
+              type="button"
             >
               <X className="w-6 h-6" />
             </button>
@@ -440,7 +524,9 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                   { key: 'all', label: 'All Students', count: stats.total },
                   { key: 'pending', label: 'Pending', count: stats.pending },
                   { key: 'submitted', label: 'Submitted', count: stats.submitted },
-                  { key: 'reviewed', label: 'Reviewed', count: stats.reviewed }
+                  { key: 'reviewed', label: 'Reviewed', count: stats.reviewed },
+                  { key: 'rejected', label: 'Rejected', count: stats.rejected },
+                  { key: 'resubmitted', label: 'Resubmitted', count: stats.resubmitted }
                 ].map(({ key, label, count }) => (
                   <button
                     key={key}
@@ -482,7 +568,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
             ) : (
               <div className="p-6">
                 {/* Bulk Select Header */}
-                {filter === 'submitted' && (
+                {(filter === 'submitted' || filter === 'resubmitted') && (
                   <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 rounded-lg">
                     <button
                       onClick={handleSelectAll}
@@ -493,7 +579,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                       ) : (
                         <Square className="w-4 h-4" />
                       )}
-                      Select All Submitted
+                      Select All {filter === 'submitted' ? 'Submitted' : 'Resubmitted'}
                     </button>
                   </div>
                 )}
@@ -502,14 +588,15 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                   {filteredSubmissions.map((item) => {
                     const StatusIcon = getStatusIcon(item.status);
                     const isSelected = item.submission && bulkSelectedIds.has(item.submission.id);
+                    console.log("filteredSubmissions",item.submission);
 
-                    // console.log("filteredSubmissions",filteredSubmissions);
+                    // console
                     return (
                       <div key={item.student.id} className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${isSelected ? 'ring-2 ring-blue-500' : 'border-gray-200'}`}>
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-4 flex-1">
                             {/* Bulk Select Checkbox */}
-                            {item.submission && item.status === 'submitted' && (
+                            {item.submission && (item.status === 'submitted' || item.status === 'resubmitted') && (
                               <button
                                 onClick={() => handleBulkSelect(item.submission!.id)}
                                 className="mt-1"
@@ -608,6 +695,88 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                       </div>
                                     </div>
                                   )}
+                                  {item.submission.status === 'resubmitted' && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <FileText className="w-4 h-4 text-blue-600" />
+                                        <span className="font-medium text-blue-800">
+                                          Resubmitted
+                                        </span>
+                                      </div>
+                                      <div className="text-xs text-blue-600 mt-2">
+                                        Resubmitted on {item.submission.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (item.status === 'rejected' || item.status === 'resubmitted') ? (
+                                <>
+                                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="w-4 h-4" />
+                                      {item.status === 'rejected' ? 'Rejected:' : 'Resubmitted:'} {item.submission?.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
+                                    </div>
+                                  </div>
+
+                                  {/* Files */}
+                                  <div className="mb-3">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Submitted Files:</h4>
+                                    <div className="space-y-1">
+                                      {(() => {
+                                        const files = getSubmissionFiles(item.submission);
+                                        if (!files || files.length === 0) {
+                                          return <div className="text-sm text-gray-500">No files uploaded</div>;
+                                        }
+                                        return files.map((file: any) => (
+                                          <div key={file.id} className="flex items-center gap-2 text-sm">
+                                            <FileText className="w-4 h-4 text-gray-400" />
+                                            <span className="text-gray-700">{file.name}</span>
+                                            <span className="text-gray-500">({formatFileSize(file.size || 0)})</span>
+                                            <button
+                                              onClick={() => file?.url && window.open(file.url, '_blank')}
+                                              className="text-blue-600 hover:text-blue-700 ml-auto"
+                                            >
+                                              <Download className="w-4 h-4" />
+                                            </button>
+                                          </div>
+                                        ));
+                                      })()}
+                                    </div>
+                                  </div>
+
+                                  {item.status === 'rejected' && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <XCircle className="w-4 h-4 text-red-600" />
+                                        <span className="font-medium text-red-800">
+                                          Rejected
+                                        </span>
+                                      </div>
+                                      {item.submission?.feedback && (
+                                        <div className="flex items-start gap-2">
+                                          <MessageSquare className="w-4 h-4 text-red-600 mt-0.5" />
+                                          <p className="text-red-700 text-sm">{item.submission.feedback}</p>
+                                        </div>
+                                      )}
+                                      <div className="text-xs text-red-600 mt-2">
+                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission?.reviewedBy || '—'}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {item.status === 'resubmitted' && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <FileText className="w-4 h-4 text-blue-600" />
+                                        <span className="font-medium text-blue-800">
+                                          Resubmitted
+                                        </span>
+                                      </div>
+                                      <div className="text-xs text-blue-600 mt-2">
+                                        Resubmitted on {item.submission?.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
+                                      </div>
+                                    </div>
+                                  )}
                                 </>
                               ) : (
                                 <div className="text-sm text-gray-500 italic">
@@ -631,7 +800,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   Download
                                 </button>
 
-                                {item.status === 'submitted' && (
+                                {(item.status === 'submitted' || item.status === 'resubmitted') && (
                                   <button
                                     onClick={() => handleAssessment(item.submission!)}
                                     className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -640,10 +809,12 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                   </button>
                                 )}
 
-                                {item.status === 'reviewed' && (
+                                {(item.status === 'reviewed' || item.status === 'rejected' || item.status === 'resubmitted') && (
                                   <button
                                     onClick={() => handleAssessment(item.submission!)}
                                     className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm"
+                                    disabled={isUpdatingSubmission}
+                                    type="button"
                                   >
                                     Edit Review
                                   </button>
@@ -660,13 +831,28 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
             )}
           </div>
         </div>
-
+            
         {/* Assessment Panel */}
         {selectedSubmission && (
           <div className="w-96 border-l bg-gray-50 flex flex-col">
             <div className="p-6 border-b bg-white">
-              <h3 className="text-lg font-semibold text-gray-900">Review Submission</h3>
-              <p className="text-gray-600">{selectedSubmission.studentName}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Review Submission</h3>
+                  <p className="text-gray-600">{selectedSubmission.studentName}</p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSubmission(null);
+                    setIsUpdatingSubmission(false); // Reset updating state
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded"
+                  type="button"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
               {selectedSubmission.status === 'reviewed' && (
                 <div className="mt-2 text-sm text-green-600">
                   ✓ This submission has been reviewed
@@ -675,6 +861,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
               {selectedSubmission.status === 'rejected' && (
                 <div className="mt-2 text-sm text-red-600">
                   ✕ This submission was rejected
+                </div>
+              )}
+              {selectedSubmission.status === 'resubmitted' && (
+                <div className="mt-2 text-sm text-blue-600">
+                  ↻ This submission was resubmitted
                 </div>
               )}
             </div>
@@ -749,8 +940,13 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
             <div className="p-6 border-t bg-white">
               <div className="flex gap-3">
                 <button
-                  onClick={() => setSelectedSubmission(null)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSubmission(null);
+                    setIsUpdatingSubmission(false); // Reset updating state
+                  }}
                   className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  type="button"
                 >
                   Cancel
                 </button>
@@ -764,6 +960,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                       ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-red-600 hover:bg-red-700'
                     }`}
+                  type="button"
                 >
                   {isUpdatingSubmission 
                     ? 'Updating...' 

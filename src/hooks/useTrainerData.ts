@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Batch,
   Student,
@@ -402,7 +402,7 @@ export const useTrainerData = () => {
   const [loading, setLoading] = useState(false);
   const [allLectureTimes, setAllLectureTimes] = useState([]);
 
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU4fQ.Bq73AlphQHYrSEoA8sqKLavypbd5HXHcDItv0sdNsbg"
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3MDkwfQ.C6BhLFFCetm_GBiklD-04t0nMBoPspl59tZED603vFE"
 
   //Convert 12-hour time format to 24-hour format
   function convertTo24Hour(time12h: any) {
@@ -427,7 +427,7 @@ export const useTrainerData = () => {
     try {
 
       const res = await fetch(
-        "http://127.0.0.1:3002/api/lecture/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=topic&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=batch_date&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=batch_time.name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=course_mode.name&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=zoom_link&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=total_combined_batches&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753018158729",
+        "https://64.227.150.234:3002/api/lecture/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=topic&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=batch_date&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=batch_time.name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=course_mode.name&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=zoom_link&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=total_combined_batches&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753018158729",
         {
           method: "GET",
           headers: {
@@ -508,7 +508,7 @@ export const useTrainerData = () => {
     try {
 
       const res = await fetch(
-        "http://127.0.0.1:3002/api/batch/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=batch_num&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=batch_date&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=batch_time.name&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=branch.name&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=course.name&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=course_mode.name&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=trainer.name&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=false&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=total_seats&columns%5B9%5D%5Bname%5D=&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=false&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
+        " https://64.227.150.234:3002/api/batch/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=batch_num&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=name&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=batch_date&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=batch_time.name&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=branch.name&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=course.name&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=course_mode.name&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B8%5D%5Bdata%5D=trainer.name&columns%5B8%5D%5Bname%5D=&columns%5B8%5D%5Bsearchable%5D=true&columns%5B8%5D%5Borderable%5D=false&columns%5B8%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B8%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B9%5D%5Bdata%5D=total_seats&columns%5B9%5D%5Bname%5D=&columns%5B9%5D%5Bsearchable%5D=true&columns%5B9%5D%5Borderable%5D=false&columns%5B9%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B9%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
         {
           method: "GET",
           headers: {
@@ -540,7 +540,7 @@ export const useTrainerData = () => {
         startDate: item.start_date || "1970-01-01",
         endDate: item.end_date || "1970-01-01",
         courseTitle: item.course?.name || "Unknown Course",
-        totalStudents: item.total_seats || 0,
+        totalStudents: item.seats_occupied || 0,
         isActive: item.is_active !== false,
       }));
 
@@ -561,7 +561,7 @@ export const useTrainerData = () => {
 
     try {
 
-      const res = await fetch("http://127.0.0.1:3002/api/lecture/all", {
+      const res = await fetch("https://64.227.150.234:3002/api/lecture/all", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -603,7 +603,7 @@ export const useTrainerData = () => {
 
     try {
 
-      const res = await fetch("http://127.0.0.1:3002/api/batch/all", {
+      const res = await fetch("https://64.227.150.234:3002/api/batch/all", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -685,7 +685,7 @@ export const useTrainerData = () => {
 
   const fetchBatchById = async (batchId: string, signal?: AbortSignal) => {
     try {
-      const res = await fetch(` http://127.0.0.1:3002/api/batch/select/${batchId}`, {
+      const res = await fetch(` https://64.227.150.234:3002/api/batch/select/${batchId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -709,7 +709,7 @@ export const useTrainerData = () => {
     setLoading(true);
     try {
       const res = await fetch(
-        "http://127.0.0.1:3002/api/students_report/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=student.name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=attendance&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=exam&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=score&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=certificate&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=mock_interview&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=placement_status&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
+        "https://64.227.150.234:3002/api/students_report/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=student.name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=attendance&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=exam&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=score&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=certificate&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=mock_interview&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=placement_status&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -768,7 +768,7 @@ export const useTrainerData = () => {
     try {
 
       const res = await fetch(
-        "http://127.0.0.1:3002/api/assignment/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=title&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=description&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment_date&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=total_combined_batches&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=total_marks&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753177048507",
+        "https://64.227.150.234:3002/api/assignment/select-paginate-advanced?draw=1&columns%5B0%5D%5Bdata%5D=title&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=description&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=assignment_date&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=total_combined_batches&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=total_marks&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&_=1753177048507",
         {
           method: "GET",
           headers: {
@@ -821,7 +821,7 @@ export const useTrainerData = () => {
 
   const fetchAssignmentSubmissions = async (assignmentId: string, signal?: AbortSignal) => {
     try {
-      const res = await fetch(` http://127.0.0.1:3002/api/assignment/submission/view/${assignmentId}`, {
+      const res = await fetch(` https://64.227.150.234:3002/api/assignment/submission/view/${assignmentId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -916,15 +916,15 @@ export const useTrainerData = () => {
         course_mode_id,
         json_batch_ids: `[${session.batchId}]`,
         batch_time_id,
-        trainer_id: "1",
-        user_id: "2058",
+        trainer_id: "21",
+        user_id: "7090",
         zoom_link: session.lectureLink,
         batch_date,
       }];
 
 
 
-      const res = await fetch("http://127.0.0.1:3002/api/lecture/add", {
+      const res = await fetch("https://64.227.150.234:3002/api/lecture/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -979,14 +979,14 @@ export const useTrainerData = () => {
         title: assignment.title,
         description: assignment.details,
         json_batch_ids: `[${assignment.batchId}]`,
-        trainer_id: "1",
-        user_id: "2058",
+        trainer_id: "21",
+        user_id: "7090",
         assignment_date: formatAssignmentDate(assignment.dueDate),
         total_marks: assignment.totalMarks?.toString() || "100"
       }];
 
 
-      const res = await fetch("http://127.0.0.1:3002/api/assignment/add", {
+      const res = await fetch("https://64.227.150.234:3002/api/assignment/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1122,7 +1122,7 @@ export const useTrainerData = () => {
     });
   };
 
-   const addExam = (exam: Omit<Exam, "id">) => {
+  const addExam = (exam: Omit<Exam, "id">) => {
     const newExam: Exam = {
       ...exam,
       id: Date.now().toString(),
@@ -1145,47 +1145,59 @@ export const useTrainerData = () => {
   };
 
   // Add new function to refresh assignment submissions after API update
-  const refreshAssignmentSubmissions = async (assignmentId: string) => {
+  const refreshAssignmentSubmissions = useCallback(async (assignmentId: string) => {
     try {
       const submissions = await fetchAssignmentSubmissions(assignmentId);
-      
+
       // Update the assignment with fresh submission data
-      setAssignments(prev => prev.map(assignment => {
-        if (assignment.id === assignmentId && Array.isArray(submissions)) {
-          const updatedSubmissions = submissions
-            .filter((s: any) => s && s.student)
-            .map((s: any) => ({
-              id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,
-              studentId: String(s.student?.student_id || ""),
-              studentName: s.student?.name || "Unnamed Student",
-              assignmentId: assignment.id,
-              submittedAt: s.updated_at || s.submitted_at || "",
-              status: (s.marks_obtained ? "reviewed" : (s.submission_status === 1 ? "submitted" : "pending")) as "pending" | "submitted" | "reviewed",
-              marks: s.marks_obtained || undefined,
-              feedback: s.feedback || undefined,
-              reviewedAt: s.updated_at || s.reviewed_at || undefined,
-              reviewedBy: s.reviewed_by || undefined,
-              document: s.document_uploaded_path || undefined,
-              files: s.files || [],
-            }));
-        
-          const updatedAssignment = {
-            ...assignment,
-            submissions: updatedSubmissions
-          };
-        
-          return updatedAssignment;
-        }
-        return assignment;
-      }));
-    
+      setAssignments(prev => {
+        return prev.map(assignment => {
+          if (assignment.id === assignmentId && Array.isArray(submissions)) {
+            const updatedSubmissions = submissions
+              .filter((s: any) => s && s.student)
+              .map((s: any) => {
+                // Map numeric status to string status
+                let status: "pending" | "submitted" | "reviewed" | "rejected" | "resubmitted" = "pending";
+                const statusValue = s.submission_status;
+                if (statusValue === 0) status = "pending";
+                else if (statusValue === 1) status = "submitted";
+                else if (statusValue === 2) status = "rejected";
+                else if (statusValue === 3) status = "resubmitted";
+                else if (s.marks_obtained !== null && s.marks_obtained !== undefined) status = "reviewed";
+
+                return {
+                  id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,
+                  studentId: String(s.student?.student_id || ""),
+                  studentName: s.student?.name || "Unnamed Student",
+                  assignmentId: assignment.id,
+                  submittedAt: s.updated_at || s.submitted_at || "",
+                  status,
+                  marks: s.marks_obtained || undefined,
+                  feedback: s.feedback || undefined,
+                  reviewedAt: s.updated_at || s.reviewed_at || undefined,
+                  reviewedBy: s.reviewed_by || undefined,
+                  document: s.document_uploaded_path || undefined,
+                  files: s.files || [],
+                };
+              });
+
+            return {
+              ...assignment,
+              submissions: updatedSubmissions
+            };
+          }
+          return assignment;
+        });
+      });
+
       // Return the updated submissions for immediate use
       return submissions;
     } catch (error) {
       console.error('Error refreshing assignment submissions:', error);
       return null;
     }
-  };
+  }, []);
+
 
   // Update assignment status based on due date
   useEffect(() => {
@@ -1208,41 +1220,41 @@ export const useTrainerData = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return {
-    batches,
-    allBatches,
-    allLectureTimes,
-    students,
-    sessions,
-    assignments,
-    exams,
-    attendance,
-    reviewActions,
-    dashboardStats,
-    assignmentStats,
-    loading,
-    fetchSessions,
-    fetchAllLectureTimes,
-    fetchBatches,
-    fetchAllBatches,
-    fetchStudents,
-    fetchAssignments,
-    fetchBatchById,
-    fetchAssignmentSubmissions,
-    getStudentsByBatch, // ✅ Add this
-    getStudentById, // ✅ Add this
-    addSession,
-    updateSession,
-    addAssignment,
-    updateAssignment,
-    deleteAssignment,
-    addSubmission,
-    updateSubmission,
-    reviewSubmission,
-    bulkReviewSubmissions,
-    addExam,
-    updateExam,
-    markAttendance,
-    refreshAssignmentSubmissions,
-  };
+return {
+  batches,
+  allBatches,
+  allLectureTimes,
+  students,
+  sessions,
+  assignments,
+  exams,
+  attendance,
+  reviewActions,
+  dashboardStats,
+  assignmentStats,
+  loading,
+  fetchSessions,
+  fetchAllLectureTimes,
+  fetchBatches,
+  fetchAllBatches,
+  fetchStudents,
+  fetchAssignments,
+  fetchBatchById,
+  fetchAssignmentSubmissions,
+  getStudentsByBatch, // ✅ Add this
+  getStudentById, // ✅ Add this
+  addSession,
+  updateSession,
+  addAssignment,
+  updateAssignment,
+  deleteAssignment,
+  addSubmission,
+  updateSubmission,
+  reviewSubmission,
+  bulkReviewSubmissions,
+  addExam,
+  updateExam,
+  markAttendance,
+  refreshAssignmentSubmissions,
+};
 };

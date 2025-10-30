@@ -50,7 +50,6 @@ export const Assignments: React.FC = () => {
     // }
   }, []);
 
-
   const handleCreateAssignment = (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
     addAssignment(assignmentData);
     fetchAssignments();

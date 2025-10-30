@@ -244,7 +244,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
                       <option key={batch.id} value={batch.id}>
                         {batch.name}
                         {timingName ? ` (${timingName})` : ""}
-                        {" - "}{batch.totalStudents} students
+                        {" - "} {batch.totalStudents! > 1 ? `${batch.totalStudents} students` : `${batch.totalStudents} student`}
                       </option>
                     );
                   })}
