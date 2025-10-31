@@ -679,10 +679,6 @@ export const useTrainerData = () => {
   };
 
 
-
-
-
-
   const fetchBatchById = async (batchId: string, signal?: AbortSignal) => {
     try {
       const res = await fetch(` https://64.227.150.234:3002/api/batch/select/${batchId}`, {
@@ -810,7 +806,9 @@ export const useTrainerData = () => {
         }))
       }))
 
+      console.log('Fetched assignments:', assignments);
       setAssignments(assignments);
+
     } catch (err: any) {
       if (err.name === "AbortError") {
       } else {
@@ -1015,9 +1013,10 @@ export const useTrainerData = () => {
       console.error("Error adding session:", err);
       throw err;
     }
-  };
+  };``
 
   const updateAssignment = (id: string, updates: Partial<Assignment>) => {
+    console.log("Updating assignment:", id, updates);
     setAssignments((prev) =>
       prev.map((assignment) =>
         assignment.id === id

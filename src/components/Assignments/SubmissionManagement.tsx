@@ -53,9 +53,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     feedback: '',
     action: 'accept' as 'accept' | 'reject'
   });
-  
-  console.log("assessmentData",assessmentData);
-  console.log("selectedSubmission",selectedSubmission);
+
 
   // Local overrides so UI updates instantly (before parent/remote refresh)
   const [submissionOverrides, setSubmissionOverrides] = useState<Record<string, Partial<AssignmentSubmission>>>({});
@@ -311,7 +309,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     }
   };
 
-  console.log("filteredSubmissions:", filteredSubmissions);
 
   const submitBulkReview = async () => {
     setIsUpdatingSubmission(true);
@@ -339,7 +336,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       }
 
       const result = await response.json();
-      console.log('Bulk submissions updated successfully:', result);
 
       // Refresh assignment data immediately to get latest submission status
       await refreshAssignmentSubmissions(assignment.id);
@@ -588,7 +584,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                   {filteredSubmissions.map((item) => {
                     const StatusIcon = getStatusIcon(item.status);
                     const isSelected = item.submission && bulkSelectedIds.has(item.submission.id);
-                    console.log("filteredSubmissions",item.submission);
 
                     // console
                     return (

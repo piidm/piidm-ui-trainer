@@ -205,6 +205,14 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
     setUpdatingIds((prev) => ({ ...prev, [attendanceId]: true }));
 
     try {
+      // Build API payload in required array format
+      const payload = [
+        {
+          attendance_id: attendanceId,
+          attendance_status: attendance_status,
+        },
+      ];
+
       const res = await fetch(
         "https://64.227.150.234:3002/api/lecture/attendance/update",
         {
@@ -213,39 +221,18 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            attendance_id: attendanceId,
-            attendance_status: attendance_status,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
-      const updatedRecord = await res.json();
+      if (!res.ok) throw new Error("Update failed");
 
-      if (!res.ok) throw new Error(updatedRecord?.message || "Update failed");
-
-      // ✅ Directly patch updated student in UI using API response
-      setAttendanceData((prev) =>
-        prev.map((s) =>
-          s.attendanceId === attendanceId
-            ? {
-              ...s,
-              status:
-                updatedRecord.attendance_status === 2
-                  ? "present"
-                  : updatedRecord.attendance_status === 1
-                    ? "absent"
-                    : "no attendance",
-            }
-            : s
-        )
-      );
-
-      // 🔄 Also re-fetch from backend after a short delay
+      // Refresh data from server to ensure consistency
+      await fetchAttendanceData();
 
     } catch (err) {
       console.error("Error updating status:", err);
-      // Rollback
+      // Rollback on error
       setAttendanceData((prev) =>
         prev.map((s) =>
           s.studentId === studentId ? { ...s, status: prevStatus } : s
@@ -477,7 +464,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                   </div>
 
                   <div className="flex items-center gap-4">
-                    {/* Status Display */}
+                    {/* Status Dropdown */}
                     <select
                       value={
                         student.status === "present"
@@ -494,71 +481,30 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                               ? "absent"
                               : "no attendance";
 
-                        // Optimistic update
-                        setAttendanceData((prev) =>
-                          prev.map((s) =>
-                            s.studentId === student.studentId ? { ...s, status: newStatus } : s
-                          )
-                        );
-
-                        // Build API payload in required array format
-                        const payload = [
-                          {
-                            attendance_id: student.attendanceId,
-                            attendance_status:
-                              newStatus === "present" ? 2 : newStatus === "absent" ? 1 : 0,
-                          },
-                        ];
-
-                        try {
-                          await fetch("https://64.227.150.234:3002/api/lecture/attendance/update", {
-                            method: "PUT", // If backend uses PUT/PATCH, change here
-                            headers: {
-                              Authorization: `Bearer ${token}`,
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify(payload),
-                          });
-
-                          // Refresh list from GET API
-                          const res = await fetch(
-                            ` https://64.227.150.234:3002/api/lecture/attendance/${session.id}`,
-                            {
-                              headers: {
-                                 method: "get", 
-                                Authorization: `Bearer ${token}`,
-                                "Content-Type": "application/json",
-                              },
-                            }
-                          );
-                          const updatedList = await res.json();
-                          setattendenceStudents(updatedList);
-
-                          const batchStudents = updatedList.filter(
-                            (s: any) => Number(s.student.batch_id) === Number(session.batchId)
-                          );
-                          const mappedData = batchStudents.map((s: any) => ({
-                            studentId: s.student.student_id,
-                            studentName: s.student.name,
-                            attendanceId: s.attendance_id,
-                            status:
-                              s.attendance_status === 2
-                                ? "present"
-                                : s.attendance_status === 1
-                                  ? "absent"
-                                  : "no attendance",
-                          }));
-                          setAttendanceData(mappedData);
-                        } catch (err) {
-                        }
+                        await handleStatusChange(student.studentId, newStatus);
                       }}
+                      className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+                        student.status === "present"
+                          ? "border-green-300 bg-green-50 text-green-700"
+                          : student.status === "absent"
+                            ? "border-red-300 bg-red-50 text-red-700"
+                            : "border-gray-300 bg-white text-gray-700"
+                      }`}
+                      disabled={!canEdit || updatingIds[student.attendanceId]}
                     >
                       <option value="0">No Attendance</option>
                       <option value="1">Absent</option>
                       <option value="2">Present</option>
                     </select>
 
-                    <div>
+                    {/* Status Display Text */}
+                    <div className={`px-2 py-1 rounded text-sm font-medium ${
+                      student.status === "present"
+                        ? "text-green-700"
+                        : student.status === "absent"
+                          ? "text-red-700"
+                          : "text-gray-600"
+                    }`}>
                       {student.status === "present"
                         ? "Present"
                         : student.status === "absent"
@@ -573,10 +519,16 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                           onClick={() =>
                             handleStatusChange(student.studentId, "present")
                           }
-                          className={`p-2 rounded-lg transition-all ${student.status === "present"
-                            ? "bg-green-600 text-white"
-                            : "bg-gray-200 text-gray-600 hover:bg-green-100"
-                            }`}
+                          disabled={updatingIds[student.attendanceId]}
+                          className={`p-2 rounded-lg transition-all ${
+                            student.status === "present"
+                              ? "bg-green-600 text-white shadow-md"
+                              : "bg-gray-200 text-gray-600 hover:bg-green-100 hover:text-green-700"
+                          } ${
+                            updatingIds[student.attendanceId] 
+                              ? "opacity-50 cursor-not-allowed" 
+                              : ""
+                          }`}
                           title="Mark Present"
                         >
                           <Check className="w-4 h-4" />
@@ -585,10 +537,16 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                           onClick={() =>
                             handleStatusChange(student.studentId, "absent")
                           }
-                          className={`p-2 rounded-lg transition-all ${student.status === "absent"
-                            ? "bg-red-600 text-white"
-                            : "bg-gray-200 text-gray-600 hover:bg-red-100"
-                            }`}
+                          disabled={updatingIds[student.attendanceId]}
+                          className={`p-2 rounded-lg transition-all ${
+                            student.status === "absent"
+                              ? "bg-red-600 text-white shadow-md"
+                              : "bg-gray-200 text-gray-600 hover:bg-red-100 hover:text-red-700"
+                          } ${
+                            updatingIds[student.attendanceId] 
+                              ? "opacity-50 cursor-not-allowed" 
+                              : ""
+                          }`}
                           title="Mark Absent"
                         >
                           <X className="w-4 h-4" />

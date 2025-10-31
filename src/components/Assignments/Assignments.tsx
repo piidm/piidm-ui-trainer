@@ -62,6 +62,7 @@ export const Assignments: React.FC = () => {
       updateAssignment(editingAssignment.id, assignmentData);
       setEditingAssignment(null);
       // Show success notification
+      
     }
   };
 

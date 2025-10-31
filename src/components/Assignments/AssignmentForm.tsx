@@ -22,6 +22,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
   assignment,
   isEditing = false
 }) => {
+  console.log('AssignmentForm assignment prop:', assignment);
   const [formData, setFormData] = useState({
     title: assignment?.title || '',
     details: assignment?.details || '',
@@ -30,6 +31,28 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     totalMarks: assignment?.totalMarks || 100
   });
 
+  useEffect(() => {
+    if (assignment) {
+      setFormData({
+        title: assignment.title,
+        details: assignment.details,
+        batchId: assignment.batchId,
+        dueDate: assignment.dueDate ? assignment.dueDate.slice(0, 16) : '',
+        totalMarks: assignment.totalMarks
+      });
+    } else {
+      setFormData({
+        title: '',
+        details: '',
+        batchId: '',      
+        dueDate: '',
+        totalMarks: 100
+      });
+    }
+  }, [assignment]);
+  console.log('AssignmentForm assignment:', assignment);
+
+  console.log('AssignmentForm assignment formData:', formData);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
