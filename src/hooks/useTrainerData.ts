@@ -1015,15 +1015,60 @@ export const useTrainerData = () => {
     }
   };``
 
-  const updateAssignment = (id: string, updates: Partial<Assignment>) => {
+  const updateAssignment = async (id: string, updates: Partial<Assignment>) => {
     console.log("Updating assignment:", id, updates);
-    setAssignments((prev) =>
-      prev.map((assignment) =>
-        assignment.id === id
-          ? { ...assignment, ...updates, updatedAt: new Date().toISOString() }
-          : assignment
-      )
-    );
+    
+    try {
+      // Get trainer_id and user_id from localStorage or context
+      // const trainerId = localStorage.getItem('trainer_id') || '21';
+      // const userId = localStorage.getItem('user_id') || '7090';
+      
+      // Prepare the payload in the format expected by the API
+      const payload = {
+        title: updates.title,
+        description: updates.details, // Note: API expects 'description' but we use 'details'
+        assignment_date: updates.dueDate ? new Date(updates.dueDate).toLocaleDateString('en-GB') : '', // Convert to DD/MM/YYYY format
+        total_marks: updates.totalMarks?.toString() || '100',
+        json_batch_ids: updates.batchId ? `[${updates.batchId}]` : '', // Add batch ID in the format expected by API
+        trainer_id: 21,
+        user_id: 7090
+      };
+
+      console.log("API Payload:", payload);
+
+      // Make the actual API call
+      const response = await fetch(`https://64.227.150.234:3002/api/assignment/update/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify([payload]), // API expects an array
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update assignment: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log("API Response:", result);
+
+      // Update local state after successful API call
+      setAssignments((prev) =>
+        prev.map((assignment) =>
+          assignment.id === id
+            ? { ...assignment, ...updates, updatedAt: new Date().toISOString() }
+            : assignment
+        )
+      );
+      
+      console.log("Assignment updated successfully");
+      return { success: true, message: "Assignment updated successfully", data: result };
+    } catch (error) {
+      console.error("Error updating assignment:", error);
+      throw error;
+    }
   };
 
   const deleteAssignment = (id: string) => {

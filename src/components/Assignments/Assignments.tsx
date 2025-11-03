@@ -50,19 +50,32 @@ export const Assignments: React.FC = () => {
     // }
   }, []);
 
-  const handleCreateAssignment = (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
-    addAssignment(assignmentData);
-    fetchAssignments();
-    setIsFormOpen(false);
-    // Show success notification
+  const handleCreateAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
+    try {
+      await addAssignment(assignmentData);
+      await fetchAssignments();
+      setIsFormOpen(false);
+      console.log('Assignment created successfully!');
+      // Show success notification
+    } catch (error) {
+      console.error('Error creating assignment:', error);
+      // Show error notification
+    }
   };
 
-  const handleEditAssignment = (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
+    const handleEditAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
     if (editingAssignment) {
-      updateAssignment(editingAssignment.id, assignmentData);
-      setEditingAssignment(null);
-      // Show success notification
-      
+      try {
+        await updateAssignment(editingAssignment.id, assignmentData);
+        await fetchAssignments(); // Refresh the assignments list
+        setEditingAssignment(null);
+        setIsFormOpen(false);
+        console.log('Assignment updated successfully!');
+        // Show success notification
+      } catch (error) {
+        console.error('Error updating assignment:', error);
+        // Show error notification
+      }
     }
   };
 

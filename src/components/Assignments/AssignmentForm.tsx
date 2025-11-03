@@ -8,7 +8,7 @@ import { useTrainerData } from '../../hooks/useTrainerData';
 interface AssignmentFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (assignment: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => void;
+  onSubmit: (assignment: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => Promise<void>;
   batches: Batch[];
   assignment?: Assignment;
   isEditing?: boolean;
@@ -23,33 +23,53 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
   isEditing = false
 }) => {
   console.log('AssignmentForm assignment prop:', assignment);
-  const [formData, setFormData] = useState({
-    title: assignment?.title || '',
-    details: assignment?.details || '',
-    batchId: assignment?.batchId || '',
-    dueDate: assignment?.dueDate ? assignment.dueDate.slice(0, 16) : '',
-    totalMarks: assignment?.totalMarks || 100
-  });
+  
+  // Initialize form data based on whether we're editing or creating
+  const getInitialFormData = () => {
+    if (assignment && isEditing) {
+      // Handle batchId which might be a JSON string like "[1,2,3]" 
+      let extractedBatchId = '';
+      if (assignment.batchId) {
+        try {
+          // Try to parse as JSON array first
+          if (assignment.batchId.startsWith('[')) {
+            const batchIds = JSON.parse(assignment.batchId);
+            extractedBatchId = Array.isArray(batchIds) && batchIds.length > 0 ? batchIds[0].toString() : '';
+          } else {
+            // If it's not a JSON array, use it directly
+            extractedBatchId = assignment.batchId;
+          }
+        } catch (error) {
+          // If parsing fails, use the original value
+          extractedBatchId = assignment.batchId;
+        }
+      }
+
+      return {
+        title: assignment.title || '',
+        details: assignment.details || '',
+        batchId: extractedBatchId,
+        dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().slice(0, 16) : '',
+        totalMarks: assignment.totalMarks || 100
+      };
+    }
+    return {
+      title: '',
+      details: '',
+      batchId: '',      
+      dueDate: '',
+      totalMarks: 100
+    };
+  };
+
+  const [formData, setFormData] = useState(getInitialFormData);
 
   useEffect(() => {
-    if (assignment) {
-      setFormData({
-        title: assignment.title,
-        details: assignment.details,
-        batchId: assignment.batchId,
-        dueDate: assignment.dueDate ? assignment.dueDate.slice(0, 16) : '',
-        totalMarks: assignment.totalMarks
-      });
-    } else {
-      setFormData({
-        title: '',
-        details: '',
-        batchId: '',      
-        dueDate: '',
-        totalMarks: 100
-      });
+    if (isOpen) {
+      // Reset form data when modal opens
+      setFormData(getInitialFormData());
     }
-  }, [assignment]);
+  }, [assignment, isEditing, isOpen]);
   console.log('AssignmentForm assignment:', assignment);
 
   console.log('AssignmentForm assignment formData:', formData);
@@ -120,22 +140,18 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       const assignmentData = {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString()
       };
 
-      onSubmit(assignmentData);
-      onClose();
-      resetForm();
-
+      await onSubmit(assignmentData);
+      
       // Show success notification (you can implement a toast system)
-      console.log('Assignment saved successfully!');
+      console.log(isEditing ? 'Assignment updated successfully!' : 'Assignment created successfully!');
     } catch (error) {
       console.error('Error saving assignment:', error);
+      // Show error notification here if you have a toast system
     } finally {
       setIsSubmitting(false);
     }
