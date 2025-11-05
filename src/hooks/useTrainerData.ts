@@ -13,382 +13,383 @@ import {
 } from "../types";
 
 
-const mockAssignments: Assignment[] = [
-  {
-    id: "1",
-    title: "Todo App with React Hooks",
-    details:
-      "<h3>Build a Complete Todo Application</h3><p>Create a fully functional todo application using React hooks with the following features:</p><ul><li>Add new todos</li><li>Mark todos as complete/incomplete</li><li>Edit existing todos</li><li>Delete todos</li><li>Filter todos (All, Active, Completed)</li><li>Local storage persistence</li></ul><h4>Technical Requirements:</h4><ul><li>Use functional components with hooks</li><li>Implement proper state management</li><li>Add responsive styling with CSS</li><li>Include form validation</li><li>Write clean, readable code with comments</li></ul><h4>Submission Format:</h4><p>Submit as a ZIP file containing your complete project with README.md file including setup instructions.</p>",
-    batchId: "1",
-    dueDate: "2024-12-25T23:59:59",
-    totalMarks: 100,
-    submissions: [
-      {
-        id: "1",
-        studentId: "1",
-        studentName: "John Doe",
-        assignmentId: "1",
-        submittedAt: "2024-12-18T14:30:00",
-        files: [
-          {
-            id: "1",
-            name: "todo-app-john.zip",
-            url: "#",
-            type: "application/zip",
-            size: 2048576,
-          },
-        ],
-        status: "submitted",
-      },
-      {
-        id: "2",
-        studentId: "2",
-        studentName: "Jane Smith",
-        assignmentId: "1",
-        submittedAt: "2024-12-17T16:45:00",
-        files: [
-          {
-            id: "2",
-            name: "react-todo-jane.zip",
-            url: "#",
-            type: "application/zip",
-            size: 1843200,
-          },
-        ],
-        marks: 92,
-        feedback:
-          "Excellent work! Clean code structure and all requirements met. Great use of custom hooks for state management. The UI is intuitive and responsive.",
-        status: "reviewed",
-        reviewedAt: "2024-12-19T10:30:00",
-        reviewedBy: "Dr. Sarah Johnson",
-      },
-      {
-        id: "3",
-        studentId: "5",
-        studentName: "Alex Brown",
-        assignmentId: "1",
-        submittedAt: "2024-12-18T09:15:00",
-        files: [
-          {
-            id: "3",
-            name: "todo-application-alex.zip",
-            url: "#",
-            type: "application/zip",
-            size: 1756800,
-          },
-        ],
-        marks: 78,
-        feedback:
-          "Good implementation of core features. Code is well-structured but could benefit from better error handling and more comprehensive testing.",
-        status: "reviewed",
-        reviewedAt: "2024-12-19T11:15:00",
-        reviewedBy: "Dr. Sarah Johnson",
-      },
-      {
-        id: "4",
-        studentId: "6",
-        studentName: "Emily Davis",
-        assignmentId: "1",
-        submittedAt: "2024-12-19T20:30:00",
-        files: [
-          {
-            id: "4",
-            name: "emily-todo-app.zip",
-            url: "#",
-            type: "application/zip",
-            size: 2156800,
-          },
-        ],
-        status: "submitted",
-      },
-      {
-        id: "5",
-        studentId: "7",
-        studentName: "Michael Chen",
-        assignmentId: "1",
-        submittedAt: "2024-12-19T13:45:00",
-        files: [
-          {
-            id: "5",
-            name: "michael-todo-project.zip",
-            url: "#",
-            type: "application/zip",
-            size: 1923456,
-          },
-        ],
-        status: "submitted",
-      },
-      {
-        id: "6",
-        studentId: "8",
-        studentName: "Sarah Wilson",
-        assignmentId: "1",
-        submittedAt: "2024-12-16T22:00:00",
-        files: [
-          {
-            id: "6",
-            name: "sarah-todo-complete.zip",
-            url: "#",
-            type: "application/zip",
-            size: 2345678,
-          },
-        ],
-        marks: 88,
-        feedback:
-          "Very good work! All features implemented correctly. The code is clean and well-documented. Minor improvements needed in CSS organization.",
-        status: "reviewed",
-        reviewedAt: "2024-12-19T09:45:00",
-        reviewedBy: "Dr. Sarah Johnson",
-      },
-      {
-        id: "7",
-        studentId: "9",
-        studentName: "David Rodriguez",
-        assignmentId: "1",
-        submittedAt: "2024-12-19T18:20:00",
-        files: [
-          {
-            id: "7",
-            name: "david-todo-app.zip",
-            url: "#",
-            type: "application/zip",
-            size: 1654321,
-          },
-        ],
-        status: "submitted",
-      },
-      {
-        id: "8",
-        studentId: "10",
-        studentName: "Lisa Thompson",
-        assignmentId: "1",
-        submittedAt: "2024-12-18T11:30:00",
-        files: [
-          {
-            id: "8",
-            name: "lisa-advanced-todo.zip",
-            url: "#",
-            type: "application/zip",
-            size: 2567890,
-          },
-        ],
-        marks: 96,
-        feedback:
-          "Outstanding work! Exceeded expectations with additional features like drag-and-drop, themes, and excellent test coverage. Professional-level implementation.",
-        status: "reviewed",
-        reviewedAt: "2024-12-19T14:20:00",
-        reviewedBy: "Dr. Sarah Johnson",
-      },
-    ],
-    status: "active",
-    createdAt: "2024-12-15T10:00:00",
-    updatedAt: "2024-12-15T10:00:00",
-    createdBy: "Dr. Sarah Johnson",
-  },
-  {
-    id: "2",
-    title: "API Integration Project",
-    details:
-      "<h3>REST API Integration Challenge</h3><p>Create a React application that integrates with external REST APIs to build a meaningful application.</p><h4>Requirements:</h4><ul><li>Fetch data from at least 2 different endpoints</li><li>Implement comprehensive error handling</li><li>Add loading states and skeleton screens</li><li>Include search/filter functionality</li><li>Responsive design for all screen sizes</li><li>Use modern React patterns (hooks, context if needed)</li></ul><h4>Bonus Points:</h4><ul><li>Implement caching mechanism</li><li>Add unit tests</li><li>Use TypeScript</li><li>Implement infinite scrolling or pagination</li></ul><h4>Suggested APIs:</h4><ul><li>JSONPlaceholder</li><li>OpenWeatherMap</li><li>News API</li><li>GitHub API</li></ul>",
-    batchId: "2",
-    dueDate: "2024-12-28T23:59:59",
-    totalMarks: 150,
-    submissions: [
-      {
-        id: "9",
-        studentId: "3",
-        studentName: "Mike Johnson",
-        assignmentId: "2",
-        submittedAt: "2024-12-19T16:30:00",
-        files: [
-          {
-            id: "9",
-            name: "mike-api-project.zip",
-            url: "#",
-            type: "application/zip",
-            size: 3456789,
-          },
-        ],
-        status: "submitted",
-      },
-      {
-        id: "10",
-        studentId: "11",
-        studentName: "Anna Garcia",
-        assignmentId: "2",
-        submittedAt: "2024-12-18T14:15:00",
-        files: [
-          {
-            id: "10",
-            name: "anna-weather-app.zip",
-            url: "#",
-            type: "application/zip",
-            size: 2987654,
-          },
-        ],
-        marks: 135,
-        feedback:
-          "Excellent API integration with weather and news APIs. Great error handling and loading states. Clean TypeScript implementation with good test coverage.",
-        status: "reviewed",
-        reviewedAt: "2024-12-19T15:45:00",
-        reviewedBy: "Dr. Sarah Johnson",
-      },
-      {
-        id: "11",
-        studentId: "12",
-        studentName: "James Lee",
-        assignmentId: "2",
-        submittedAt: "2024-12-19T21:00:00",
-        files: [
-          {
-            id: "11",
-            name: "james-github-explorer.zip",
-            url: "#",
-            type: "application/zip",
-            size: 3123456,
-          },
-        ],
-        status: "submitted",
-      },
-    ],
-    status: "active",
-    createdAt: "2024-12-16T09:00:00",
-    updatedAt: "2024-12-16T09:00:00",
-    createdBy: "Dr. Sarah Johnson",
-  },
-  {
-    id: "3",
-    title: "Node.js Backend API Development",
-    details:
-      "<h3>Build a RESTful API with Node.js</h3><p>Create a complete backend API for a blog application using Node.js, Express, and MongoDB.</p><h4>Core Features:</h4><ul><li>User authentication (register, login, logout)</li><li>CRUD operations for blog posts</li><li>Comment system</li><li>File upload for images</li><li>Search and pagination</li><li>Input validation and sanitization</li></ul><h4>Technical Requirements:</h4><ul><li>Use Express.js framework</li><li>MongoDB with Mongoose ODM</li><li>JWT for authentication</li><li>Bcrypt for password hashing</li><li>Multer for file uploads</li><li>Express-validator for validation</li></ul><h4>API Endpoints:</h4><ul><li>POST /api/auth/register</li><li>POST /api/auth/login</li><li>GET /api/posts</li><li>POST /api/posts</li><li>PUT /api/posts/:id</li><li>DELETE /api/posts/:id</li></ul>",
-    batchId: "3",
-    dueDate: "2024-12-30T23:59:59",
-    totalMarks: 120,
-    submissions: [
-      {
-        id: "12",
-        studentId: "4",
-        studentName: "Sarah Wilson",
-        assignmentId: "3",
-        submittedAt: "2024-12-19T19:45:00",
-        files: [
-          {
-            id: "12",
-            name: "sarah-blog-api.zip",
-            url: "#",
-            type: "application/zip",
-            size: 4567890,
-          },
-          {
-            id: "13",
-            name: "api-documentation.pdf",
-            url: "#",
-            type: "application/pdf",
-            size: 567890,
-          },
-        ],
-        status: "submitted",
-      },
-      {
-        id: "13",
-        studentId: "14",
-        studentName: "Robert Taylor",
-        assignmentId: "3",
-        submittedAt: "2024-12-18T20:30:00",
-        files: [
-          {
-            id: "14",
-            name: "robert-backend-project.zip",
-            url: "#",
-            type: "application/zip",
-            size: 3890123,
-          },
-        ],
-        marks: 102,
-        feedback:
-          "Good implementation of core features. Authentication works well and API endpoints are properly structured. Could improve error handling and add more comprehensive validation.",
-        status: "reviewed",
-        reviewedAt: "2024-12-19T16:30:00",
-        reviewedBy: "Dr. Sarah Johnson",
-      },
-    ],
-    status: "active",
-    createdAt: "2024-12-17T14:00:00",
-    updatedAt: "2024-12-17T14:00:00",
-    createdBy: "Dr. Sarah Johnson",
-  },
-  {
-    id: "4",
-    title: "E-commerce Frontend with React",
-    details:
-      "<h3>Build an E-commerce Product Catalog</h3><p>Create a modern e-commerce frontend application with product browsing, cart functionality, and checkout process.</p><h4>Required Features:</h4><ul><li>Product listing with grid/list view</li><li>Product search and filtering</li><li>Product detail pages</li><li>Shopping cart functionality</li><li>User authentication</li><li>Responsive design</li></ul><h4>Technical Stack:</h4><ul><li>React with hooks</li><li>React Router for navigation</li><li>Context API or Redux for state management</li><li>Styled Components or CSS Modules</li><li>Axios for API calls</li></ul><h4>Bonus Features:</h4><ul><li>Wishlist functionality</li><li>Product reviews and ratings</li><li>Order history</li><li>Payment integration (mock)</li></ul>",
-    batchId: "1",
-    dueDate: "2025-01-05T23:59:59",
-    totalMarks: 130,
-    submissions: [],
-    status: "active",
-    createdAt: "2024-12-19T11:00:00",
-    updatedAt: "2024-12-19T11:00:00",
-    createdBy: "Dr. Sarah Johnson",
-  },
-  {
-    id: "5",
-    title: "Database Design and Implementation",
-    details:
-      "<h3>Design and Implement a Library Management System Database</h3><p>Create a comprehensive database schema for a library management system and implement it using SQL.</p><h4>Requirements:</h4><ul><li>Design ER diagram</li><li>Create normalized database schema</li><li>Implement tables with proper relationships</li><li>Write complex SQL queries</li><li>Create stored procedures and triggers</li><li>Add indexes for optimization</li></ul><h4>Entities to Include:</h4><ul><li>Books, Authors, Publishers</li><li>Members, Staff</li><li>Borrowing records</li><li>Categories, Genres</li><li>Fines and payments</li></ul>",
-    batchId: "3",
-    dueDate: "2024-12-22T23:59:59",
-    totalMarks: 100,
-    submissions: [
-      {
-        id: "14",
-        studentId: "15",
-        studentName: "Jennifer White",
-        assignmentId: "5",
-        submittedAt: "2024-12-19T15:20:00",
-        files: [
-          {
-            id: "15",
-            name: "library-db-schema.sql",
-            url: "#",
-            type: "application/sql",
-            size: 234567,
-          },
-          {
-            id: "16",
-            name: "er-diagram.pdf",
-            url: "#",
-            type: "application/pdf",
-            size: 456789,
-          },
-        ],
-        status: "submitted",
-      },
-    ],
-    status: "expired",
-    createdAt: "2024-12-10T09:00:00",
-    updatedAt: "2024-12-10T09:00:00",
-    createdBy: "Dr. Sarah Johnson",
-  },
-];
+// const mockAssignments: Assignment[] = [
+//   {
+//     id: "1",
+//     title: "Todo App with React Hooks",
+//     details:
+//       "<h3>Build a Complete Todo Application</h3><p>Create a fully functional todo application using React hooks with the following features:</p><ul><li>Add new todos</li><li>Mark todos as complete/incomplete</li><li>Edit existing todos</li><li>Delete todos</li><li>Filter todos (All, Active, Completed)</li><li>Local storage persistence</li></ul><h4>Technical Requirements:</h4><ul><li>Use functional components with hooks</li><li>Implement proper state management</li><li>Add responsive styling with CSS</li><li>Include form validation</li><li>Write clean, readable code with comments</li></ul><h4>Submission Format:</h4><p>Submit as a ZIP file containing your complete project with README.md file including setup instructions.</p>",
+//     batchId: "1",
+//     dueDate: "2024-12-25T23:59:59",
+//     totalMarks: 100,
+//     submissions: [
+//       {
+//         id: "1",
+//         studentId: "1",
+//         studentName: "John Doe",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-18T14:30:00",
+//         files: [
+//           {
+//             id: "1",
+//             name: "todo-app-john.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 2048576,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//       {
+//         id: "2",
+//         studentId: "2",
+//         studentName: "Jane Smith",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-17T16:45:00",
+//         files: [
+//           {
+//             id: "2",
+//             name: "react-todo-jane.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 1843200,
+//           },
+//         ],
+//         marks: 92,
+//         feedback:
+//           "Excellent work! Clean code structure and all requirements met. Great use of custom hooks for state management. The UI is intuitive and responsive.",
+//         status: "reviewed",
+//         reviewedAt: "2024-12-19T10:30:00",
+//         reviewedBy: "Dr. Sarah Johnson",
+//       },
+//       {
+//         id: "3",
+//         studentId: "5",
+//         studentName: "Alex Brown",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-18T09:15:00",
+//         files: [
+//           {
+//             id: "3",
+//             name: "todo-application-alex.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 1756800,
+//           },
+//         ],
+//         marks: 78,
+//         feedback:
+//           "Good implementation of core features. Code is well-structured but could benefit from better error handling and more comprehensive testing.",
+//         status: "reviewed",
+//         reviewedAt: "2024-12-19T11:15:00",
+//         reviewedBy: "Dr. Sarah Johnson",
+//       },
+//       {
+//         id: "4",
+//         studentId: "6",
+//         studentName: "Emily Davis",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-19T20:30:00",
+//         files: [
+//           {
+//             id: "4",
+//             name: "emily-todo-app.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 2156800,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//       {
+//         id: "5",
+//         studentId: "7",
+//         studentName: "Michael Chen",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-19T13:45:00",
+//         files: [
+//           {
+//             id: "5",
+//             name: "michael-todo-project.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 1923456,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//       {
+//         id: "6",
+//         studentId: "8",
+//         studentName: "Sarah Wilson",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-16T22:00:00",
+//         files: [
+//           {
+//             id: "6",
+//             name: "sarah-todo-complete.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 2345678,
+//           },
+//         ],
+//         marks: 88,
+//         feedback:
+//           "Very good work! All features implemented correctly. The code is clean and well-documented. Minor improvements needed in CSS organization.",
+//         status: "reviewed",
+//         reviewedAt: "2024-12-19T09:45:00",
+//         reviewedBy: "Dr. Sarah Johnson",
+//       },
+//       {
+//         id: "7",
+//         studentId: "9",
+//         studentName: "David Rodriguez",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-19T18:20:00",
+//         files: [
+//           {
+//             id: "7",
+//             name: "david-todo-app.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 1654321,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//       {
+//         id: "8",
+//         studentId: "10",
+//         studentName: "Lisa Thompson",
+//         assignmentId: "1",
+//         submittedAt: "2024-12-18T11:30:00",
+//         files: [
+//           {
+//             id: "8",
+//             name: "lisa-advanced-todo.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 2567890,
+//           },
+//         ],
+//         marks: 96,
+//         feedback:
+//           "Outstanding work! Exceeded expectations with additional features like drag-and-drop, themes, and excellent test coverage. Professional-level implementation.",
+//         status: "reviewed",
+//         reviewedAt: "2024-12-19T14:20:00",
+//         reviewedBy: "Dr. Sarah Johnson",
+//       },
+//     ],
+//     status: "active",
+//     createdAt: "2024-12-15T10:00:00",
+//     updatedAt: "2024-12-15T10:00:00",
+//     createdBy: "Dr. Sarah Johnson",
+//   },
+//   {
+//     id: "2",
+//     title: "API Integration Project",
+//     details:
+//       "<h3>REST API Integration Challenge</h3><p>Create a React application that integrates with external REST APIs to build a meaningful application.</p><h4>Requirements:</h4><ul><li>Fetch data from at least 2 different endpoints</li><li>Implement comprehensive error handling</li><li>Add loading states and skeleton screens</li><li>Include search/filter functionality</li><li>Responsive design for all screen sizes</li><li>Use modern React patterns (hooks, context if needed)</li></ul><h4>Bonus Points:</h4><ul><li>Implement caching mechanism</li><li>Add unit tests</li><li>Use TypeScript</li><li>Implement infinite scrolling or pagination</li></ul><h4>Suggested APIs:</h4><ul><li>JSONPlaceholder</li><li>OpenWeatherMap</li><li>News API</li><li>GitHub API</li></ul>",
+//     batchId: "2",
+//     dueDate: "2024-12-28T23:59:59",
+//     totalMarks: 150,
+//     submissions: [
+//       {
+//         id: "9",
+//         studentId: "3",
+//         studentName: "Mike Johnson",
+//         assignmentId: "2",
+//         submittedAt: "2024-12-19T16:30:00",
+//         files: [
+//           {
+//             id: "9",
+//             name: "mike-api-project.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 3456789,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//       {
+//         id: "10",
+//         studentId: "11",
+//         studentName: "Anna Garcia",
+//         assignmentId: "2",
+//         submittedAt: "2024-12-18T14:15:00",
+//         files: [
+//           {
+//             id: "10",
+//             name: "anna-weather-app.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 2987654,
+//           },
+//         ],
+//         marks: 135,
+//         feedback:
+//           "Excellent API integration with weather and news APIs. Great error handling and loading states. Clean TypeScript implementation with good test coverage.",
+//         status: "reviewed",
+//         reviewedAt: "2024-12-19T15:45:00",
+//         reviewedBy: "Dr. Sarah Johnson",
+//       },
+//       {
+//         id: "11",
+//         studentId: "12",
+//         studentName: "James Lee",
+//         assignmentId: "2",
+//         submittedAt: "2024-12-19T21:00:00",
+//         files: [
+//           {
+//             id: "11",
+//             name: "james-github-explorer.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 3123456,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//     ],
+//     status: "active",
+//     createdAt: "2024-12-16T09:00:00",
+//     updatedAt: "2024-12-16T09:00:00",
+//     createdBy: "Dr. Sarah Johnson",
+//   },
+//   {
+//     id: "3",
+//     title: "Node.js Backend API Development",
+//     details:
+//       "<h3>Build a RESTful API with Node.js</h3><p>Create a complete backend API for a blog application using Node.js, Express, and MongoDB.</p><h4>Core Features:</h4><ul><li>User authentication (register, login, logout)</li><li>CRUD operations for blog posts</li><li>Comment system</li><li>File upload for images</li><li>Search and pagination</li><li>Input validation and sanitization</li></ul><h4>Technical Requirements:</h4><ul><li>Use Express.js framework</li><li>MongoDB with Mongoose ODM</li><li>JWT for authentication</li><li>Bcrypt for password hashing</li><li>Multer for file uploads</li><li>Express-validator for validation</li></ul><h4>API Endpoints:</h4><ul><li>POST /api/auth/register</li><li>POST /api/auth/login</li><li>GET /api/posts</li><li>POST /api/posts</li><li>PUT /api/posts/:id</li><li>DELETE /api/posts/:id</li></ul>",
+//     batchId: "3",
+//     dueDate: "2024-12-30T23:59:59",
+//     totalMarks: 120,
+//     submissions: [
+//       {
+//         id: "12",
+//         studentId: "4",
+//         studentName: "Sarah Wilson",
+//         assignmentId: "3",
+//         submittedAt: "2024-12-19T19:45:00",
+//         files: [
+//           {
+//             id: "12",
+//             name: "sarah-blog-api.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 4567890,
+//           },
+//           {
+//             id: "13",
+//             name: "api-documentation.pdf",
+//             url: "#",
+//             type: "application/pdf",
+//             size: 567890,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//       {
+//         id: "13",
+//         studentId: "14",
+//         studentName: "Robert Taylor",
+//         assignmentId: "3",
+//         submittedAt: "2024-12-18T20:30:00",
+//         files: [
+//           {
+//             id: "14",
+//             name: "robert-backend-project.zip",
+//             url: "#",
+//             type: "application/zip",
+//             size: 3890123,
+//           },
+//         ],
+//         marks: 102,
+//         feedback:
+//           "Good implementation of core features. Authentication works well and API endpoints are properly structured. Could improve error handling and add more comprehensive validation.",
+//         status: "reviewed",
+//         reviewedAt: "2024-12-19T16:30:00",
+//         reviewedBy: "Dr. Sarah Johnson",
+//       },
+//     ],
+//     status: "active",
+//     createdAt: "2024-12-17T14:00:00",
+//     updatedAt: "2024-12-17T14:00:00",
+//     createdBy: "Dr. Sarah Johnson",
+//   },
+//   {
+//     id: "4",
+//     title: "E-commerce Frontend with React",
+//     details:
+//       "<h3>Build an E-commerce Product Catalog</h3><p>Create a modern e-commerce frontend application with product browsing, cart functionality, and checkout process.</p><h4>Required Features:</h4><ul><li>Product listing with grid/list view</li><li>Product search and filtering</li><li>Product detail pages</li><li>Shopping cart functionality</li><li>User authentication</li><li>Responsive design</li></ul><h4>Technical Stack:</h4><ul><li>React with hooks</li><li>React Router for navigation</li><li>Context API or Redux for state management</li><li>Styled Components or CSS Modules</li><li>Axios for API calls</li></ul><h4>Bonus Features:</h4><ul><li>Wishlist functionality</li><li>Product reviews and ratings</li><li>Order history</li><li>Payment integration (mock)</li></ul>",
+//     batchId: "1",
+//     dueDate: "2025-01-05T23:59:59",
+//     totalMarks: 130,
+//     submissions: [],
+//     status: "active",
+//     createdAt: "2024-12-19T11:00:00",
+//     updatedAt: "2024-12-19T11:00:00",
+//     createdBy: "Dr. Sarah Johnson",
+//   },
+//   {
+//     id: "5",
+//     title: "Database Design and Implementation",
+//     details:
+//       "<h3>Design and Implement a Library Management System Database</h3><p>Create a comprehensive database schema for a library management system and implement it using SQL.</p><h4>Requirements:</h4><ul><li>Design ER diagram</li><li>Create normalized database schema</li><li>Implement tables with proper relationships</li><li>Write complex SQL queries</li><li>Create stored procedures and triggers</li><li>Add indexes for optimization</li></ul><h4>Entities to Include:</h4><ul><li>Books, Authors, Publishers</li><li>Members, Staff</li><li>Borrowing records</li><li>Categories, Genres</li><li>Fines and payments</li></ul>",
+//     batchId: "3",
+//     dueDate: "2024-12-22T23:59:59",
+    
+//     totalMarks: 100,
+//     submissions: [
+//       {
+//         id: "14",
+//         studentId: "15",
+//         studentName: "Jennifer White",
+//         assignmentId: "5",
+//         submittedAt: "2024-12-19T15:20:00",
+//         files: [
+//           {
+//             id: "15",
+//             name: "library-db-schema.sql",
+//             url: "#",
+//             type: "application/sql",
+//             size: 234567,
+//           },
+//           {
+//             id: "16",
+//             name: "er-diagram.pdf",
+//             url: "#",
+//             type: "application/pdf",
+//             size: 456789,
+//           },
+//         ],
+//         status: "submitted",
+//       },
+//     ],
+//     status: "expired",
+//     createdAt: "2024-12-10T09:00:00",
+//     updatedAt: "2024-12-10T09:00:00",
+//     createdBy: "Dr. Sarah Johnson",
+//   },
+// ];
 
-const mockExams: Exam[] = [
-  {
-    id: "1",
-    title: "React Fundamentals Assessment",
-    description:
-      "Assessment covering React basics, hooks, and component lifecycle",
-    batchId: "1",
-    type: "mixed",
-    duration: 90,
-    totalMarks: 100,
-    passingMarks: 70,
-    scheduledDate: "2024-12-22T10:00:00",
-    questions: [],
-    submissions: [],
-    status: "scheduled",
-  },
-];
+// const mockExams: Exam[] = [
+//   {
+//     id: "1",
+//     title: "React Fundamentals Assessment",
+//     description:
+//       "Assessment covering React basics, hooks, and component lifecycle",
+//     batchId: "1",
+//     type: "mixed",
+//     duration: 90,
+//     totalMarks: 100,
+//     passingMarks: 70,
+//     scheduledDate: "2024-12-22T10:00:00",
+//     questions: [],
+//     submissions: [],
+//     status: "scheduled",
+//   },
+// ];
 
 export const useTrainerData = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -396,7 +397,7 @@ export const useTrainerData = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [exams, setExams] = useState<Exam[]>(mockExams);
+  const [exams, setExams] = useState<Exam[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [reviewActions, setReviewActions] = useState<ReviewAction[]>([]);
   const [loading, setLoading] = useState(false);
@@ -439,7 +440,7 @@ export const useTrainerData = () => {
       )
       if (!res.ok) throw new Error("Failed to fetch sessions");
       const resData = await res.json();
-
+      const totalLectures = resData.basic_stats.total_lectures || 0;
       const sessions: LiveSession[] = (resData.data || []).map((item: any) => {
         let batchIds: string[] = [];
         try {
@@ -479,6 +480,7 @@ export const useTrainerData = () => {
 
         return {
           id: item.lecture_id.toString(),
+          length: totalLectures,
           topic: item.topic || item.title || "Untitled",
           batchId: firstBatchId,
           date: batchDate,
@@ -775,8 +777,10 @@ export const useTrainerData = () => {
         }
       );
       const resData = await res.json();
+      const totalAssignments: number = resData.basic_stats?.total_assignments || 0;
       const assignments: Assignment[] = resData.data.map((item: any) => ({
         id: item.assignment_id.toString(),
+        length: totalAssignments,
         title: item.title || "Untitled Assignment",
         details: item.description || "<p>No details provided.</p>",
         batchId: item.json_batch_ids?.toString() || "0",
@@ -806,7 +810,6 @@ export const useTrainerData = () => {
         }))
       }))
 
-      console.log('Fetched assignments:', assignments);
       setAssignments(assignments);
 
     } catch (err: any) {

@@ -14,7 +14,7 @@ function getAssignmentStatus(assignment: Assignment): 'active' | 'expired' {
 }
 
 export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ assignments }) => {
-  const totalAssignments = assignments.length;
+  const totalAssignments = assignments[0]?.length;
   const activeAssignments = assignments.filter(a => getAssignmentStatus(a) === 'active').length;
   const expiredAssignments = assignments.filter(a => getAssignmentStatus(a) === 'expired').length;
   const totalSubmissions = assignments.reduce((acc, a) => acc + a.submissions.length, 0);

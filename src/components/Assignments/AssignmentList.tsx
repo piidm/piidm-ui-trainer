@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
-import { AllBatches, Assignment, Batch, Student, AssignmentSubmission } from '../../types';
+import { Assignment, Batch, Student, AssignmentSubmission } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentListProps {
   assignments: Assignment[];
   batches: Batch[];
-  allBatches: AllBatches[];
+  allBatches: Batch[];
   onViewSubmissions: (assignment: Assignment, batch: Batch | null, students: Student[]) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
@@ -399,7 +399,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                           feedback: s.feedback || undefined,
                                           reviewedAt: s.updated_at || undefined,
                                           reviewedBy: s.reviewed_by || undefined,
-                                          document: s.document_uploaded_path || "https://drive.google.com/file/d/1CNCKZBogTHvySBn8CuuIhiYcmYdjVsRo/view?usp=sharing" || undefined,
+                                          document: s.document_uploaded_path || "" || undefined,
                                         };
                                         return submission;
                                       })

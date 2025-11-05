@@ -22,7 +22,6 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
   assignment,
   isEditing = false
 }) => {
-  console.log('AssignmentForm assignment prop:', assignment);
   
   // Initialize form data based on whether we're editing or creating
   const getInitialFormData = () => {

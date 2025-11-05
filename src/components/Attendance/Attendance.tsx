@@ -21,7 +21,7 @@ export const Attendance: React.FC = () => {
     }, []);
 
   // Calculate stats
-  const totalSessions = sessions.length;
+  const totalSessions = sessions[0].length;
   const totalStudents = students[0]?.length;
   const averageAttendance = 89; // Mock data
   const todayAttendance = 92; // Mock data

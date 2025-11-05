@@ -369,11 +369,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
       // If currently selected submission was in bulk update, update it too
       if (selectedSubmission && bulkSelectedIds.has(selectedSubmission.id)) {
-        const updatedSubmission = {
+        const updatedSubmission: AssignmentSubmission = {
           ...selectedSubmission,
           marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
           feedback: bulkReviewData.feedback,
-          status: bulkReviewData.action === 'accept' ? 'reviewed' : 'rejected' as const,
+          status: bulkReviewData.action === 'accept' ? 'reviewed' : 'rejected',
           reviewedAt: new Date().toISOString(),
           reviewedBy: 'Dr. Sarah Johnson'
         };
@@ -652,26 +652,26 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                     </div>
                                   </div>
 
-                                  {item.submission.status === 'reviewed' && (
+                                  {item.submission?.status === 'reviewed' && (
                                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
                                       <div className="flex items-center gap-2 mb-2">
                                         <Star className="w-4 h-4 text-green-600" />
                                         <span className="font-medium text-green-800">
-                                          Score: {item.submission.marks}/{assignment.totalMarks} ({Math.round((item.submission.marks! / assignment.totalMarks) * 100)}%)
+                                          Score: {item.submission?.marks}/{assignment.totalMarks} ({Math.round((item.submission.marks! / assignment.totalMarks) * 100)}%)
                                         </span>
                                       </div>
-                                      {item.submission.feedback && (
+                                      {item.submission?.feedback && (
                                         <div className="flex items-start gap-2">
                                           <MessageSquare className="w-4 h-4 text-green-600 mt-0.5" />
                                           <p className="text-green-700 text-sm">{item.submission.feedback}</p>
                                         </div>
                                       )}
                                       <div className="text-xs text-green-600 mt-2">
-                                        Reviewed on {new Date(item.submission.reviewedAt!).toLocaleString()} by {item.submission.reviewedBy}
+                                        Reviewed on {new Date(item.submission?.reviewedAt!).toLocaleString()} by {item.submission.reviewedBy}
                                       </div>
                                     </div>
                                   )}
-                                  {item.submission.status === 'rejected' && (
+                                  {item.submission?.status === 'rejected' && (
                                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
                                       <div className="flex items-center gap-2 mb-2">
                                         <XCircle className="w-4 h-4 text-red-600" />
@@ -679,18 +679,18 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                           Rejected
                                         </span>
                                       </div>
-                                      {item.submission.feedback && (
+                                      {item.submission?.feedback && (
                                         <div className="flex items-start gap-2">
                                           <MessageSquare className="w-4 h-4 text-red-600 mt-0.5" />
                                           <p className="text-red-700 text-sm">{item.submission.feedback}</p>
                                         </div>
                                       )}
                                       <div className="text-xs text-red-600 mt-2">
-                                        Reviewed on {item.submission.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy || '—'}
+                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission?.reviewedBy || '—'}
                                       </div>
                                     </div>
                                   )}
-                                  {item.submission.status === 'resubmitted' && (
+                                  {item.submission?.status === 'resubmitted' && (
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                                       <div className="flex items-center gap-2 mb-2">
                                         <FileText className="w-4 h-4 text-blue-600" />
@@ -699,7 +699,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                         </span>
                                       </div>
                                       <div className="text-xs text-blue-600 mt-2">
-                                        Resubmitted on {item.submission.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
+                                        Resubmitted on {item.submission?.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
                                       </div>
                                     </div>
                                   )}

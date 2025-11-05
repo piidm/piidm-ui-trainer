@@ -21,7 +21,7 @@ export interface AllBatches {
   startDate: string;
   endDate: string;
   courseTitle: string;
-  courseMode: string;
+  courseMode?: string;
   totalStudents?: number;
   isActive: boolean;
 }
@@ -53,6 +53,7 @@ export interface Student {
 
 export interface LiveSession {
   id: string;
+  length?: number;
   topic: string;
   batchId: string;
   date: string;
@@ -65,6 +66,7 @@ export interface LiveSession {
 
 export interface Assignment {
   id: string;
+  length?: number;
   title: string;
   details: string;
   dueDate: string;
@@ -78,27 +80,25 @@ export interface Assignment {
 }
 
 export interface AssignmentSubmission {
-  files(files: any): unknown;
   id: string;
   studentId: string;
   studentName: string;
   assignmentId: string;
   submittedAt: string;
   document: string;
-  marks?: number;
+  marks: number;
   feedback?: string;
-  status: 'pending' | 'submitted' | 'reviewed';
+  status: 'pending' | 'submitted' | 'reviewed' | 'rejected' | 'resubmitted';
   reviewedAt?: string;
   reviewedBy?: string;
+  files?: Array<{
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+  }>;
 }
-
-// export interface SubmissionFile {
-//   id: string;
-//   name: string;
-//   url: string;
-//   type: string;
-//   size: number;
-// }
 
 export interface ReviewAction {
   id: string;
