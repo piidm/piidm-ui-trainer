@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload, FileText, AlertCircle, CheckCircle, Calendar, User } from 'lucide-react';
+import { X, Upload, FileText, AlertCircle, CheckCircle, Calendar } from 'lucide-react';
 import { Assignment, Batch, AssignmentSubmission } from '../../types';
 
 interface StudentSubmissionModalProps {
@@ -81,10 +81,16 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
       studentName: 'John Doe', // Mock student name
       assignmentId: assignment.id,
       submittedAt: new Date().toISOString(),
-      fileName: selectedFile.name,
-      fileUrl: URL.createObjectURL(selectedFile), // Mock URL
-      fileType: selectedFile.type,
-      status: 'submitted'
+      document: selectedFile.name, // Store filename in document field
+      marks: 0, // Initial marks
+      status: 'submitted',
+      files: [{
+        id: '1',
+        name: selectedFile.name,
+        url: URL.createObjectURL(selectedFile), // Mock URL
+        type: selectedFile.type,
+        size: selectedFile.size
+      }]
     };
     
     onSubmit(submission);
@@ -143,10 +149,10 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
                 You have already submitted this assignment on {new Date(existingSubmission.submittedAt).toLocaleString()}
               </p>
               <p className="text-sm text-blue-700">
-                File: {existingSubmission.fileName}
+                File: {existingSubmission.files?.[0]?.name || existingSubmission.document || 'Unknown file'}
               </p>
               
-              {existingSubmission.status === 'assessed' && (
+              {existingSubmission.status === 'reviewed' && (
                 <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
                   <div className="flex items-center gap-2 mb-1">
                     <CheckCircle className="w-4 h-4 text-green-600" />

@@ -1019,13 +1019,8 @@ export const useTrainerData = () => {
   };``
 
   const updateAssignment = async (id: string, updates: Partial<Assignment>) => {
-    console.log("Updating assignment:", id, updates);
     
-    try {
-      // Get trainer_id and user_id from localStorage or context
-      // const trainerId = localStorage.getItem('trainer_id') || '21';
-      // const userId = localStorage.getItem('user_id') || '7090';
-      
+    try {      
       // Prepare the payload in the format expected by the API
       const payload = {
         title: updates.title,
@@ -1036,8 +1031,6 @@ export const useTrainerData = () => {
         trainer_id: 21,
         user_id: 7090
       };
-
-      console.log("API Payload:", payload);
 
       // Make the actual API call
       const response = await fetch(`https://64.227.150.234:3002/api/assignment/update/${id}`, {
@@ -1055,8 +1048,6 @@ export const useTrainerData = () => {
       }
 
       const result = await response.json();
-      console.log("API Response:", result);
-
       // Update local state after successful API call
       setAssignments((prev) =>
         prev.map((assignment) =>
@@ -1066,7 +1057,6 @@ export const useTrainerData = () => {
         )
       );
       
-      console.log("Assignment updated successfully");
       return { success: true, message: "Assignment updated successfully", data: result };
     } catch (error) {
       console.error("Error updating assignment:", error);

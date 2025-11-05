@@ -17,12 +17,12 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
   batch,
   onUpdateSubmission 
 }) => {
-  const [filter, setFilter] = useState<'all' | 'submitted' | 'assessed' | 'rejected'>('all');
+  const [filter, setFilter] = useState<'all' | 'submitted' | 'reviewed' | 'rejected'>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmission | null>(null);
   const [assessmentData, setAssessmentData] = useState({
     marks: 0,
     feedback: '',
-    status: 'assessed' as 'assessed' | 'rejected'
+    status: 'reviewed' as 'reviewed' | 'rejected'
   });
 
   const filteredSubmissions = assignment.submissions.filter(submission => {
@@ -33,7 +33,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'submitted': return 'bg-orange-100 text-orange-800';
-      case 'assessed': return 'bg-green-100 text-green-800';
+      case 'reviewed': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -42,7 +42,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'submitted': return AlertCircle;
-      case 'assessed': return Check;
+      case 'reviewed': return Check;
       case 'rejected': return XCircle;
       default: return FileText;
     }
@@ -53,7 +53,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
     setAssessmentData({
       marks: submission.marks || 0,
       feedback: submission.feedback || '',
-      status: submission.status === 'rejected' ? 'rejected' : 'assessed'
+      status: submission.status === 'rejected' ? 'rejected' : 'reviewed'
     });
   };
 
@@ -64,7 +64,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
         marks: assessmentData.status === 'rejected' ? 0 : assessmentData.marks
       });
       setSelectedSubmission(null);
-      setAssessmentData({ marks: 0, feedback: '', status: 'assessed' });
+      setAssessmentData({ marks: 0, feedback: '', status: 'reviewed' });
     }
   };
 
@@ -96,7 +96,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
               {[
                 { key: 'all', label: 'All Submissions', count: assignment.submissions.length },
                 { key: 'submitted', label: 'Pending Review', count: assignment.submissions.filter(s => s.status === 'submitted').length },
-                { key: 'assessed', label: 'Assessed', count: assignment.submissions.filter(s => s.status === 'assessed').length },
+                { key: 'reviewed', label: 'Assessed', count: assignment.submissions.filter(s => s.status === 'reviewed').length },
                 { key: 'rejected', label: 'Rejected', count: assignment.submissions.filter(s => s.status === 'rejected').length }
               ].map(({ key, label, count }) => (
                 <button
@@ -150,11 +150,11 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
                             </div>
                             <div className="flex items-center gap-1">
                               <FileText className="w-4 h-4" />
-                              {submission.fileName}
+                              {submission.files?.[0]?.name || submission.document || 'Unknown file'}
                             </div>
                           </div>
 
-                          {submission.status === 'assessed' && (
+                          {submission.status === 'reviewed' && (
                             <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <Star className="w-4 h-4 text-green-600" />
@@ -183,7 +183,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
 
                         <div className="flex items-center gap-2 ml-4">
                           <button
-                            onClick={() => window.open(submission.fileUrl, '_blank')}
+                            onClick={() => window.open(submission.files?.[0]?.url || '#', '_blank')}
                             className="flex items-center gap-1 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm"
                           >
                             <Download className="w-4 h-4" />
@@ -199,7 +199,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
                             </button>
                           )}
                           
-                          {submission.status === 'assessed' && (
+                          {submission.status === 'reviewed' && (
                             <button
                               onClick={() => handleAssessment(submission)}
                               className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm"
@@ -236,9 +236,9 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
                     <input
                       type="radio"
                       name="status"
-                      value="assessed"
-                      checked={assessmentData.status === 'assessed'}
-                      onChange={(e) => setAssessmentData(prev => ({ ...prev, status: e.target.value as 'assessed' | 'rejected' }))}
+                      value="reviewed"
+                      checked={assessmentData.status === 'reviewed'}
+                      onChange={(e) => setAssessmentData(prev => ({ ...prev, status: e.target.value as 'reviewed' | 'rejected' }))}
                       className="mr-2"
                     />
                     <span className="text-green-700">Accept & Grade</span>
@@ -249,7 +249,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
                       name="status"
                       value="rejected"
                       checked={assessmentData.status === 'rejected'}
-                      onChange={(e) => setAssessmentData(prev => ({ ...prev, status: e.target.value as 'assessed' | 'rejected' }))}
+                      onChange={(e) => setAssessmentData(prev => ({ ...prev, status: e.target.value as 'reviewed' | 'rejected' }))}
                       className="mr-2"
                     />
                     <span className="text-red-700">Reject</span>
@@ -258,7 +258,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
               </div>
 
               {/* Marks Input */}
-              {assessmentData.status === 'assessed' && (
+              {assessmentData.status === 'reviewed' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Marks (out of {assignment.totalMarks})
@@ -277,14 +277,14 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
               {/* Feedback */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {assessmentData.status === 'assessed' ? 'Feedback' : 'Reason for Rejection'}
+                  {assessmentData.status === 'reviewed' ? 'Feedback' : 'Reason for Rejection'}
                 </label>
                 <textarea
                   value={assessmentData.feedback}
                   onChange={(e) => setAssessmentData(prev => ({ ...prev, feedback: e.target.value }))}
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={assessmentData.status === 'assessed' 
+                  placeholder={assessmentData.status === 'reviewed'
                     ? "Provide constructive feedback..." 
                     : "Explain why this submission is being rejected..."
                   }
@@ -303,12 +303,12 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 <button
                   onClick={submitAssessment}
                   className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
-                    assessmentData.status === 'assessed'
+                    assessmentData.status === 'reviewed'
                       ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-red-600 hover:bg-red-700'
                   }`}
                 >
-                  {assessmentData.status === 'assessed' ? 'Submit Assessment' : 'Reject Submission'}
+                  {assessmentData.status === 'reviewed' ? 'Submit Assessment' : 'Reject Submission'}
                 </button>
               </div>
             </div>
