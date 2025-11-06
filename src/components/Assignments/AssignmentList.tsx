@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
 import { Assignment, Batch, Student, AssignmentSubmission } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
+import { getLocalDateFromStoredISO, formatStoredDateToLocal, formatStoredTimeToLocal } from '../../utils/dateUtils';
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -29,18 +30,66 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [submissionCounts, setSubmissionCounts] = useState<Record<string, { total: number; pending: number; reviewed: number }>>({});
+  const [loadingCounts, setLoadingCounts] = useState(false);
   const { fetchBatchById, fetchAssignmentSubmissions} = useTrainerData();
 
+  // Fetch submission counts for all assignments
+  const fetchAllSubmissionCounts = useCallback(async () => {
+    if (loadingCounts || assignments.length === 0) return;
+    
+    setLoadingCounts(true);
+    const counts: Record<string, { total: number; pending: number; reviewed: number }> = {};
+    
+    try {
+      for (const assignment of assignments) {
+        try {
+          const submissions = await fetchAssignmentSubmissions(assignment.id);
+          
+          if (Array.isArray(submissions)) {
+            const validSubmissions = submissions.filter((s: any) => s && s.student);
+            const total = validSubmissions.length;
+            
+            // Pending: not submitted (status 0) OR submitted but not reviewed (status 1 without marks)
+            const pending = validSubmissions.filter((s: any) => 
+             ( s.submission_status === 0 ||  s.submission_status === 2 ||
+              s.submission_status === 1 && ( !s.marks_obtained))
+            ).length;
+            
+            // Reviewed: submissions with marks assigned (regardless of accept/reject status)
+            const reviewed = validSubmissions.filter((s: any) => 
+              s.marks_obtained !== null && s.marks_obtained !== undefined && s.marks_obtained > 0
+            ).length;
+            
+            counts[assignment.id] = { total, pending, reviewed };
+          } else {
+            counts[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
+          }
+        } catch (error) {
+          console.error(`Error fetching submissions for assignment ${assignment.id}:`, error);
+          counts[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
+        }
+      }
+      
+      setSubmissionCounts(counts);
+    } finally {
+      setLoadingCounts(false);
+    }
+  }, [assignments, fetchAssignmentSubmissions, loadingCounts]);
+
+  useEffect(() => {
+    fetchAllSubmissionCounts();
+  }, [assignments.length]); // Only depend on assignment count, not the full array
 
   const getAssignmentStatus = (assignment: Assignment) => {
     const now = new Date();
-    const due = new Date(assignment.dueDate);
+    const localDueDate = getLocalDateFromStoredISO(assignment.dueDate);
 
     if (assignment.status === "draft") {
       return "draft";
     }
 
-    return due >= now ? "active" : "expired";
+    return localDueDate >= now ? "active" : "expired";
   };
 
 
@@ -81,8 +130,9 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
           bValue = b.title.toLowerCase();
           break;
         case 'dueDate':
-          aValue = new Date(a.dueDate).getTime();
-          bValue = new Date(b.dueDate).getTime();
+          // Convert stored dates to intended local times for proper sorting
+          aValue = getLocalDateFromStoredISO(a.dueDate).getTime();
+          bValue = getLocalDateFromStoredISO(b.dueDate).getTime();
           break;
         case 'createdAt':
           aValue = new Date(a.createdAt).getTime();
@@ -110,7 +160,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
   const totalPages = Math.ceil(filteredAndSortedAssignments.length / itemsPerPage);
 
-  const getBatchName = (batchId: string) => {
+  const getBatchName = useCallback((batchId: string) => {
     if (!batchId) return "Unknown Batch";
 
     try {
@@ -121,7 +171,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
         .split(",")
         .filter(Boolean);
       if (!ids.length) return "Unknown Batch";
-
+      
       const names = ids
         .map((id) => {
           const batch = allBatches.find((b) => b.id === id.toString());
@@ -133,7 +183,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       console.error("Batch name error:", err);
       return "Unknown Batch";
     }
-  };
+  }, [allBatches]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -272,9 +322,10 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
               <tbody className="bg-white divide-y divide-gray-200">
 
                 {paginatedAssignments.map((assignment) => {
-                  const submittedCount = assignment.submissions.length;
-                  const pendingCount = assignment.submissions.filter(s => s.status === 'submitted').length;
-                  const reviewedCount = assignment.submissions.filter(s => s.status === 'reviewed').length;
+                  const counts = submissionCounts[assignment.id] || { total: 0, pending: 0, reviewed: 0 };
+                  const submittedCount = counts.total;
+                  const pendingCount = counts.pending;
+                  const reviewedCount = counts.reviewed;
 
                   return (
                     <tr key={assignment.id} className="hover:bg-gray-50 transition-colors">
@@ -307,12 +358,26 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-900">
                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                          {new Date(assignment.dueDate).toLocaleDateString()}
+                          {(() => {
+                            // Parse the stored date and display the intended local time
+                            const storedDate = new Date(assignment.dueDate);
+                            // Add timezone offset to get the original intended local time
+                            const offsetMs = storedDate.getTimezoneOffset() * 60000;
+                            const localDate = new Date(storedDate.getTime() + offsetMs);
+                            return localDate.toLocaleDateString();
+                          })()}
                           <div className="text-xs text-gray-500 ml-2">
-                            {new Date(assignment.dueDate).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {(() => {
+                              // Parse the stored date and display the intended local time
+                              const storedDate = new Date(assignment.dueDate);
+                              // Add timezone offset to get the original intended local time
+                              const offsetMs = storedDate.getTimezoneOffset() * 60000;
+                              const localDate = new Date(storedDate.getTime() + offsetMs);
+                              return localDate.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              });
+                            })()}
                           </div>
                         </div>
                       </td>

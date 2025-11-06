@@ -67,6 +67,7 @@ export const Assignments: React.FC = () => {
       try {
         await updateAssignment(editingAssignment.id, assignmentData);
         await fetchAssignments(); // Refresh the assignments list
+        await fetchAllBatches(); // Refresh batch data to ensure names are updated
         setEditingAssignment(null);
         setIsFormOpen(false);
         // Show success notification
@@ -128,6 +129,7 @@ export const Assignments: React.FC = () => {
 
       {/* Assignment List */}
       <AssignmentList
+        key={`${assignments.length}-${allBatches.length}`}
         assignments={assignments}
         batches={batches}
         allBatches={allBatches}

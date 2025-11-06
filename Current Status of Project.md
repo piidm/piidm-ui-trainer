@@ -8,6 +8,8 @@
 
 --> Delete Functionality is pending (API integration).
 
+--> When selcting no atttendance then absent display on card (Attendance Section).
+
 
 
 
