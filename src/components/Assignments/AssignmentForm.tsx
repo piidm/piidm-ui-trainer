@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calendar, Users, FileText, AlertCircle, Save } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
 import ReactQuill from 'react-quill';
@@ -12,7 +12,6 @@ interface AssignmentFormProps {
   batches: Batch[];
   assignment?: Assignment;
   isEditing?: boolean;
-  onSuccess?: () => void; // Add callback for successful operations
 }
 
 export const AssignmentForm: React.FC<AssignmentFormProps> = ({
@@ -21,12 +20,11 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
   onSubmit,
   batches,
   assignment,
-  isEditing = false,
-  onSuccess
+  isEditing = false
 }) => {
   
   // Initialize form data based on whether we're editing or creating
-  const getInitialFormData = useCallback(() => {
+  const getInitialFormData = () => {
     if (assignment && isEditing) {
       // Handle batchId which might be a JSON string like "[1,2,3]" 
       let extractedBatchId = '';
@@ -50,14 +48,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
         title: assignment.title || '',
         details: assignment.details || '',
         batchId: extractedBatchId,
-        dueDate: assignment.dueDate ? (() => {
-          // Parse the stored date and convert back to local time for display
-          const storedDate = new Date(assignment.dueDate);
-          // Add timezone offset to get the original intended local time
-          const offsetMs = storedDate.getTimezoneOffset() * 60000;
-          const localDate = new Date(storedDate.getTime() + offsetMs);
-          return localDate.toISOString().slice(0, 16);
-        })() : '',
+        dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().slice(0, 16) : '',
         totalMarks: assignment.totalMarks || 100
       };
     }
@@ -68,18 +59,16 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
       dueDate: '',
       totalMarks: 100
     };
-  }, [assignment, isEditing]);
+  };
 
   const [formData, setFormData] = useState(getInitialFormData);
 
   useEffect(() => {
     if (isOpen) {
-      // Reset form data when modal opens or assignment changes
-      console.log('Assignment form opening with assignment:', assignment);
+      // Reset form data when modal opens
       setFormData(getInitialFormData());
-      setErrors({}); // Clear any previous errors
     }
-  }, [isOpen, getInitialFormData]);
+  }, [assignment, isEditing, isOpen]);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,14 +111,9 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     if (!formData.dueDate) {
       newErrors.dueDate = 'Due date is required';
     } else {
-      // Compare with local date without timezone conversion
-      const inputDate = new Date(formData.dueDate);
+      const dueDate = new Date(formData.dueDate);
       const now = new Date();
-      // Remove seconds and milliseconds for fair comparison
-      const inputTime = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate(), inputDate.getHours(), inputDate.getMinutes());
-      const nowTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes());
-      
-      if (inputTime <= nowTime) {
+      if (dueDate <= now) {
         newErrors.dueDate = 'Due date must be in the future';
       }
     }
@@ -152,32 +136,14 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Preserve the local date and time without timezone conversion
-      // formData.dueDate is in format "2024-12-25T14:30" (datetime-local)
-      // We'll store it as ISO string but treat it as local time
-      const localDate = new Date(formData.dueDate);
-      // Offset the timezone difference to preserve the intended local time
-      const offsetMs = localDate.getTimezoneOffset() * 60000;
-      const adjustedDate = new Date(localDate.getTime() - offsetMs);
-      
       const assignmentData = {
         ...formData,
-        dueDate: adjustedDate.toISOString()
+        dueDate: new Date(formData.dueDate).toISOString()
       };
 
       await onSubmit(assignmentData);
       
-      // Notify parent of successful operation
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      // Close form and reset if creating new assignment
-      if (!isEditing) {
-        resetForm();
-      }
-      onClose();
-      
+      // Show success notification (you can implement a toast system)
     } catch (error) {
       console.error('Error saving assignment:', error);
       // Show error notification here if you have a toast system

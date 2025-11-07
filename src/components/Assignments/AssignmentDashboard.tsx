@@ -1,20 +1,20 @@
-
 import { AlertTriangle, CheckCircle, Clock, FileText, TrendingUp, Users } from 'lucide-react';
 import { Assignment } from '../../types';
+import { getLocalDateFromStoredISO } from '../../utils/dateUtils';
 
 interface AssignmentDashboardProps {
   assignments: Assignment[];
 }
 
-// Helper to get assignment status (same as table logic)
+// Helper to get assignment status (consistent with table logic)
 function getAssignmentStatus(assignment: Assignment): 'active' | 'expired' {
   const now = new Date();
-  const due = new Date(assignment.dueDate);
-  return due < now ? 'expired' : 'active';
+  const localDueDate = getLocalDateFromStoredISO(assignment.dueDate);
+  return localDueDate < now ? 'expired' : 'active';
 }
 
 export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ assignments }) => {
-  const totalAssignments = assignments[0]?.length;
+  const totalAssignments = assignments[0]?.length || assignments.length;
   const activeAssignments = assignments.filter(a => getAssignmentStatus(a) === 'active').length;
   const expiredAssignments = assignments.filter(a => getAssignmentStatus(a) === 'expired').length;
   const totalSubmissions = assignments.reduce((acc, a) => acc + a.submissions.length, 0);

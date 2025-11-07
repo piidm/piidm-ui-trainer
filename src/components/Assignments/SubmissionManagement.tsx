@@ -33,7 +33,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   onBulkReview
 }) => {
 
-  const { fetchBatchById, fetchAssignmentSubmissions, refreshAssignmentSubmissions} = useTrainerData();
+  const { refreshAssignmentSubmissions} = useTrainerData();
 
   // Add token for API calls
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3MDkwfQ.C6BhLFFCetm_GBiklD-04t0nMBoPspl59tZED603vFE";
@@ -85,14 +85,28 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     if (!sub) return null;
     const over = submissionOverrides[sub.id] || {};
     const merged = { ...sub, ...over } as any;
-    // Normalize numeric/string status coming from API or overrides
+    
+    // Normalize status from API response or overrides
     const s = merged.status;
-    if (s === 0 || s === '0') merged.status = 'pending';
-    else if (s === 1 || s === '1' || s === 'submitted') merged.status = 'submitted';
-    else if (s === 2 || s === '2' || s === 'rejected') merged.status = 'rejected';
-    else if (s === 3 || s === '3' || s === 'resubmitted') merged.status = 'resubmitted';
-    else if (s === 'reviewed') merged.status = 'reviewed';
-    else merged.status = merged.status || 'pending';
+    if (typeof s === 'number') {
+      if (s === 0) merged.status = 'pending';
+      else if (s === 1) merged.status = 'submitted';
+      else if (s === 2) merged.status = 'rejected';
+      else if (s === 3) merged.status = 'resubmitted';
+    } else if (typeof s === 'string') {
+      // Keep string status as is if it's already normalized
+      if (['pending', 'submitted', 'reviewed', 'rejected', 'resubmitted'].includes(s)) {
+        merged.status = s;
+      } else {
+        merged.status = 'pending';
+      }
+    }
+    
+    // If has marks but status is still submitted, mark as reviewed
+    if (merged.marks && (merged.status === 'submitted' || merged.status === 1)) {
+      merged.status = 'reviewed';
+    }
+    
     return merged as AssignmentSubmission;
   };
 
@@ -235,7 +249,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           throw new Error(`Failed to update submission: ${response.statusText}`);
         }
 
-        const result = await response.json();
+        await response.json();
 
         // Build override for immediate UI update
         const override: Partial<AssignmentSubmission> = {
@@ -335,7 +349,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         throw new Error(`Failed to update submissions: ${response.statusText}`);
       }
 
-      const result = await response.json();
+      await response.json();
 
       // Refresh assignment data immediately to get latest submission status
       await refreshAssignmentSubmissions(assignment.id);

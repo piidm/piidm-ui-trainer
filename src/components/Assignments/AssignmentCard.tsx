@@ -28,7 +28,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const isOverdue = new Date(assignment.dueDate) < new Date();
   
   const submittedCount = assignment.submissions.length;
-  const assessedCount = assignment.submissions.filter(s => s.status === 'assessed').length;
+  const reviewedCount = assignment.submissions.filter(s => s.status === 'reviewed').length;
   const pendingCount = assignment.submissions.filter(s => s.status === 'submitted').length;
   const rejectedCount = assignment.submissions.filter(s => s.status === 'rejected').length;
 
@@ -103,8 +103,8 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
               <div className="text-xs text-gray-600">Pending</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-green-600">{assessedCount}</div>
-              <div className="text-xs text-gray-600">Assessed</div>
+              <div className="text-lg font-bold text-green-600">{reviewedCount}</div>
+              <div className="text-xs text-gray-600">Reviewed</div>
             </div>
             <div>
               <div className="text-lg font-bold text-red-600">{rejectedCount}</div>
