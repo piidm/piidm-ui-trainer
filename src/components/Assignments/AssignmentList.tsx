@@ -1,13 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
-import { Assignment, Batch, Student, AssignmentSubmission } from '../../types';
+import { AllBatches, Assignment, Batch, Student, AssignmentSubmission } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
-import { getLocalDateFromStoredISO, formatStoredDateToLocal, formatStoredTimeToLocal } from '../../utils/dateUtils';
 
 interface AssignmentListProps {
   assignments: Assignment[];
   batches: Batch[];
-  allBatches: Batch[];
+  allBatches: AllBatches[];
   onViewSubmissions: (assignment: Assignment, batch: Batch | null, students: Student[]) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
@@ -32,35 +31,37 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [submissionCounts, setSubmissionCounts] = useState<Record<string, { total: number; pending: number; reviewed: number }>>({});
   const [loadingCounts, setLoadingCounts] = useState(false);
-  const { fetchBatchById, fetchAssignmentSubmissions} = useTrainerData();
+
+  const { fetchBatchById, fetchAssignmentSubmissions } = useTrainerData();
+
 
   // Fetch submission counts for all assignments
   const fetchAllSubmissionCounts = useCallback(async () => {
     if (loadingCounts || assignments.length === 0) return;
-    
+
     setLoadingCounts(true);
     const counts: Record<string, { total: number; pending: number; reviewed: number }> = {};
-    
+
     try {
       for (const assignment of assignments) {
         try {
           const submissions = await fetchAssignmentSubmissions(assignment.id);
-          
+
           if (Array.isArray(submissions)) {
             const validSubmissions = submissions.filter((s: any) => s && s.student);
             const total = validSubmissions.length;
-            
+
             // Pending: not submitted (status 0) OR submitted but not reviewed (status 1 without marks)
-            const pending = validSubmissions.filter((s: any) => 
-             ( s.submission_status === 0 ||  s.submission_status === 2 ||
-              s.submission_status === 1 && ( !s.marks_obtained))
+            const pending = validSubmissions.filter((s: any) =>
+            (s.submission_status === 0 || s.submission_status === 2 ||
+              s.submission_status === 1 && (!s.marks_obtained))
             ).length;
-            
+
             // Reviewed: submissions with marks assigned (regardless of accept/reject status)
-            const reviewed = validSubmissions.filter((s: any) => 
+            const reviewed = validSubmissions.filter((s: any) =>
               s.marks_obtained !== null && s.marks_obtained !== undefined && s.marks_obtained > 0
             ).length;
-            
+
             counts[assignment.id] = { total, pending, reviewed };
           } else {
             counts[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
@@ -70,7 +71,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
           counts[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
         }
       }
-      
+
       setSubmissionCounts(counts);
     } finally {
       setLoadingCounts(false);
@@ -81,15 +82,16 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     fetchAllSubmissionCounts();
   }, [assignments.length]); // Only depend on assignment count, not the full array
 
+
   const getAssignmentStatus = (assignment: Assignment) => {
     const now = new Date();
-    const localDueDate = getLocalDateFromStoredISO(assignment.dueDate);
+    const due = new Date(assignment.dueDate);
 
     if (assignment.status === "draft") {
       return "draft";
     }
 
-    return localDueDate >= now ? "active" : "expired";
+    return due >= now ? "active" : "expired";
   };
 
 
@@ -130,9 +132,8 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
           bValue = b.title.toLowerCase();
           break;
         case 'dueDate':
-          // Convert stored dates to intended local times for proper sorting
-          aValue = getLocalDateFromStoredISO(a.dueDate).getTime();
-          bValue = getLocalDateFromStoredISO(b.dueDate).getTime();
+          aValue = new Date(a.dueDate).getTime();
+          bValue = new Date(b.dueDate).getTime();
           break;
         case 'createdAt':
           aValue = new Date(a.createdAt).getTime();
@@ -160,7 +161,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
   const totalPages = Math.ceil(filteredAndSortedAssignments.length / itemsPerPage);
 
-  const getBatchName = useCallback((batchId: string) => {
+  const getBatchName = (batchId: string) => {
     if (!batchId) return "Unknown Batch";
 
     try {
@@ -171,7 +172,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
         .split(",")
         .filter(Boolean);
       if (!ids.length) return "Unknown Batch";
-      
+
       const names = ids
         .map((id) => {
           const batch = allBatches.find((b) => b.id === id.toString());
@@ -183,7 +184,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       console.error("Batch name error:", err);
       return "Unknown Batch";
     }
-  }, [allBatches]);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -208,8 +209,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       onDeleteAssignment(assignment.id);
     }
   };
-
-
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -326,7 +325,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                   const submittedCount = counts.total;
                   const pendingCount = counts.pending;
                   const reviewedCount = counts.reviewed;
-
+                  
                   return (
                     <tr key={assignment.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
@@ -343,42 +342,28 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                         <div className="flex items-center text-sm text-gray-900">
                           <Users className="w-4 h-4 mr-2 text-gray-400" />
                           <span>
-                          {getBatchName(assignment.batchId).split("\n")
-                          .map((line, i) => (
-                            <span key={i}>
-                              {line}
-                              <br />
-                            </span>
-                          ))}
+                            {getBatchName(assignment.batchId).split("\n")
+                              .map((line, i) => (
+                                <span key={i}>
+                                  {line}
+                                  <br />
+                                </span>
+                              ))}
                           </span>
-                           
-                          
+
+
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-900">
                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                          {(() => {
-                            // Parse the stored date and display the intended local time
-                            const storedDate = new Date(assignment.dueDate);
-                            // Add timezone offset to get the original intended local time
-                            const offsetMs = storedDate.getTimezoneOffset() * 60000;
-                            const localDate = new Date(storedDate.getTime() + offsetMs);
-                            return localDate.toLocaleDateString();
-                          })()}
-                          <div className="text-xs text-gray-500 ml-2">
-                            {(() => {
-                              // Parse the stored date and display the intended local time
-                              const storedDate = new Date(assignment.dueDate);
-                              // Add timezone offset to get the original intended local time
-                              const offsetMs = storedDate.getTimezoneOffset() * 60000;
-                              const localDate = new Date(storedDate.getTime() + offsetMs);
-                              return localDate.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              });
-                            })()}
-                          </div>
+                          {new Date(assignment.dueDate).toLocaleDateString()}
+                          {/* <div className="text-xs text-gray-500 ml-2">
+                            {new Date(assignment.dueDate).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div> */}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -414,10 +399,10 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                           <button
                             onClick={async () => {
                               try {
-                                
+
                                 // 1. Resolve batchId
                                 let batchId = assignment.batchId;
-                                
+
                                 if (batchId.startsWith("[")) {
                                   try {
                                     const ids = JSON.parse(batchId);
@@ -426,10 +411,10 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                     console.error("Failed to parse batchId:");
                                   }
                                 }
-                          
+
                                 // 2. Fetch batch
                                 const batchData = await fetchBatchById(batchId);
-                                
+
                                 const batch: Batch | null = batchData ? {
                                   id: batchData.batch_id?.toString() || batchId,
                                   length: 1,
@@ -443,41 +428,41 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   totalStudents: batchData.seats_occupied || batchData.total_seats || 0,
                                   isActive: batchData.deleted === 0 || batchData.is_active !== false,
                                 } : null;
-                          
-                          
+
+
                                 // 3. Fetch submissions
                                 const submissions = await fetchAssignmentSubmissions(assignment.id);
-                              
+
                                 // 4. Transform API submissions into AssignmentSubmission[] format
-                                const assignmentSubmissions: AssignmentSubmission[] = Array.isArray(submissions) 
+                                const assignmentSubmissions: AssignmentSubmission[] = Array.isArray(submissions)
                                   ? submissions
-                                      .filter((s: any) => s && s.student)
-                                      .map((s: any) => {
-                                        const submission: AssignmentSubmission = {
-                                          id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,
-                                          studentId: String(s.student?.student_id || ""),
-                                          studentName: s.student?.name || "Unnamed Student",
-                                          assignmentId: assignment.id,
-                                          submittedAt: s.updated_at || "",
-                                          status: s.submission_status === 1 ? "submitted" : s.marks_obtained ? "reviewed" : "pending",
-                                          marks: s.marks_obtained || undefined,
-                                          feedback: s.feedback || undefined,
-                                          reviewedAt: s.updated_at || undefined,
-                                          reviewedBy: s.reviewed_by || undefined,
-                                          document: s.document_uploaded_path || "" || undefined,
-                                        };
-                                        return submission;
-                                      })
+                                    .filter((s: any) => s && s.student)
+                                    .map((s: any) => {
+                                      const submission: AssignmentSubmission = {
+                                        id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,
+                                        studentId: String(s.student?.student_id || ""),
+                                        studentName: s.student?.name || "Unnamed Student",
+                                        assignmentId: assignment.id,
+                                        submittedAt: s.updated_at || "",
+                                        status: s.submission_status === 1 ? "submitted" : s.marks_obtained ? "reviewed" : "pending",
+                                        marks: s.marks_obtained || undefined,
+                                        feedback: s.feedback || undefined,
+                                        reviewedAt: s.updated_at || undefined,
+                                        reviewedBy: s.reviewed_by || undefined,
+                                        document: s.document_uploaded_path || "https://drive.google.com/file/d/1CNCKZBogTHvySBn8CuuIhiYcmYdjVsRo/view?usp=sharing" || undefined,
+                                      };
+                                      return submission;
+                                    })
                                   : [];
-                          
-                          
+
+
                                 // 5. Create updated assignment with merged submissions
                                 const updatedAssignment: Assignment = {
                                   ...assignment,
                                   submissions: assignmentSubmissions,
                                 };
-                          
-                          
+
+
                                 // 6. Transform submissions into Student[] for compatibility
                                 const students = assignmentSubmissions.map((sub) => ({
                                   id: sub.studentId,
@@ -493,14 +478,14 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   mockInterview: "Not Attempted",
                                   placementStatus: "Not Placed",
                                 }));
-                          
+
                                 // 7. Pass updated assignment with full submission data
                                 onViewSubmissions(updatedAssignment, batch, students);
                               } catch (error) {
                                 onViewSubmissions(assignment, null, []);
                               }
                             }}
-                          
+
                             className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs"
                           >
                             <Eye className="w-3 h-3" />

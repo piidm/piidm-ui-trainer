@@ -22,6 +22,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
   assignment,
   isEditing = false
 }) => {
+  console.log('AssignmentForm assignment prop:', assignment);
   
   // Initialize form data based on whether we're editing or creating
   const getInitialFormData = () => {
@@ -69,6 +70,9 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
       setFormData(getInitialFormData());
     }
   }, [assignment, isEditing, isOpen]);
+  console.log('AssignmentForm assignment:', assignment);
+
+  console.log('AssignmentForm assignment formData:', formData);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,6 +148,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
       await onSubmit(assignmentData);
       
       // Show success notification (you can implement a toast system)
+      console.log(isEditing ? 'Assignment updated successfully!' : 'Assignment created successfully!');
     } catch (error) {
       console.error('Error saving assignment:', error);
       // Show error notification here if you have a toast system

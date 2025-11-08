@@ -55,6 +55,7 @@ export const Assignments: React.FC = () => {
       await addAssignment(assignmentData);
       await fetchAssignments();
       setIsFormOpen(false);
+      console.log('Assignment created successfully!');
       // Show success notification
     } catch (error) {
       console.error('Error creating assignment:', error);
@@ -66,8 +67,10 @@ export const Assignments: React.FC = () => {
     if (editingAssignment) {
       try {
         await updateAssignment(editingAssignment.id, assignmentData);
+        await fetchAssignments(); // Refresh the assignments list
         setEditingAssignment(null);
         setIsFormOpen(false);
+        console.log('Assignment updated successfully!');
         // Show success notification
       } catch (error) {
         console.error('Error updating assignment:', error);

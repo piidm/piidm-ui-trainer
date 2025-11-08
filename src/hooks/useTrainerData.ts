@@ -338,7 +338,6 @@ import {
 //       "<h3>Design and Implement a Library Management System Database</h3><p>Create a comprehensive database schema for a library management system and implement it using SQL.</p><h4>Requirements:</h4><ul><li>Design ER diagram</li><li>Create normalized database schema</li><li>Implement tables with proper relationships</li><li>Write complex SQL queries</li><li>Create stored procedures and triggers</li><li>Add indexes for optimization</li></ul><h4>Entities to Include:</h4><ul><li>Books, Authors, Publishers</li><li>Members, Staff</li><li>Borrowing records</li><li>Categories, Genres</li><li>Fines and payments</li></ul>",
 //     batchId: "3",
 //     dueDate: "2024-12-22T23:59:59",
-
 //     totalMarks: 100,
 //     submissions: [
 //       {
@@ -440,7 +439,7 @@ export const useTrainerData = () => {
       )
       if (!res.ok) throw new Error("Failed to fetch sessions");
       const resData = await res.json();
-      const totalLectures = resData.basic_stats.total_lectures || 0;
+
       const sessions: LiveSession[] = (resData.data || []).map((item: any) => {
         let batchIds: string[] = [];
         try {
@@ -480,7 +479,6 @@ export const useTrainerData = () => {
 
         return {
           id: item.lecture_id.toString(),
-          length: totalLectures,
           topic: item.topic || item.title || "Untitled",
           batchId: firstBatchId,
           date: batchDate,
@@ -777,34 +775,11 @@ export const useTrainerData = () => {
         }
       );
       const resData = await res.json();
-      const totalAssignments: number = resData.basic_stats?.total_assignments || 0;
-
-      // Helper function to normalize batch ID consistently
-      const normalizeBatchId = (batchIdRaw: any): string => {
-        if (!batchIdRaw) return "[0]";
-
-        const str = String(batchIdRaw).trim();
-
-        // If it's already a JSON array string, keep it as is
-        if (str.startsWith('[') && str.endsWith(']')) {
-          try {
-            const parsed = JSON.parse(str);
-            return Array.isArray(parsed) ? str : "[0]";
-          } catch {
-            return "[0]";
-          }
-        }
-
-        // If it's a simple number/string, convert to JSON array format
-        return `[${str}]`;
-      };
-
       const assignments: Assignment[] = resData.data.map((item: any) => ({
         id: item.assignment_id.toString(),
-        length: totalAssignments,
         title: item.title || "Untitled Assignment",
         details: item.description || "<p>No details provided.</p>",
-        batchId: normalizeBatchId(item.json_batch_ids),
+        batchId: item.json_batch_ids?.toString() || "0",
         dueDate: item.assignment_date || new Date().toISOString(),
         totalMarks: item.total_marks || 100,
         status: item.is_active == 1 ? "active" : "submitted",
@@ -831,6 +806,7 @@ export const useTrainerData = () => {
         }))
       }))
 
+      console.log('Fetched assignments:', assignments);
       setAssignments(assignments);
 
     } catch (err: any) {
@@ -1032,33 +1008,33 @@ export const useTrainerData = () => {
       };
 
       setAssignments((prev) => [...prev, newAssignment]);
-
-      
-      
       return resData;
-
-      
     } catch (err) {
       console.error("Error adding session:", err);
       throw err;
     }
-  };
+  };``
 
   const updateAssignment = async (id: string, updates: Partial<Assignment>) => {
-
+    console.log("Updating assignment:", id, updates);
+    
     try {
+      // Get trainer_id and user_id from localStorage or context
+      // const trainerId = localStorage.getItem('trainer_id') || '21';
+      // const userId = localStorage.getItem('user_id') || '7090';
+      
       // Prepare the payload in the format expected by the API
       const payload = {
         title: updates.title,
         description: updates.details, // Note: API expects 'description' but we use 'details'
         assignment_date: updates.dueDate ? new Date(updates.dueDate).toLocaleDateString('en-GB') : '', // Convert to DD/MM/YYYY format
         total_marks: updates.totalMarks?.toString() || '100',
-        json_batch_ids: updates.batchId || '', // Keep the batch ID in the format it was provided
+        json_batch_ids: updates.batchId ? `[${updates.batchId}]` : '', // Add batch ID in the format expected by API
         trainer_id: 21,
         user_id: 7090
       };
 
-      console.log('Updating assignment with payload:', payload);
+      console.log("API Payload:", payload);
 
       // Make the actual API call
       const response = await fetch(`https://64.227.150.234:3002/api/assignment/update/${id}`, {
@@ -1076,28 +1052,18 @@ export const useTrainerData = () => {
       }
 
       const result = await response.json();
-      console.log('Assignment update result:', result);
+      console.log("API Response:", result);
 
-      // Update local state immediately with the new data
-      setAssignments((prev) => {
-        const updated = prev.map((assignment) =>
+      // Update local state after successful API call
+      setAssignments((prev) =>
+        prev.map((assignment) =>
           assignment.id === id
-            ? {
-              ...assignment,
-              ...updates,
-              updatedAt: new Date().toISOString(),
-              // Ensure batchId is in the correct format
-              batchId: updates.batchId || assignment.batchId
-            }
+            ? { ...assignment, ...updates, updatedAt: new Date().toISOString() }
             : assignment
-        );
-        console.log('Updated assignments state:', updated.find(a => a.id === id));
-        return updated;
-      });
-
-      await fetchAssignments();
-      await fetchAllBatches();
-
+        )
+      );
+      
+      console.log("Assignment updated successfully");
       return { success: true, message: "Assignment updated successfully", data: result };
     } catch (error) {
       console.error("Error updating assignment:", error);
@@ -1298,41 +1264,41 @@ export const useTrainerData = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return {
-    batches,
-    allBatches,
-    allLectureTimes,
-    students,
-    sessions,
-    assignments,
-    exams,
-    attendance,
-    reviewActions,
-    dashboardStats,
-    assignmentStats,
-    loading,
-    fetchSessions,
-    fetchAllLectureTimes,
-    fetchBatches,
-    fetchAllBatches,
-    fetchStudents,
-    fetchAssignments,
-    fetchBatchById,
-    fetchAssignmentSubmissions,
-    getStudentsByBatch, // ✅ Add this
-    getStudentById, // ✅ Add this
-    addSession,
-    updateSession,
-    addAssignment,
-    updateAssignment,
-    deleteAssignment,
-    addSubmission,
-    updateSubmission,
-    reviewSubmission,
-    bulkReviewSubmissions,
-    addExam,
-    updateExam,
-    markAttendance,
-    refreshAssignmentSubmissions,
-  };
+return {
+  batches,
+  allBatches,
+  allLectureTimes,
+  students,
+  sessions,
+  assignments,
+  exams,
+  attendance,
+  reviewActions,
+  dashboardStats,
+  assignmentStats,
+  loading,
+  fetchSessions,
+  fetchAllLectureTimes,
+  fetchBatches,
+  fetchAllBatches,
+  fetchStudents,
+  fetchAssignments,
+  fetchBatchById,
+  fetchAssignmentSubmissions,
+  getStudentsByBatch, // ✅ Add this
+  getStudentById, // ✅ Add this
+  addSession,
+  updateSession,
+  addAssignment,
+  updateAssignment,
+  deleteAssignment,
+  addSubmission,
+  updateSubmission,
+  reviewSubmission,
+  bulkReviewSubmissions,
+  addExam,
+  updateExam,
+  markAttendance,
+  refreshAssignmentSubmissions,
+};
 };
