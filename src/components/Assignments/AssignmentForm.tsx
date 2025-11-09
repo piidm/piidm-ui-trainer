@@ -108,7 +108,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
       newErrors.details = 'Assignment details are required';
     }
 
-    if (!formData.batchId) {
+    if (!isEditing && !formData.batchId) {
       newErrors.batchId = 'Please select a batch';
     }
 
@@ -273,8 +273,8 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
                 <select
                   value={formData.batchId}
                   onChange={(e) => setFormData(prev => ({ ...prev, batchId: e.target.value }))}
-                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                  disabled={isEditing}
+                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300 bg-red-50' : 'border-gray-300'} ${isEditing ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
                 >
                   <option value="">Choose target batch</option>
                   {activeBatches.map(batch => {

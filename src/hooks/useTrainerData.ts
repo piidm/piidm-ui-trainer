@@ -698,8 +698,6 @@ export const useTrainerData = () => {
     }
   };
 
-
-
   // Students API
   const fetchStudents = async (signal?: AbortSignal) => {
     setLoading(true);
@@ -854,7 +852,6 @@ export const useTrainerData = () => {
       .length,
   };
 
-
   const assignmentStats: AssignmentStats = {
 
     totalAssignments: assignments.length,
@@ -905,7 +902,7 @@ export const useTrainerData = () => {
       const batch_date = formatDate(session.date);
 
       // Example trainer name, replace with dynamic value if available
-      const trainerName = "Vijay Gehlot";
+      const trainerName = "Dummy";
       const name = `${trainerName}-${batch_date}-[${session.batchId}]${batch_time_id}`;
 
       const payload = [{
@@ -919,8 +916,6 @@ export const useTrainerData = () => {
         zoom_link: session.lectureLink,
         batch_date,
       }];
-
-
 
       const res = await fetch("https://64.227.150.234:3002/api/lecture/add", {
         method: "POST",
@@ -983,7 +978,6 @@ export const useTrainerData = () => {
         total_marks: assignment.totalMarks?.toString() || "100"
       }];
 
-
       const res = await fetch("https://64.227.150.234:3002/api/assignment/add", {
         method: "POST",
         headers: {
@@ -1013,28 +1007,21 @@ export const useTrainerData = () => {
       console.error("Error adding session:", err);
       throw err;
     }
-  };``
+  }; ``
 
   const updateAssignment = async (id: string, updates: Partial<Assignment>) => {
-    console.log("Updating assignment:", id, updates);
-    
+
     try {
-      // Get trainer_id and user_id from localStorage or context
-      // const trainerId = localStorage.getItem('trainer_id') || '21';
-      // const userId = localStorage.getItem('user_id') || '7090';
-      
+
       // Prepare the payload in the format expected by the API
       const payload = {
         title: updates.title,
         description: updates.details, // Note: API expects 'description' but we use 'details'
         assignment_date: updates.dueDate ? new Date(updates.dueDate).toLocaleDateString('en-GB') : '', // Convert to DD/MM/YYYY format
         total_marks: updates.totalMarks?.toString() || '100',
-        json_batch_ids: updates.batchId ? `[${updates.batchId}]` : '', // Add batch ID in the format expected by API
         trainer_id: 21,
         user_id: 7090
       };
-
-      console.log("API Payload:", payload);
 
       // Make the actual API call
       const response = await fetch(`https://64.227.150.234:3002/api/assignment/update/${id}`, {
@@ -1052,7 +1039,6 @@ export const useTrainerData = () => {
       }
 
       const result = await response.json();
-      console.log("API Response:", result);
 
       // Update local state after successful API call
       setAssignments((prev) =>
@@ -1062,8 +1048,7 @@ export const useTrainerData = () => {
             : assignment
         )
       );
-      
-      console.log("Assignment updated successfully");
+
       return { success: true, message: "Assignment updated successfully", data: result };
     } catch (error) {
       console.error("Error updating assignment:", error);
@@ -1264,41 +1249,41 @@ export const useTrainerData = () => {
     return () => clearInterval(interval);
   }, []);
 
-return {
-  batches,
-  allBatches,
-  allLectureTimes,
-  students,
-  sessions,
-  assignments,
-  exams,
-  attendance,
-  reviewActions,
-  dashboardStats,
-  assignmentStats,
-  loading,
-  fetchSessions,
-  fetchAllLectureTimes,
-  fetchBatches,
-  fetchAllBatches,
-  fetchStudents,
-  fetchAssignments,
-  fetchBatchById,
-  fetchAssignmentSubmissions,
-  getStudentsByBatch, // ✅ Add this
-  getStudentById, // ✅ Add this
-  addSession,
-  updateSession,
-  addAssignment,
-  updateAssignment,
-  deleteAssignment,
-  addSubmission,
-  updateSubmission,
-  reviewSubmission,
-  bulkReviewSubmissions,
-  addExam,
-  updateExam,
-  markAttendance,
-  refreshAssignmentSubmissions,
-};
+  return {
+    batches,
+    allBatches,
+    allLectureTimes,
+    students,
+    sessions,
+    assignments,
+    exams,
+    attendance,
+    reviewActions,
+    dashboardStats,
+    assignmentStats,
+    loading,
+    fetchSessions,
+    fetchAllLectureTimes,
+    fetchBatches,
+    fetchAllBatches,
+    fetchStudents,
+    fetchAssignments,
+    fetchBatchById,
+    fetchAssignmentSubmissions,
+    getStudentsByBatch, // 
+    getStudentById, // 
+    addSession,
+    updateSession,
+    addAssignment,
+    updateAssignment,
+    deleteAssignment,
+    addSubmission,
+    updateSubmission, 
+    reviewSubmission,
+    bulkReviewSubmissions,
+    addExam,
+    updateExam,
+    markAttendance,
+    refreshAssignmentSubmissions,
+  };
 };

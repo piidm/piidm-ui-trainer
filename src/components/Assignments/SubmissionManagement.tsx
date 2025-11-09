@@ -68,6 +68,16 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     }
   }, [isOpen, assignment.id]); // Remove refreshAssignmentSubmissions from dependencies
 
+  // Track assignment prop changes
+  useEffect(() => {
+    console.log('SubmissionManagement assignment prop changed:', {
+      id: assignment.id,
+      title: assignment.title,
+      submissionsCount: assignment.submissions.length,
+      submissionStatuses: assignment.submissions.map(s => ({id: s.id, status: s.status}))
+    });
+  }, [assignment]);
+
   // Add effect to automatically refresh data periodically while modal is open
   useEffect(() => {
     if (!isOpen) return;
@@ -289,6 +299,13 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           feedback: assessmentData.feedback
         });
 
+        // Clear the local override since the assignment state is now updated
+        setSubmissionOverrides(prev => {
+          const next = { ...prev };
+          delete next[selectedSubmission.id];
+          return next;
+        });
+
         // Refresh assignment data in background to sync with server
         refreshAssignmentSubmissions(assignment.id);
 
@@ -393,6 +410,15 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         };
         setSelectedSubmission(updatedSubmission);
       }
+
+      // Clear local overrides for bulk updated submissions since assignment state is now updated
+      setSubmissionOverrides(prev => {
+        const next = { ...prev };
+        Array.from(bulkSelectedIds).forEach(submissionId => {
+          delete next[submissionId];
+        });
+        return next;
+      });
 
       // Reset form
       setBulkSelectedIds(new Set());

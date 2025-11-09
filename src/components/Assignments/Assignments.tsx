@@ -50,6 +50,16 @@ export const Assignments: React.FC = () => {
     // }
   }, []);
 
+  // Sync selectedAssignment with updated assignments array
+  useEffect(() => {
+    if (selectedAssignment && assignments.length > 0) {
+      const updatedAssignment = assignments.find(a => a.id === selectedAssignment.id);
+      if (updatedAssignment && updatedAssignment !== selectedAssignment) {
+        setSelectedAssignment(updatedAssignment);
+      }
+    }
+  }, [assignments, selectedAssignment]);
+
   const handleCreateAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
     try {
       await addAssignment(assignmentData);
@@ -151,6 +161,7 @@ export const Assignments: React.FC = () => {
 
       {selectedAssignment && (
         <SubmissionManagement
+          key={`submission-management-${selectedAssignment.id}-${selectedAssignment.submissions.map(s => `${s.id}-${s.status}`).join('-')}`}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           assignment={selectedAssignment!}

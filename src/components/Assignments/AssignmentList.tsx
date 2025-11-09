@@ -449,7 +449,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                         feedback: s.feedback || undefined,
                                         reviewedAt: s.updated_at || undefined,
                                         reviewedBy: s.reviewed_by || undefined,
-                                        document: s.document_uploaded_path || "https://drive.google.com/file/d/1CNCKZBogTHvySBn8CuuIhiYcmYdjVsRo/view?usp=sharing" || undefined,
+                                        document: s.document_uploaded_path || "" || undefined,
                                       };
                                       return submission;
                                     })
