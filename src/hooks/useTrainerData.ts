@@ -804,7 +804,6 @@ export const useTrainerData = () => {
         }))
       }))
 
-      console.log('Fetched assignments:', assignments);
       setAssignments(assignments);
 
     } catch (err: any) {
@@ -815,7 +814,7 @@ export const useTrainerData = () => {
     }
   };
 
-  const fetchAssignmentSubmissions = async (assignmentId: string, signal?: AbortSignal) => {
+  const fetchAssignmentSubmissions = useCallback(async (assignmentId: string, signal?: AbortSignal) => {
     try {
       const res = await fetch(` https://64.227.150.234:3002/api/assignment/submission/view/${assignmentId}`, {
         method: "GET",
@@ -832,7 +831,64 @@ export const useTrainerData = () => {
       console.error("Error fetching submissions:", err);
       return [];
     }
-  };
+  }, [token]);
+
+  // New function to get submission counts from API
+  const getSubmissionCounts = useCallback(async (assignmentId: string): Promise<{ total: number; pending: number; reviewed: number }> => {
+    try {
+      const submissions = await fetchAssignmentSubmissions(assignmentId);
+      
+      let total = 0;
+      let pending = 0;
+      let reviewed = 0;
+
+      if (!Array.isArray(submissions)) {
+        return { total: 0, pending: 0, reviewed: 0 };
+      }
+
+      submissions.forEach((sub: any) => {
+        // Skip if no valid student
+        if (!sub || !sub.student || (!sub.student.student_id && !sub.student_id)) {
+          return;
+        }
+
+        total += 1;
+
+        // Get normalized status from submission
+        let status: string = 'pending';
+        const statusValue = sub.submission_status ?? sub.status;
+
+        if (typeof statusValue === 'number') {
+          if (statusValue === 0 || sub.marks_obtained == null || sub.marks_obtained == undefined || sub.marks_obtained == 0) status = 'pending';
+          else if (statusValue === 1 && sub.marks_obtained >= 1) status = 'submitted';
+          else if (statusValue === 2) status = 'rejected';
+          else if (statusValue === 3) status = 'resubmitted';
+        } else if (typeof statusValue === 'string') {
+          status = statusValue.toLowerCase();
+        }
+        // Check if has marks > 0 (indicates review)
+        const marks = Number(sub.marks_obtained) || 0;
+        const hasMarks = marks > 0;
+
+        // Categorize submission based on status and marks
+        // Reviewed: (status is submitted OR resubmitted) AND has marks > 0
+        // Pending: status is rejected OR marks are undefined/null/0
+        if ((status === 'submitted' || status === 'resubmitted') && hasMarks) {
+          reviewed += 1;
+        } else if (status === 'rejected' || status === 'pending') {
+          pending += 1;
+        }
+        else{
+          pending += 1;
+        }
+      });
+
+      return { total, pending, reviewed };
+    } catch (error) {
+      console.error('Error getting submission counts:', error);
+      return { total: 0, pending: 0, reviewed: 0 };
+    }
+  }, [fetchAssignmentSubmissions]);
 
   const dashboardStats: DashboardStats = {
     totalBatches: batches && batches[0] ? batches[0].length : 0,
@@ -1270,6 +1326,7 @@ export const useTrainerData = () => {
     fetchAssignments,
     fetchBatchById,
     fetchAssignmentSubmissions,
+    getSubmissionCounts,
     getStudentsByBatch, // 
     getStudentById, // 
     addSession,

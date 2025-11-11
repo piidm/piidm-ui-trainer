@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Search, Filter, Calendar, Users, FileText, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
 import { AllBatches, Assignment, Batch, Student, AssignmentSubmission } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
@@ -30,57 +30,13 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [itemsPerPage] = useState(10);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [submissionCounts, setSubmissionCounts] = useState<Record<string, { total: number; pending: number; reviewed: number }>>({});
-  const [loadingCounts, setLoadingCounts] = useState(false);
+  const fetchedAssignmentIdsRef = useRef<Set<string>>(new Set());
+  const fetchingAssignmentIdsRef = useRef<Set<string>>(new Set());
+  const submissionCacheRef = useRef<Record<string, { submissions: AssignmentSubmission[]; fetchedAt: number }>>({});
+  const viewButtonClickTimeRef = useRef<number>(0);
+  const lastFetchedAssignmentRef = useRef<string>('');
 
-  const { fetchBatchById, fetchAssignmentSubmissions } = useTrainerData();
-
-
-  // Fetch submission counts for all assignments
-  const fetchAllSubmissionCounts = useCallback(async () => {
-    if (loadingCounts || assignments.length === 0) return;
-
-    setLoadingCounts(true);
-    const counts: Record<string, { total: number; pending: number; reviewed: number }> = {};
-
-    try {
-      for (const assignment of assignments) {
-        try {
-          const submissions = await fetchAssignmentSubmissions(assignment.id);
-
-          if (Array.isArray(submissions)) {
-            const validSubmissions = submissions.filter((s: any) => s && s.student);
-            const total = validSubmissions.length;
-
-            // Pending: not submitted (status 0) OR submitted but not reviewed (status 1 without marks)
-            const pending = validSubmissions.filter((s: any) =>
-            (s.submission_status === 0 || s.submission_status === 2 ||
-              s.submission_status === 1 && (!s.marks_obtained))
-            ).length;
-
-            // Reviewed: submissions with marks assigned (regardless of accept/reject status)
-            const reviewed = validSubmissions.filter((s: any) =>
-              s.marks_obtained !== null && s.marks_obtained !== undefined && s.marks_obtained > 0
-            ).length;
-
-            counts[assignment.id] = { total, pending, reviewed };
-          } else {
-            counts[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
-          }
-        } catch (error) {
-          console.error(`Error fetching submissions for assignment ${assignment.id}:`, error);
-          counts[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
-        }
-      }
-
-      setSubmissionCounts(counts);
-    } finally {
-      setLoadingCounts(false);
-    }
-  }, [assignments, fetchAssignmentSubmissions, loadingCounts]);
-
-  useEffect(() => {
-    fetchAllSubmissionCounts();
-  }, [assignments.length]); // Only depend on assignment count, not the full array
+  const { fetchBatchById, fetchAssignmentSubmissions, getSubmissionCounts } = useTrainerData();
 
 
   const getAssignmentStatus = (assignment: Assignment) => {
@@ -93,6 +49,195 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
     return due >= now ? "active" : "expired";
   };
+
+  const calculateCountsFromSubmissions = useCallback((submissions: any[]): { total: number; pending: number; reviewed: number } => {
+    if (!Array.isArray(submissions)) {
+      console.log('📊 calculateCountsFromSubmissions: Not an array, returning 0,0,0');
+      return { total: 0, pending: 0, reviewed: 0 };
+    }
+
+    console.log('📊 calculateCountsFromSubmissions: Processing', submissions.length, 'submissions');
+
+    let total = 0;
+    let pending = 0;
+    let reviewed = 0;
+
+    submissions.forEach((submission: any) => {
+      if (!submission) {
+        console.log('  ⚠️ Null/undefined submission, skipping');
+        return;
+      }
+
+      const hasStudent = Boolean(
+        submission.studentId ||
+        submission.student_id ||
+        submission.studentName ||
+        submission.student?.student_id
+      );
+
+      if (!hasStudent) {
+        console.log('  ⚠️ No student ID found, skipping');
+        return;
+      }
+
+      total += 1;
+
+      let rawStatus = submission.status ?? submission.submission_status;
+      let normalizedStatus = '';
+
+      // Normalize numeric statuses
+      if (typeof rawStatus === 'number') {
+        if (rawStatus === 0) normalizedStatus = 'pending';
+        else if (rawStatus === 1) normalizedStatus = 'submitted';
+        else if (rawStatus === 2) normalizedStatus = 'rejected';
+        else if (rawStatus === 3) normalizedStatus = 'resubmitted';
+        else normalizedStatus = 'pending';
+      } else {
+        normalizedStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : 'pending';
+      }
+
+      const marksRaw = submission.marks ?? submission.marks_obtained ?? submission.marksAwarded;
+      const hasMarks = marksRaw !== null && marksRaw !== undefined && !Number.isNaN(Number(marksRaw));
+      const hasReviewedAt = submission.reviewedAt || submission.reviewed_at;
+
+      console.log(`  📝 Submission ${submission.id}: rawStatus=${rawStatus}, normalizedStatus=${normalizedStatus}, hasMarks=${hasMarks}, hasReviewedAt=${hasReviewedAt}`);
+
+      const isReviewed = normalizedStatus === 'reviewed' || normalizedStatus === 'rejected' || hasMarks || Boolean(hasReviewedAt);
+      if (isReviewed) {
+        reviewed += 1;
+        console.log('    ✅ Marked as REVIEWED');
+        return;
+      }
+
+      pending += 1;
+      console.log('    ⏳ Marked as PENDING');
+    });
+
+    console.log(`📊 Final counts: total=${total}, pending=${pending}, reviewed=${reviewed}`);
+    return { total, pending, reviewed };
+  }, []);
+
+  const transformApiSubmission = useCallback((s: any, assignmentId: string): AssignmentSubmission => {
+    const statusValue = s?.submission_status;
+  const marksValue = s?.marks_obtained ?? s?.marks;
+
+    let status: AssignmentSubmission["status"] = "pending";
+    if (statusValue === 1) {
+      status = "submitted";
+    } else if (statusValue === 2) {
+      status = "rejected";
+    } else if (statusValue === 3) {
+      status = "resubmitted";
+    } else if (typeof statusValue === "string") {
+      status = statusValue.toLowerCase() as AssignmentSubmission["status"];
+    }
+
+    if (marksValue !== null && marksValue !== undefined && !Number.isNaN(Number(marksValue))) {
+      status = "reviewed";
+    }
+
+    const marksNumber = marksValue !== null && marksValue !== undefined && !Number.isNaN(Number(marksValue))
+      ? Number(marksValue)
+      : 0;
+
+    return {
+      id: s?.submission_id?.toString() || `sub-${s?.student?.student_id ?? Math.random().toString(36).slice(2)}`,
+      studentId: String(s?.student?.student_id ?? s?.student_id ?? ""),
+      studentName: s?.student?.name || s?.student_name || "Unnamed Student",
+      assignmentId,
+      submittedAt: s?.updated_at || s?.submitted_at || "",
+      status,
+      marks: marksNumber,
+      feedback: s?.feedback || undefined,
+      reviewedAt: s?.reviewed_at || s?.updated_at || undefined,
+      reviewedBy: s?.reviewed_by || undefined,
+      document: s?.document_uploaded_path || s?.document || undefined,
+      files: Array.isArray(s?.files)
+        ? s.files.map((file: any) => ({
+            id: file?.id?.toString() || Math.random().toString(36).slice(2),
+            name: file?.name || file?.file_name || "Attachment",
+            url: file?.url || file?.file_url || file?.path || "",
+            type: file?.type || file?.mimeType || "application/octet-stream",
+            size: file?.size || 0,
+          }))
+        : [],
+    };
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchCountsForAssignments = async () => {
+      if (!assignments.length) {
+        return;
+      }
+
+      const updates: Record<string, { total: number; pending: number; reviewed: number }> = {};
+      const fetchPromises: Promise<void>[] = [];
+      const now = Date.now();
+
+      assignments.forEach((assignment) => {
+        // Always trust local submissions if present
+        if (Array.isArray(assignment.submissions) && assignment.submissions.length > 0) {
+          updates[assignment.id] = calculateCountsFromSubmissions(assignment.submissions);
+          fetchedAssignmentIdsRef.current.add(assignment.id);
+          submissionCacheRef.current[assignment.id] = {
+            submissions: assignment.submissions,
+            fetchedAt: now,
+          };
+          return;
+        }
+
+        if (fetchedAssignmentIdsRef.current.has(assignment.id) || fetchingAssignmentIdsRef.current.has(assignment.id)) {
+          return;
+        }
+
+        const createdAt = assignment.createdAt ? new Date(assignment.createdAt).getTime() : null;
+        const isRecentlyCreated = createdAt ? (now - createdAt) < 60_000 : false;
+
+        if (isRecentlyCreated) {
+          updates[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
+          return;
+        }
+
+        fetchingAssignmentIdsRef.current.add(assignment.id);
+        fetchPromises.push((async () => {
+          try {
+            // Use the new API function to get counts directly
+            const counts = await getSubmissionCounts(assignment.id);
+            if (!isActive) return;
+            
+            updates[assignment.id] = {
+              total: counts.total,
+              pending: counts.pending,
+              reviewed: counts.reviewed
+            };
+          } catch (error) {
+            if (!isActive) return;
+            console.error(`Error fetching submission counts for assignment ${assignment.id}:`, error);
+            updates[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
+          } finally {
+            fetchingAssignmentIdsRef.current.delete(assignment.id);
+            fetchedAssignmentIdsRef.current.add(assignment.id);
+          }
+        })());
+      });
+
+      if (fetchPromises.length > 0) {
+        await Promise.all(fetchPromises);
+      }
+
+      if (isActive && Object.keys(updates).length > 0) {
+        setSubmissionCounts((prev) => ({ ...prev, ...updates }));
+      }
+    };
+
+    fetchCountsForAssignments();
+
+    return () => {
+      isActive = false;
+    };
+  }, [assignments, getSubmissionCounts, calculateCountsFromSubmissions]);
 
 
   // Helper to check batch filter
@@ -321,8 +466,12 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
               <tbody className="bg-white divide-y divide-gray-200">
 
                 {paginatedAssignments.map((assignment) => {
-                  const counts = submissionCounts[assignment.id] || { total: 0, pending: 0, reviewed: 0 };
-                  const submittedCount = counts.total;
+                  const hasLocalSubmissions = Array.isArray(assignment.submissions) && assignment.submissions.length > 0;
+                  const counts = hasLocalSubmissions
+                    ? calculateCountsFromSubmissions(assignment.submissions)
+                    : (submissionCounts[assignment.id] || { total: 0, pending: 0, reviewed: 0 });
+
+                  const totalSubmissions = counts.total;
                   const pendingCount = counts.pending;
                   const reviewedCount = counts.reviewed;
                   
@@ -386,7 +535,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{submittedCount}</span>
+                            <span className="font-medium">{totalSubmissions}</span>
                             <span className="text-gray-500">total</span>
                           </div>
                           <div className="text-xs text-gray-500">
@@ -399,6 +548,27 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                           <button
                             onClick={async () => {
                               try {
+                                const now = Date.now();
+                                const timeSinceLastClick = now - viewButtonClickTimeRef.current;
+                                
+                                // Prevent multiple rapid clicks (debounce)
+                                if (timeSinceLastClick < 500) {
+                                  console.log('⏱️ Click debounced - too soon after last click');
+                                  return;
+                                }
+                                
+                                viewButtonClickTimeRef.current = now;
+
+                                // Prevent fetching the same assignment multiple times in a row
+                                if (lastFetchedAssignmentRef.current === assignment.id && timeSinceLastClick < 2000) {
+                                  console.log('✋ Already fetching this assignment recently');
+                                  return;
+                                }
+
+                                console.log('🔘 View button clicked for assignment:', assignment.id);
+                                lastFetchedAssignmentRef.current = assignment.id;
+
+                                let assignmentSubmissions: AssignmentSubmission[] | null = null;
 
                                 // 1. Resolve batchId
                                 let batchId = assignment.batchId;
@@ -429,42 +599,51 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   isActive: batchData.deleted === 0 || batchData.is_active !== false,
                                 } : null;
 
+                                // 3. Check cache first (1-hour TTL)
+                                const cached = submissionCacheRef.current[assignment.id];
+                                const oneHourAgo = Date.now() - 3600000;
+                                
+                                if (cached && cached.fetchedAt > oneHourAgo) {
+                                  console.log('✅ Using cached submissions for', assignment.id);
+                                  assignmentSubmissions = cached.submissions;
+                                } else {
+                                  // 4. Check local submissions first
+                                  if (Array.isArray(assignment.submissions) && assignment.submissions.length > 0) {
+                                    console.log('📋 Using local submissions:', assignment.submissions.length);
+                                    assignmentSubmissions = assignment.submissions;
+                                  } else {
+                                    // 5. Fetch from API only if not cached and no local submissions
+                                    console.log('🌐 Fetching submissions from API for:', assignment.id);
+                                    const submissions = await fetchAssignmentSubmissions(assignment.id);
+                                    assignmentSubmissions = Array.isArray(submissions)
+                                      ? submissions
+                                          .filter((s: any) => s && (s.student || s.student_id || s.studentId))
+                                          .map((s: any) => transformApiSubmission(s, assignment.id))
+                                      : [];
 
-                                // 3. Fetch submissions
-                                const submissions = await fetchAssignmentSubmissions(assignment.id);
+                                    // Cache the result
+                                    submissionCacheRef.current[assignment.id] = {
+                                      submissions: assignmentSubmissions,
+                                      fetchedAt: Date.now(),
+                                    };
+                                  }
+                                }
 
-                                // 4. Transform API submissions into AssignmentSubmission[] format
-                                const assignmentSubmissions: AssignmentSubmission[] = Array.isArray(submissions)
-                                  ? submissions
-                                    .filter((s: any) => s && s.student)
-                                    .map((s: any) => {
-                                      const submission: AssignmentSubmission = {
-                                        id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,
-                                        studentId: String(s.student?.student_id || ""),
-                                        studentName: s.student?.name || "Unnamed Student",
-                                        assignmentId: assignment.id,
-                                        submittedAt: s.updated_at || "",
-                                        status: s.submission_status === 1 ? "submitted" : s.marks_obtained ? "reviewed" : "pending",
-                                        marks: s.marks_obtained || undefined,
-                                        feedback: s.feedback || undefined,
-                                        reviewedAt: s.updated_at || undefined,
-                                        reviewedBy: s.reviewed_by || undefined,
-                                        document: s.document_uploaded_path || "" || undefined,
-                                      };
-                                      return submission;
-                                    })
-                                  : [];
+                                const counts = calculateCountsFromSubmissions(assignmentSubmissions || []);
+                                setSubmissionCounts((prev) => ({
+                                  ...prev,
+                                  [assignment.id]: counts,
+                                }));
+                                fetchedAssignmentIdsRef.current.add(assignment.id);
 
-
-                                // 5. Create updated assignment with merged submissions
+                                // 6. Create updated assignment with merged submissions
                                 const updatedAssignment: Assignment = {
                                   ...assignment,
-                                  submissions: assignmentSubmissions,
+                                  submissions: assignmentSubmissions || [],
                                 };
 
-
-                                // 6. Transform submissions into Student[] for compatibility
-                                const students = assignmentSubmissions.map((sub) => ({
+                                // 7. Transform submissions into Student[] for compatibility
+                                const students = (assignmentSubmissions || []).map((sub) => ({
                                   id: sub.studentId,
                                   name: sub.studentName,
                                   email: "", // Email not available in submission data
@@ -479,9 +658,15 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   placementStatus: "Not Placed",
                                 }));
 
-                                // 7. Pass updated assignment with full submission data
+                                // 8. Pass updated assignment with full submission data
+                                console.log('✅ Opening modal with submissions:', {
+                                  assignmentId: updatedAssignment.id,
+                                  assignmentTitle: updatedAssignment.title,
+                                  submissionsCount: assignmentSubmissions?.length
+                                });
                                 onViewSubmissions(updatedAssignment, batch, students);
                               } catch (error) {
+                                console.error('❌ Error in view button:', error);
                                 onViewSubmissions(assignment, null, []);
                               }
                             }}
@@ -489,7 +674,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                             className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs"
                           >
                             <Eye className="w-3 h-3" />
-                            View {submittedCount}
+                            View {totalSubmissions}
                           </button>
 
                           <div className="relative">

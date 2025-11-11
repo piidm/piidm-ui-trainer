@@ -3,7 +3,6 @@ import { X, Calendar, Users, FileText, AlertCircle, Save } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentFormProps {
   isOpen: boolean;
@@ -22,10 +21,9 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
   assignment,
   isEditing = false
 }) => {
-  console.log('AssignmentForm assignment prop:', assignment);
   
   // Initialize form data based on whether we're editing or creating
-  const getInitialFormData = () => {
+  const getInitialFormData = (assignment?: Assignment, isEditing?: boolean) => {
     if (assignment && isEditing) {
       // Handle batchId which might be a JSON string like "[1,2,3]" 
       let extractedBatchId = '';
@@ -62,17 +60,15 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     };
   };
 
-  const [formData, setFormData] = useState(getInitialFormData);
+  const [formData, setFormData] = useState(() => getInitialFormData(assignment, isEditing));
 
   useEffect(() => {
     if (isOpen) {
       // Reset form data when modal opens
-      setFormData(getInitialFormData());
+      setFormData(getInitialFormData(assignment, isEditing));
     }
   }, [assignment, isEditing, isOpen]);
-  console.log('AssignmentForm assignment:', assignment);
 
-  console.log('AssignmentForm assignment formData:', formData);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,7 +144,6 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
       await onSubmit(assignmentData);
       
       // Show success notification (you can implement a toast system)
-      console.log(isEditing ? 'Assignment updated successfully!' : 'Assignment created successfully!');
     } catch (error) {
       console.error('Error saving assignment:', error);
       // Show error notification here if you have a toast system

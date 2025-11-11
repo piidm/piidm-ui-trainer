@@ -78,7 +78,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     });
   }, [assignment]);
 
-  // Add effect to automatically refresh data periodically while modal is open
+    // Add effect to automatically refresh data periodically while modal is open
   useEffect(() => {
     if (!isOpen) return;
 
