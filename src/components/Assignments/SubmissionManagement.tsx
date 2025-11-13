@@ -694,6 +694,38 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                       </div>
                                     </div>
                                   )}
+                                  {item.submission?.status === 'rejected' && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <XCircle className="w-4 h-4 text-red-600" />
+                                        <span className="font-medium text-red-800">
+                                          Score: {item.submission?.marks || 0}/{assignment.totalMarks} ({Math.round(((item.submission.marks || 0) / assignment.totalMarks) * 100)}%)
+                                        </span>
+                                      </div>
+                                      {item.submission?.feedback && (
+                                        <div className="flex items-start gap-2">
+                                          <MessageSquare className="w-4 h-4 text-red-600 mt-0.5" />
+                                          <p className="text-red-700 text-sm">{item.submission.feedback}</p>
+                                        </div>
+                                      )}
+                                      <div className="text-xs text-red-600 mt-2">
+                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy || '—'}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {item.submission?.status === 'resubmitted' && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <FileText className="w-4 h-4 text-blue-600" />
+                                        <span className="font-medium text-blue-800">
+                                          Resubmitted
+                                        </span>
+                                      </div>
+                                      <div className="text-xs text-blue-600 mt-2">
+                                        Resubmitted on {item.submission?.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
+                                      </div>
+                                    </div>
+                                  )}
                                 </>
                               ) : (item.status === 'rejected' || item.status === 'resubmitted') ? (
                                 <>
@@ -735,7 +767,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                       <div className="flex items-center gap-2 mb-2">
                                         <XCircle className="w-4 h-4 text-red-600" />
                                         <span className="font-medium text-red-800">
-                                          Score: {item.submission?.marks || 0}/{assignment.totalMarks} ({Math.round(((item.submission.marks || 0) / assignment.totalMarks) * 100)}%)
+                                          Rejected
                                         </span>
                                       </div>
                                       {item.submission?.feedback && (
@@ -745,7 +777,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                         </div>
                                       )}
                                       <div className="text-xs text-red-600 mt-2">
-                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy || '—'}
+                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission?.reviewedBy || '—'}
                                       </div>
                                     </div>
                                   )}
@@ -767,25 +799,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                               ) : (
                                 <div className="text-sm text-gray-500 italic">
                                   No submission yet
-                                </div>
-                              )}
-                              {item.submission?.status === 'rejected' && (
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <XCircle className="w-4 h-4 text-red-600" />
-                                    <span className="font-medium text-red-800">
-                                      Score: {item.submission?.marks || 0}/{assignment.totalMarks} ({Math.round(((item.submission.marks || 0) / assignment.totalMarks) * 100)}%)
-                                    </span>
-                                  </div>
-                                  {item.submission?.feedback && (
-                                    <div className="flex items-start gap-2">
-                                      <MessageSquare className="w-4 h-4 text-red-600 mt-0.5" />
-                                      <p className="text-red-700 text-sm">{item.submission.feedback}</p>
-                                    </div>
-                                  )}
-                                  <div className="text-xs text-red-600 mt-2">
-                                    Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy || '—'}
-                                  </div>
                                 </div>
                               )}
                             </div>
