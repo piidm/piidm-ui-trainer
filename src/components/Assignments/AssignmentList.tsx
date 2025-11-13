@@ -92,13 +92,13 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       }
 
       const marksRaw = submission.marks ?? submission.marks_obtained ?? submission.marksAwarded;
-      const hasMarks = marksRaw !== null && marksRaw !== undefined && !Number.isNaN(Number(marksRaw));
+      const hasMarks = marksRaw !== null && marksRaw !== undefined && !Number.isNaN(Number(marksRaw)) && Number(marksRaw) > 0;
 
       // A submission is reviewed if it's explicitly 'reviewed' or 'rejected', or if it has marks.
-      if (normalizedStatus === 'reviewed' || normalizedStatus === 'rejected' || hasMarks) {
+      if (normalizedStatus === 'reviewed' || normalizedStatus === 'rejected' || (normalizedStatus === 'submitted' && hasMarks)) {
         reviewed += 1;
       } else {
-        // Otherwise, it's pending (this includes 'submitted', 'resubmitted', and 'pending' statuses without marks).
+        // Otherwise, it's pending (this includes 'submitted' without marks, 'resubmitted', and 'pending' statuses).
         pending += 1;
       }
     });

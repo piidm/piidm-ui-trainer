@@ -76,8 +76,12 @@ export const Assignments: React.FC = () => {
     }
   };
 
-  const handleViewSubmissions = (assignment: Assignment, batch: Batch | null, students: Student[]) => {
+  const handleReviewSubmission = (assignmentId: string, submissionId: string, reviewData: any) => {
+    // Directly call the reviewSubmission from the hook, which updates the state
+    reviewSubmission(assignmentId, submissionId, reviewData);
+  };
 
+  const handleViewSubmissions = (assignment: Assignment, batch: Batch | null, students: Student[]) => {
     setSelectedAssignment(assignment);
     setSelectedBatch(batch);
     setSelectedStudents(students);

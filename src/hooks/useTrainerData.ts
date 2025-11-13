@@ -856,13 +856,13 @@ export const useTrainerData = () => {
 
         const statusValue = sub.submission_status ?? sub.status;
         const marks = sub.marks_obtained;
-        const hasMarks = marks !== null && marks !== undefined && !Number.isNaN(Number(marks));
+        const hasPositiveMarks = marks !== null && marks !== undefined && !Number.isNaN(Number(marks)) && Number(marks) > 0;
 
-        // A submission is reviewed if it has marks or is explicitly rejected (status 2).
-        if (hasMarks || statusValue === 2) {
+        // A submission is reviewed if status is 1 and it has positive marks, or if it's rejected (status 2).
+        if ((statusValue === 1 && hasPositiveMarks) || statusValue === 2) {
           reviewed += 1;
         } else {
-          // Otherwise, it's pending (this includes not-yet-submitted, submitted, and resubmitted).
+          // Otherwise, it's pending (this includes status 0, status 1 without marks, and resubmitted).
           pending += 1;
         }
       });
@@ -1228,11 +1228,20 @@ export const useTrainerData = () => {
                 // Map numeric status to string status
                 let status: "pending" | "submitted" | "reviewed" | "rejected" | "resubmitted" = "pending";
                 const statusValue = s.submission_status;
-                if (statusValue === 0) status = "pending";
-                else if (statusValue === 1) status = "submitted";
-                else if (statusValue === 2) status = "rejected";
-                else if (statusValue === 3) status = "resubmitted";
-                else if (s.marks_obtained !== null && s.marks_obtained !== undefined) status = "reviewed";
+                const marks = s.marks_obtained;
+                const hasPositiveMarks = marks !== null && marks !== undefined && Number(marks) > 0;
+
+                if (statusValue === 0) {
+                  status = "pending";
+                } else if (statusValue === 1) {
+                  status = hasPositiveMarks ? "reviewed" : "submitted";
+                } else if (statusValue === 2) {
+                  status = "rejected";
+                } else if (statusValue === 3) {
+                  status = "resubmitted";
+                } else if (hasPositiveMarks) {
+                  status = "reviewed";
+                }
 
                 return {
                   id: s.submission_id?.toString() || `sub-${s.student?.student_id}`,

@@ -91,29 +91,25 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     
     // Normalize status from API response or overrides
     const s = merged.status;
-    if (typeof s === 'number') {
-      if (s === 0) merged.status = 'pending';
-      else if (s === 1) merged.status = 'submitted';
-      else if (s === 2) merged.status = 'rejected';
-      else if (s === 3) merged.status = 'resubmitted';
-    } else if (typeof s === 'string') {
-      // Keep string status as is if it's already normalized
-      if (['pending', 'submitted', 'reviewed', 'rejected', 'resubmitted'].includes(s)) {
-        merged.status = s;
-      } else {
-        merged.status = 'pending';
-      }
-    }
-    
-    // If has marks but status is still submitted, mark as reviewed
-    // BUT: Never convert 'rejected' or 'resubmitted' status to 'reviewed' - keep them as is
-    if (merged.marks && !['rejected', 'resubmitted', 'reviewed'].includes(merged.status) && (merged.status === 'submitted' || merged.status === 1)) {
-      merged.status = 'reviewed';
-    }
+    const marks = merged.marks;
+    const hasPositiveMarks = marks !== null && marks !== undefined && Number(marks) > 0;
 
-    // If a submission is 'reviewed' but has 0 marks, it should be considered 'rejected'.
-    if (merged.status === 'reviewed' && merged.marks === 0) {
-      merged.status = 'rejected';
+    if (typeof s === 'number') {
+      if (s === 0) {
+        merged.status = 'pending';
+      } else if (s === 1) {
+        merged.status = hasPositiveMarks ? 'reviewed' : 'submitted';
+      } else if (s === 2) {
+        merged.status = 'reviewed'; // Rejected is also considered reviewed
+      } else if (s === 3) {
+        merged.status = 'resubmitted';
+      }
+    } else if (typeof s === 'string') {
+      if (s === 'submitted' && hasPositiveMarks) {
+        merged.status = 'reviewed';
+      } else if (s === 'rejected') {
+        merged.status = 'reviewed';
+      }
     }
     
     return merged as AssignmentSubmission;
@@ -264,7 +260,9 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         const override: Partial<AssignmentSubmission> = {
           marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
           feedback: assessmentData.feedback,
-          status: assessmentData.action === 'accept' ? 'reviewed' : 'rejected',
+          status: assessmentData.action === 'accept' 
+            ? (assessmentData.marks > 0 ? 'reviewed' : 'submitted') 
+            : 'reviewed', // rejected is also reviewed
           reviewedAt: new Date().toISOString(),
           reviewedBy: 'Dr. Sarah Johnson'
         };
@@ -295,8 +293,10 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         onReviewSubmission(assignment.id, selectedSubmission.id, {
           action: assessmentData.action,
           marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
-          feedback: assessmentData.feedback
-        });
+          feedback: assessmentData.feedback,
+          // Pass status back to parent
+          status: override.status, 
+        } as any);
 
         // Refresh assignment data in background to sync with server
         refreshAssignmentSubmissions(assignment.id);
