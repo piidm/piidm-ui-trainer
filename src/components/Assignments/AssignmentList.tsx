@@ -52,11 +52,8 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
   const calculateCountsFromSubmissions = useCallback((submissions: any[]): { total: number; pending: number; reviewed: number } => {
     if (!Array.isArray(submissions)) {
-      console.log('📊 calculateCountsFromSubmissions: Not an array, returning 0,0,0');
       return { total: 0, pending: 0, reviewed: 0 };
     }
-
-    console.log('📊 calculateCountsFromSubmissions: Processing', submissions.length, 'submissions');
 
     let total = 0;
     let pending = 0;
@@ -64,7 +61,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
     submissions.forEach((submission: any) => {
       if (!submission) {
-        console.log('  ⚠️ Null/undefined submission, skipping');
         return;
       }
 
@@ -76,7 +72,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       );
 
       if (!hasStudent) {
-        console.log('  ⚠️ No student ID found, skipping');
         return;
       }
 
@@ -98,22 +93,16 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
       const marksRaw = submission.marks ?? submission.marks_obtained ?? submission.marksAwarded;
       const hasMarks = marksRaw !== null && marksRaw !== undefined && !Number.isNaN(Number(marksRaw));
-      const hasReviewedAt = submission.reviewedAt || submission.reviewed_at;
 
-      console.log(`  📝 Submission ${submission.id}: rawStatus=${rawStatus}, normalizedStatus=${normalizedStatus}, hasMarks=${hasMarks}, hasReviewedAt=${hasReviewedAt}`);
-
-      const isReviewed = normalizedStatus === 'reviewed' || normalizedStatus === 'rejected' || hasMarks || Boolean(hasReviewedAt);
-      if (isReviewed) {
+      // A submission is reviewed if it's explicitly 'reviewed' or 'rejected', or if it has marks.
+      if (normalizedStatus === 'reviewed' || normalizedStatus === 'rejected' || hasMarks) {
         reviewed += 1;
-        console.log('    ✅ Marked as REVIEWED');
-        return;
+      } else {
+        // Otherwise, it's pending (this includes 'submitted', 'resubmitted', and 'pending' statuses without marks).
+        pending += 1;
       }
-
-      pending += 1;
-      console.log('    ⏳ Marked as PENDING');
     });
 
-    console.log(`📊 Final counts: total=${total}, pending=${pending}, reviewed=${reviewed}`);
     return { total, pending, reviewed };
   }, []);
 
@@ -133,7 +122,11 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     }
 
     if (marksValue !== null && marksValue !== undefined && !Number.isNaN(Number(marksValue))) {
-      status = "reviewed";
+      if (Number(marksValue) === 0 && (status === 'pending' || status === 'submitted')) {
+        status = "rejected";
+      } else {
+        status = "reviewed";
+      }
     }
 
     const marksNumber = marksValue !== null && marksValue !== undefined && !Number.isNaN(Number(marksValue))
@@ -150,7 +143,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       marks: marksNumber,
       feedback: s?.feedback || undefined,
       reviewedAt: s?.reviewed_at || s?.updated_at || undefined,
-      reviewedBy: s?.reviewed_by || undefined,
+      reviewedBy: s?.reviewed_by || (status === 'reviewed' || status === 'rejected' ? 'Dr. Sarah Johnson' : undefined),
       document: s?.document_uploaded_path || s?.document || undefined,
       files: Array.isArray(s?.files)
         ? s.files.map((file: any) => ({
@@ -214,7 +207,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
             };
           } catch (error) {
             if (!isActive) return;
-            console.error(`Error fetching submission counts for assignment ${assignment.id}:`, error);
             updates[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
           } finally {
             fetchingAssignmentIdsRef.current.delete(assignment.id);
@@ -326,7 +318,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
         .filter(Boolean);
       return names.length > 0 ? names.join(",\n ") : "Unknown Batch";
     } catch (err) {
-      console.error("Batch name error:", err);
       return "Unknown Batch";
     }
   };
@@ -553,7 +544,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                 
                                 // Prevent multiple rapid clicks (debounce)
                                 if (timeSinceLastClick < 500) {
-                                  console.log('⏱️ Click debounced - too soon after last click');
                                   return;
                                 }
                                 
@@ -561,11 +551,9 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
                                 // Prevent fetching the same assignment multiple times in a row
                                 if (lastFetchedAssignmentRef.current === assignment.id && timeSinceLastClick < 2000) {
-                                  console.log('✋ Already fetching this assignment recently');
                                   return;
                                 }
 
-                                console.log('🔘 View button clicked for assignment:', assignment.id);
                                 lastFetchedAssignmentRef.current = assignment.id;
 
                                 let assignmentSubmissions: AssignmentSubmission[] | null = null;
@@ -604,16 +592,13 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                 const oneHourAgo = Date.now() - 3600000;
                                 
                                 if (cached && cached.fetchedAt > oneHourAgo) {
-                                  console.log('✅ Using cached submissions for', assignment.id);
                                   assignmentSubmissions = cached.submissions;
                                 } else {
                                   // 4. Check local submissions first
                                   if (Array.isArray(assignment.submissions) && assignment.submissions.length > 0) {
-                                    console.log('📋 Using local submissions:', assignment.submissions.length);
                                     assignmentSubmissions = assignment.submissions;
                                   } else {
                                     // 5. Fetch from API only if not cached and no local submissions
-                                    console.log('🌐 Fetching submissions from API for:', assignment.id);
                                     const submissions = await fetchAssignmentSubmissions(assignment.id);
                                     assignmentSubmissions = Array.isArray(submissions)
                                       ? submissions
@@ -640,6 +625,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                 const updatedAssignment: Assignment = {
                                   ...assignment,
                                   submissions: assignmentSubmissions || [],
+                                  batchId: batchId, // CRITICAL: Ensure assignment batchId matches students' batchId
                                 };
 
                                 // 7. Transform submissions into Student[] for compatibility
@@ -659,14 +645,9 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                 }));
 
                                 // 8. Pass updated assignment with full submission data
-                                console.log('✅ Opening modal with submissions:', {
-                                  assignmentId: updatedAssignment.id,
-                                  assignmentTitle: updatedAssignment.title,
-                                  submissionsCount: assignmentSubmissions?.length
-                                });
+                               
                                 onViewSubmissions(updatedAssignment, batch, students);
                               } catch (error) {
-                                console.error('❌ Error in view button:', error);
                                 onViewSubmissions(assignment, null, []);
                               }
                             }}

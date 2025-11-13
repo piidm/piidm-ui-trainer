@@ -854,31 +854,15 @@ export const useTrainerData = () => {
 
         total += 1;
 
-        // Get normalized status from submission
-        let status: string = 'pending';
         const statusValue = sub.submission_status ?? sub.status;
+        const marks = sub.marks_obtained;
+        const hasMarks = marks !== null && marks !== undefined && !Number.isNaN(Number(marks));
 
-        if (typeof statusValue === 'number') {
-          if (statusValue === 0 || sub.marks_obtained == null || sub.marks_obtained == undefined || sub.marks_obtained == 0) status = 'pending';
-          else if (statusValue === 1 && sub.marks_obtained >= 1) status = 'submitted';
-          else if (statusValue === 2) status = 'rejected';
-          else if (statusValue === 3) status = 'resubmitted';
-        } else if (typeof statusValue === 'string') {
-          status = statusValue.toLowerCase();
-        }
-        // Check if has marks > 0 (indicates review)
-        const marks = Number(sub.marks_obtained) || 0;
-        const hasMarks = marks > 0;
-
-        // Categorize submission based on status and marks
-        // Reviewed: (status is submitted OR resubmitted) AND has marks > 0
-        // Pending: status is rejected OR marks are undefined/null/0
-        if ((status === 'submitted' || status === 'resubmitted') && hasMarks) {
+        // A submission is reviewed if it has marks or is explicitly rejected (status 2).
+        if (hasMarks || statusValue === 2) {
           reviewed += 1;
-        } else if (status === 'rejected' || status === 'pending') {
-          pending += 1;
-        }
-        else{
+        } else {
+          // Otherwise, it's pending (this includes not-yet-submitted, submitted, and resubmitted).
           pending += 1;
         }
       });
@@ -1054,7 +1038,7 @@ export const useTrainerData = () => {
         status: "active",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        createdBy: "Dr. Sarah Johnson",
+        createdBy: "Amit",
       };
 
       setAssignments((prev) => [...prev, newAssignment]);
@@ -1174,7 +1158,7 @@ export const useTrainerData = () => {
       action: reviewData.action,
       marks: reviewData.marks,
       feedback: reviewData.feedback,
-      reviewedBy: "Dr. Sarah Johnson",
+      reviewedBy: "Amit",
       reviewedAt: new Date().toISOString(),
     };
 
@@ -1185,7 +1169,7 @@ export const useTrainerData = () => {
       feedback: reviewData.feedback,
       status: "reviewed",
       reviewedAt: new Date().toISOString(),
-      reviewedBy: "Dr. Sarah Johnson",
+      reviewedBy: "Amit",
     });
   };
 
@@ -1260,7 +1244,7 @@ export const useTrainerData = () => {
                   marks: s.marks_obtained || undefined,
                   feedback: s.feedback || undefined,
                   reviewedAt: s.updated_at || s.reviewed_at || undefined,
-                  reviewedBy: s.reviewed_by || undefined,
+                  reviewedBy: s.reviewed_by || (status === 'reviewed' || status === 'rejected' ? s.reviewed_by : undefined),
                   document: s.document_uploaded_path || undefined,
                   files: s.files || [],
                 };

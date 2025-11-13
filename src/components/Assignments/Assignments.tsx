@@ -12,11 +12,14 @@ export const Assignments: React.FC = () => {
     assignments,
     batches,
     allBatches,
+    students,
     fetchAssignments,
     fetchBatches,
     fetchAllBatches,
     fetchStudents,
     fetchAllLectureTimes,
+    fetchAssignmentSubmissions,
+    assignmentStats,
     addAssignment,
     updateAssignment,
     deleteAssignment,
@@ -25,6 +28,7 @@ export const Assignments: React.FC = () => {
   } = useTrainerData();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
@@ -46,22 +50,11 @@ export const Assignments: React.FC = () => {
     // }
   }, []);
 
-  // Sync selectedAssignment with updated assignments array
-  useEffect(() => {
-    if (selectedAssignment && assignments.length > 0) {
-      const updatedAssignment = assignments.find(a => a.id === selectedAssignment.id);
-      if (updatedAssignment && updatedAssignment !== selectedAssignment) {
-        setSelectedAssignment(updatedAssignment);
-      }
-    }
-  }, [assignments, selectedAssignment]);
-
   const handleCreateAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
     try {
       await addAssignment(assignmentData);
       await fetchAssignments();
       setIsFormOpen(false);
-      console.log('Assignment created successfully!');
       // Show success notification
     } catch (error) {
       console.error('Error creating assignment:', error);
@@ -73,10 +66,8 @@ export const Assignments: React.FC = () => {
     if (editingAssignment) {
       try {
         await updateAssignment(editingAssignment.id, assignmentData);
-        await fetchAssignments(); // Refresh the assignments list
         setEditingAssignment(null);
         setIsFormOpen(false);
-        console.log('Assignment updated successfully!');
         // Show success notification
       } catch (error) {
         console.error('Error updating assignment:', error);
@@ -86,17 +77,11 @@ export const Assignments: React.FC = () => {
   };
 
   const handleViewSubmissions = (assignment: Assignment, batch: Batch | null, students: Student[]) => {
-    console.log('✅ handleViewSubmissions triggered:', {
-      assignmentId: assignment.id,
-      assignmentTitle: assignment.title,
-      batchId: batch?.id,
-      studentsCount: students.length
-    });
+
     setSelectedAssignment(assignment);
     setSelectedBatch(batch);
     setSelectedStudents(students);
     setIsModalOpen(true);
-    console.log('📝 isModalOpen should be true now');
   };
 
   const handleEditClick = (assignment: Assignment) => {
@@ -112,6 +97,11 @@ export const Assignments: React.FC = () => {
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingAssignment(null);
+  };
+
+  const handleCloseSubmissionModal = () => {
+    setIsSubmissionModalOpen(false);
+    setSelectedAssignment(null);
   };
 
   return (

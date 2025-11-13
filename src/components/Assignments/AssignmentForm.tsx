@@ -3,6 +3,7 @@ import { X, Calendar, Users, FileText, AlertCircle, Save } from 'lucide-react';
 import { Assignment, Batch } from '../../types';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useTrainerData } from '../../hooks/useTrainerData';
 
 interface AssignmentFormProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
 }) => {
   
   // Initialize form data based on whether we're editing or creating
-  const getInitialFormData = (assignment?: Assignment, isEditing?: boolean) => {
+  const getInitialFormData = () => {
     if (assignment && isEditing) {
       // Handle batchId which might be a JSON string like "[1,2,3]" 
       let extractedBatchId = '';
@@ -60,15 +61,14 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
     };
   };
 
-  const [formData, setFormData] = useState(() => getInitialFormData(assignment, isEditing));
+  const [formData, setFormData] = useState(getInitialFormData);
 
   useEffect(() => {
     if (isOpen) {
       // Reset form data when modal opens
-      setFormData(getInitialFormData(assignment, isEditing));
+      setFormData(getInitialFormData());
     }
   }, [assignment, isEditing, isOpen]);
-
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,7 +104,7 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
       newErrors.details = 'Assignment details are required';
     }
 
-    if (!isEditing && !formData.batchId) {
+    if (!formData.batchId) {
       newErrors.batchId = 'Please select a batch';
     }
 
@@ -266,10 +266,11 @@ export const AssignmentForm: React.FC<AssignmentFormProps> = ({
               <div className="relative">
                 <Users className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <select
+                  disabled={isEditing}
                   value={formData.batchId}
                   onChange={(e) => setFormData(prev => ({ ...prev, batchId: e.target.value }))}
-                  disabled={isEditing}
-                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300 bg-red-50' : 'border-gray-300'} ${isEditing ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
+                  className={`w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.batchId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    } ${isEditing ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
                 >
                   <option value="">Choose target batch</option>
                   {activeBatches.map(batch => {

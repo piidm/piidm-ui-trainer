@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, Download, FileText, Calendar, User, Star, MessageSquare, Check, XCircle, AlertCircle, CheckSquare, Square } from 'lucide-react';
 import { Assignment, AssignmentSubmission, Batch, Student } from '../../types';
 import { useTrainerData } from '../../hooks/useTrainerData';
@@ -57,39 +57,32 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
   // Local overrides so UI updates instantly (before parent/remote refresh)
   const [submissionOverrides, setSubmissionOverrides] = useState<Record<string, Partial<AssignmentSubmission>>>({});
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastRefreshRef = useRef<number>(0);
 
-  // Add effect to automatically refresh data when modal opens
+  // Refresh data only when modal opens (not periodically)
   useEffect(() => {
-    if (isOpen && assignment.id) {
-      // Clear previous overrides when opening modal
-      setSubmissionOverrides({});
-      // Refresh assignment submissions data
-      refreshAssignmentSubmissions(assignment.id);
-    }
-  }, [isOpen, assignment.id]); // Remove refreshAssignmentSubmissions from dependencies
+    if (!isOpen || !assignment.id) return;
 
-  // Track assignment prop changes
-  useEffect(() => {
-    console.log('SubmissionManagement assignment prop changed:', {
-      id: assignment.id,
-      title: assignment.title,
-      submissionsCount: assignment.submissions.length,
-      submissionStatuses: assignment.submissions.map(s => ({id: s.id, status: s.status}))
-    });
-  }, [assignment]);
+    // Clear overrides when opening modal
+    setSubmissionOverrides({});
 
-    // Add effect to automatically refresh data periodically while modal is open
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const interval = setInterval(() => {
+    // Only refresh if enough time has passed (at least 30 seconds since last refresh)
+    const now = Date.now();
+    if (now - lastRefreshRef.current > 30000) {
+      lastRefreshRef.current = now;
       if (assignment.id) {
         refreshAssignmentSubmissions(assignment.id);
       }
-    }, 10000); // Increase to 10 seconds to reduce API calls
+    }
 
-    return () => clearInterval(interval);
-  }, [isOpen, assignment.id]); // Remove refreshAssignmentSubmissions from dependencies
+    // Cleanup any pending timeout
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, [isOpen]); // Only depend on isOpen, not assignment.id
 
   const mergeSubmission = (sub: AssignmentSubmission | null) => {
     if (!sub) return null;
@@ -113,8 +106,14 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     }
     
     // If has marks but status is still submitted, mark as reviewed
-    if (merged.marks && (merged.status === 'submitted' || merged.status === 1)) {
+    // BUT: Never convert 'rejected' or 'resubmitted' status to 'reviewed' - keep them as is
+    if (merged.marks && !['rejected', 'resubmitted', 'reviewed'].includes(merged.status) && (merged.status === 'submitted' || merged.status === 1)) {
       merged.status = 'reviewed';
+    }
+
+    // If a submission is 'reviewed' but has 0 marks, it should be considered 'rejected'.
+    if (merged.status === 'reviewed' && merged.marks === 0) {
+      merged.status = 'rejected';
     }
     
     return merged as AssignmentSubmission;
@@ -197,6 +196,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   }, [students, assignment, submissionOverrides]);
 
   const filteredSubmissions = useMemo(() => {
+  
     return studentSubmissions.filter(item => {
       if (filter === 'all') return true;
       return item.status === filter;
@@ -204,12 +204,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   }, [studentSubmissions, filter]);
 
 
-
   const stats = useMemo(() => {
     const total = studentSubmissions.length;
     const pending = studentSubmissions.filter(item => item.status === 'pending').length;
     const submitted = studentSubmissions.filter(item => item.status === 'submitted').length;
-    const reviewed = studentSubmissions.filter(item => item.status === 'reviewed').length;
+    const reviewed = studentSubmissions.filter(item => item.status === 'reviewed' || item.status === 'rejected').length;
     const rejected = studentSubmissions.filter(item => item.status === 'rejected').length;
     const resubmitted = studentSubmissions.filter(item => item.status === 'resubmitted').length;
 
@@ -297,13 +296,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           action: assessmentData.action,
           marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
           feedback: assessmentData.feedback
-        });
-
-        // Clear the local override since the assignment state is now updated
-        setSubmissionOverrides(prev => {
-          const next = { ...prev };
-          delete next[selectedSubmission.id];
-          return next;
         });
 
         // Refresh assignment data in background to sync with server
@@ -410,15 +402,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         };
         setSelectedSubmission(updatedSubmission);
       }
-
-      // Clear local overrides for bulk updated submissions since assignment state is now updated
-      setSubmissionOverrides(prev => {
-        const next = { ...prev };
-        Array.from(bulkSelectedIds).forEach(submissionId => {
-          delete next[submissionId];
-        });
-        return next;
-      });
 
       // Reset form
       setBulkSelectedIds(new Set());
@@ -707,39 +690,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                         </div>
                                       )}
                                       <div className="text-xs text-green-600 mt-2">
-                                        Reviewed on {new Date(item.submission?.reviewedAt!).toLocaleString()} by {item.submission.reviewedBy}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {item.submission?.status === 'rejected' && (
-                                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <XCircle className="w-4 h-4 text-red-600" />
-                                        <span className="font-medium text-red-800">
-                                          Rejected
-                                        </span>
-                                      </div>
-                                      {item.submission?.feedback && (
-                                        <div className="flex items-start gap-2">
-                                          <MessageSquare className="w-4 h-4 text-red-600 mt-0.5" />
-                                          <p className="text-red-700 text-sm">{item.submission.feedback}</p>
-                                        </div>
-                                      )}
-                                      <div className="text-xs text-red-600 mt-2">
-                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission?.reviewedBy || '—'}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {item.submission?.status === 'resubmitted' && (
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <FileText className="w-4 h-4 text-blue-600" />
-                                        <span className="font-medium text-blue-800">
-                                          Resubmitted
-                                        </span>
-                                      </div>
-                                      <div className="text-xs text-blue-600 mt-2">
-                                        Resubmitted on {item.submission?.submittedAt ? new Date(item.submission.submittedAt).toLocaleString() : '—'}
+                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy}
                                       </div>
                                     </div>
                                   )}
@@ -784,7 +735,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                       <div className="flex items-center gap-2 mb-2">
                                         <XCircle className="w-4 h-4 text-red-600" />
                                         <span className="font-medium text-red-800">
-                                          Rejected
+                                          Score: {item.submission?.marks || 0}/{assignment.totalMarks} ({Math.round(((item.submission.marks || 0) / assignment.totalMarks) * 100)}%)
                                         </span>
                                       </div>
                                       {item.submission?.feedback && (
@@ -794,7 +745,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                                         </div>
                                       )}
                                       <div className="text-xs text-red-600 mt-2">
-                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission?.reviewedBy || '—'}
+                                        Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy || '—'}
                                       </div>
                                     </div>
                                   )}
@@ -816,6 +767,25 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                               ) : (
                                 <div className="text-sm text-gray-500 italic">
                                   No submission yet
+                                </div>
+                              )}
+                              {item.submission?.status === 'rejected' && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <XCircle className="w-4 h-4 text-red-600" />
+                                    <span className="font-medium text-red-800">
+                                      Score: {item.submission?.marks || 0}/{assignment.totalMarks} ({Math.round(((item.submission.marks || 0) / assignment.totalMarks) * 100)}%)
+                                    </span>
+                                  </div>
+                                  {item.submission?.feedback && (
+                                    <div className="flex items-start gap-2">
+                                      <MessageSquare className="w-4 h-4 text-red-600 mt-0.5" />
+                                      <p className="text-red-700 text-sm">{item.submission.feedback}</p>
+                                    </div>
+                                  )}
+                                  <div className="text-xs text-red-600 mt-2">
+                                    Reviewed on {item.submission?.reviewedAt ? new Date(item.submission.reviewedAt).toLocaleString() : '—'} by {item.submission.reviewedBy || '—'}
+                                  </div>
                                 </div>
                               )}
                             </div>
