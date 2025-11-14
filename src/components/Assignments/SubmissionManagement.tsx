@@ -100,14 +100,12 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       } else if (s === 1) {
         merged.status = hasPositiveMarks ? 'reviewed' : 'submitted';
       } else if (s === 2) {
-        merged.status = 'reviewed'; // Rejected is also considered reviewed
+        merged.status = 'rejected';
       } else if (s === 3) {
         merged.status = 'resubmitted';
       }
     } else if (typeof s === 'string') {
       if (s === 'submitted' && hasPositiveMarks) {
-        merged.status = 'reviewed';
-      } else if (s === 'rejected') {
         merged.status = 'reviewed';
       }
     }
@@ -262,7 +260,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           feedback: assessmentData.feedback,
           status: assessmentData.action === 'accept' 
             ? (assessmentData.marks > 0 ? 'reviewed' : 'submitted') 
-            : 'reviewed', // rejected is also reviewed
+            : 'rejected',
           reviewedAt: new Date().toISOString(),
           reviewedBy: 'Dr. Sarah Johnson'
         };
