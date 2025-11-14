@@ -10,6 +10,7 @@ interface AssignmentListProps {
   onViewSubmissions: (assignment: Assignment, batch: Batch | null, students: Student[]) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
+  refreshTrigger?: number; // Add optional refresh trigger
 }
 
 export const AssignmentList: React.FC<AssignmentListProps> = ({
@@ -18,7 +19,8 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   allBatches,
   onViewSubmissions,
   onEditAssignment,
-  onDeleteAssignment
+  onDeleteAssignment,
+  refreshTrigger
 }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -163,6 +165,15 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     };
   }, []);
 
+  // Clear cache when component mounts or refreshTrigger changes
+  useEffect(() => {
+    // Clear all caches to force fresh API calls
+    fetchedAssignmentIdsRef.current.clear();
+    fetchingAssignmentIdsRef.current.clear();
+    submissionCacheRef.current = {};
+    setSubmissionCounts({});
+  }, [refreshTrigger]);
+
   useEffect(() => {
     let isActive = true;
 
@@ -176,21 +187,12 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       const now = Date.now();
 
       assignments.forEach((assignment) => {
-        // Always trust local submissions if present
-        if (Array.isArray(assignment.submissions) && assignment.submissions.length > 0) {
-          updates[assignment.id] = calculateCountsFromSubmissions(assignment.submissions);
-          fetchedAssignmentIdsRef.current.add(assignment.id);
-          submissionCacheRef.current[assignment.id] = {
-            submissions: assignment.submissions,
-            fetchedAt: now,
-          };
+        // Skip if currently fetching
+        if (fetchingAssignmentIdsRef.current.has(assignment.id)) {
           return;
         }
 
-        if (fetchedAssignmentIdsRef.current.has(assignment.id) || fetchingAssignmentIdsRef.current.has(assignment.id)) {
-          return;
-        }
-
+        // Check if recently created
         const createdAt = assignment.createdAt ? new Date(assignment.createdAt).getTime() : null;
         const isRecentlyCreated = createdAt ? (now - createdAt) < 60_000 : false;
 
@@ -199,10 +201,10 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
           return;
         }
 
+        // Always fetch fresh counts from API
         fetchingAssignmentIdsRef.current.add(assignment.id);
         fetchPromises.push((async () => {
           try {
-            // Use the new API function to get counts directly
             const counts = await getSubmissionCounts(assignment.id);
             if (!isActive) return;
             
@@ -211,12 +213,13 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
               pending: counts.pending,
               reviewed: counts.reviewed
             };
+            
+            fetchedAssignmentIdsRef.current.add(assignment.id);
           } catch (error) {
             if (!isActive) return;
             updates[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
           } finally {
             fetchingAssignmentIdsRef.current.delete(assignment.id);
-            fetchedAssignmentIdsRef.current.add(assignment.id);
           }
         })());
       });
@@ -235,7 +238,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     return () => {
       isActive = false;
     };
-  }, [assignments, getSubmissionCounts, calculateCountsFromSubmissions]);
+  }, [assignments, getSubmissionCounts, calculateCountsFromSubmissions, refreshTrigger]);
 
 
   // Helper to check batch filter

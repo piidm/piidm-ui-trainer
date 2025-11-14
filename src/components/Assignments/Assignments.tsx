@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { AssignmentForm } from './AssignmentForm';
 import { AssignmentList } from './AssignmentList';
@@ -34,20 +34,17 @@ export const Assignments: React.FC = () => {
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
-
     fetchAssignments();
     fetchAllLectureTimes();
     fetchBatches();
     fetchAllBatches();
     fetchStudents();
-    // fetchAssignmentSubmissions(selectedAssignment!.id);
-
-    // return () => {
-    //   controller.abort();
-    // }
+    
+    // Trigger a refresh of submission counts when component mounts
+    setRefreshTrigger(prev => prev + 1);
   }, []);
 
   const handleCreateAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
@@ -55,29 +52,24 @@ export const Assignments: React.FC = () => {
       await addAssignment(assignmentData);
       await fetchAssignments();
       setIsFormOpen(false);
-      // Show success notification
     } catch (error) {
       console.error('Error creating assignment:', error);
-      // Show error notification
     }
   };
 
-    const handleEditAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
+  const handleEditAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
     if (editingAssignment) {
       try {
         await updateAssignment(editingAssignment.id, assignmentData);
         setEditingAssignment(null);
         setIsFormOpen(false);
-        // Show success notification
       } catch (error) {
         console.error('Error updating assignment:', error);
-        // Show error notification
       }
     }
   };
 
   const handleReviewSubmission = (assignmentId: string, submissionId: string, reviewData: any) => {
-    // Directly call the reviewSubmission from the hook, which updates the state
     reviewSubmission(assignmentId, submissionId, reviewData);
   };
 
@@ -95,7 +87,6 @@ export const Assignments: React.FC = () => {
 
   const handleDeleteAssignment = (assignmentId: string) => {
     deleteAssignment(assignmentId);
-    // Show success notification
   };
 
   const handleCloseForm = () => {
@@ -107,6 +98,13 @@ export const Assignments: React.FC = () => {
     setIsSubmissionModalOpen(false);
     setSelectedAssignment(null);
   };
+
+  const handleSubmissionUpdated = useCallback(() => {
+    // Refresh assignments to update submission counts
+    fetchAssignments();
+    // Force AssignmentList to refresh by incrementing trigger
+    setRefreshTrigger(prev => prev + 1);
+  }, [fetchAssignments]);
 
   return (
     <div className="space-y-8">
@@ -125,7 +123,6 @@ export const Assignments: React.FC = () => {
         </button>
       </div>
 
-
       {/* Dashboard Stats */}
       <AssignmentDashboard assignments={assignments} />
 
@@ -137,6 +134,7 @@ export const Assignments: React.FC = () => {
         onViewSubmissions={handleViewSubmissions}
         onEditAssignment={handleEditClick}
         onDeleteAssignment={handleDeleteAssignment}
+        refreshTrigger={refreshTrigger}
       />
 
       {/* Modals */}
@@ -149,7 +147,6 @@ export const Assignments: React.FC = () => {
         isEditing={!!editingAssignment}
       />
 
-
       {selectedAssignment && (
         <SubmissionManagement
           isOpen={isModalOpen}
@@ -159,6 +156,7 @@ export const Assignments: React.FC = () => {
           students={selectedStudents}
           onReviewSubmission={reviewSubmission}
           onBulkReview={bulkReviewSubmissions}
+          onSubmissionUpdated={handleSubmissionUpdated}
         />
       )}
     </div>

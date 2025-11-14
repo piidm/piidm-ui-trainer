@@ -21,6 +21,7 @@ interface SubmissionManagementProps {
     marks?: number;
     feedback: string;
   }>) => void;
+  onSubmissionUpdated?: () => void; // Add optional callback
 }
 
 export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
@@ -30,7 +31,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   batch,
   students,
   onReviewSubmission,
-  onBulkReview
+  onBulkReview,
+  onSubmissionUpdated // Destructure the new prop
 }) => {
 
   const { refreshAssignmentSubmissions} = useTrainerData();
@@ -294,7 +296,12 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         } as any);
 
         // Refresh assignment data in background to sync with server
-        refreshAssignmentSubmissions(assignment.id);
+        await refreshAssignmentSubmissions(assignment.id);
+
+        // Notify parent to refresh counts
+        if (onSubmissionUpdated) {
+          onSubmissionUpdated();
+        }
 
       } catch (error) {
         console.error('Error updating submission:', error);
@@ -396,6 +403,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           reviewedBy: 'Dr. Sarah Johnson'
         };
         setSelectedSubmission(updatedSubmission);
+      }
+
+      // Notify parent to refresh counts
+      if (onSubmissionUpdated) {
+        onSubmissionUpdated();
       }
 
       // Reset form
