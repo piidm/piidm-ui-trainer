@@ -66,15 +66,14 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
     // Clear overrides when opening modal
     setSubmissionOverrides({});
+    setSelectedSubmission(null); // Clear selected submission
+    setBulkSelectedIds(new Set()); // Clear bulk selections
 
-    // Only refresh if enough time has passed (at least 30 seconds since last refresh)
+    // Always refresh when opening modal to get latest data
     const now = Date.now();
-    if (now - lastRefreshRef.current > 30000) {
-      lastRefreshRef.current = now;
-      if (assignment.id) {
-        refreshAssignmentSubmissions(assignment.id);
-      }
-    }
+    lastRefreshRef.current = now;
+    
+    refreshAssignmentSubmissions(assignment.id);
 
     // Cleanup any pending timeout
     return () => {
@@ -82,7 +81,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [isOpen]); // Only depend on isOpen, not assignment.id
+  }, [isOpen, assignment.id]); // Include assignment.id to refresh when assignment changes
 
   const mergeSubmission = (sub: AssignmentSubmission | null) => {
     if (!sub) return null;
@@ -136,22 +135,20 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       if (updatedSubmission) {
         const merged = mergeSubmission(updatedSubmission);
         if (merged) {
-          // Only update if there's a meaningful change
-          const hasChanged = 
-            merged.status !== selectedSubmission.status ||
-            merged.marks !== selectedSubmission.marks ||
-            merged.feedback !== selectedSubmission.feedback;
+          // Always update to show latest status
+          setSelectedSubmission(merged);
           
-          if (hasChanged) {
-            setSelectedSubmission(merged);
-          }
+          // Update assessment form with latest data
+          setAssessmentData({
+            marks: merged.marks || 0,
+            feedback: merged.feedback || '',
+            action: merged.status === 'reviewed' ? 'accept' : (merged.status === 'rejected' ? 'reject' : 'accept')
+          });
         }
       }
     }
-  }, [assignment.submissions, selectedSubmission?.id]); // Remove submissionOverrides from dependencies
+  }, [assignment.submissions]); // Only depend on assignment.submissions
 
-
-  
   // Create a comprehensive list of all students with their submission status
   const studentSubmissions = useMemo(() => {
     // include overrides in deps so UI recalculates after we set them
@@ -870,18 +867,33 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                 </button>
               </div>
               {selectedSubmission.status === 'reviewed' && (
-                <div className="mt-2 text-sm text-green-600">
-                  ✓ This submission has been reviewed
+                <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-center gap-2">
+                  <Check className="w-4 h-4" />
+                  This submission has been reviewed
                 </div>
               )}
               {selectedSubmission.status === 'rejected' && (
-                <div className="mt-2 text-sm text-red-600">
-                  ✕ This submission was rejected
+                <div className="mt-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center gap-2">
+                  <XCircle className="w-4 h-4" />
+                  This submission was rejected
                 </div>
               )}
               {selectedSubmission.status === 'resubmitted' && (
-                <div className="mt-2 text-sm text-blue-600">
-                  ↻ This submission was resubmitted
+                <div className="mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  This submission was resubmitted
+                </div>
+              )}
+              {selectedSubmission.status === 'submitted' && (
+                <div className="mt-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  This submission is awaiting review
+                </div>
+              )}
+              {selectedSubmission.status === 'pending' && (
+                <div className="mt-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  This submission is pending
                 </div>
               )}
             </div>

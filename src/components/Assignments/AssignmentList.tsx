@@ -107,10 +107,12 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   }, []);
 
   const transformApiSubmission = useCallback((s: any, assignmentId: string): AssignmentSubmission => {
-    const statusValue = s?.submission_status;
-  const marksValue = s?.marks_obtained ?? s?.marks;
+    const statusValue = s?.submission_status ?? s?.status;
+    const marksValue = s?.marks_obtained ?? s?.marks;
 
     let status: AssignmentSubmission["status"] = "pending";
+    
+    // First, determine status from submission_status field
     if (statusValue === 1) {
       status = "submitted";
     } else if (statusValue === 2) {
@@ -118,20 +120,24 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     } else if (statusValue === 3) {
       status = "resubmitted";
     } else if (typeof statusValue === "string") {
-      status = statusValue.toLowerCase() as AssignmentSubmission["status"];
+      const normalizedStatus = statusValue.toLowerCase();
+      if (["pending", "submitted", "rejected", "resubmitted", "reviewed"].includes(normalizedStatus)) {
+        status = normalizedStatus as AssignmentSubmission["status"];
+      }
     }
 
-    if (marksValue !== null && marksValue !== undefined && !Number.isNaN(Number(marksValue))) {
-      if (Number(marksValue) === 0 && (status === 'pending' || status === 'submitted')) {
-        status = "rejected";
-      } else {
+    // Only override status to "reviewed" if marks are explicitly set AND status is not already "rejected"
+    const hasMarks = marksValue !== null && marksValue !== undefined && !Number.isNaN(Number(marksValue));
+    
+    if (hasMarks && status !== "rejected") {
+      const marksNumber = Number(marksValue);
+      // Only consider it reviewed if marks are greater than 0 and status was "submitted"
+      if (marksNumber > 0 && (status === "submitted" || status === "resubmitted")) {
         status = "reviewed";
       }
     }
 
-    const marksNumber = marksValue !== null && marksValue !== undefined && !Number.isNaN(Number(marksValue))
-      ? Number(marksValue)
-      : 0;
+    const marksNumber = hasMarks ? Number(marksValue) : 0;
 
     return {
       id: s?.submission_id?.toString() || `sub-${s?.student?.student_id ?? Math.random().toString(36).slice(2)}`,
@@ -587,32 +593,19 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   isActive: batchData.deleted === 0 || batchData.is_active !== false,
                                 } : null;
 
-                                // 3. Check cache first (1-hour TTL)
-                                const cached = submissionCacheRef.current[assignment.id];
-                                const oneHourAgo = Date.now() - 3600000;
-                                
-                                if (cached && cached.fetchedAt > oneHourAgo) {
-                                  assignmentSubmissions = cached.submissions;
-                                } else {
-                                  // 4. Check local submissions first
-                                  if (Array.isArray(assignment.submissions) && assignment.submissions.length > 0) {
-                                    assignmentSubmissions = assignment.submissions;
-                                  } else {
-                                    // 5. Fetch from API only if not cached and no local submissions
-                                    const submissions = await fetchAssignmentSubmissions(assignment.id);
-                                    assignmentSubmissions = Array.isArray(submissions)
-                                      ? submissions
-                                          .filter((s: any) => s && (s.student || s.student_id || s.studentId))
-                                          .map((s: any) => transformApiSubmission(s, assignment.id))
-                                      : [];
+                                // 3. Always fetch fresh submissions from API
+                                const submissions = await fetchAssignmentSubmissions(assignment.id);
+                                assignmentSubmissions = Array.isArray(submissions)
+                                  ? submissions
+                                      .filter((s: any) => s && (s.student || s.student_id || s.studentId))
+                                      .map((s: any) => transformApiSubmission(s, assignment.id))
+                                  : [];
 
-                                    // Cache the result
-                                    submissionCacheRef.current[assignment.id] = {
-                                      submissions: assignmentSubmissions,
-                                      fetchedAt: Date.now(),
-                                    };
-                                  }
-                                }
+                                // 4. Update cache with fresh data
+                                submissionCacheRef.current[assignment.id] = {
+                                  submissions: assignmentSubmissions,
+                                  fetchedAt: Date.now(),
+                                };
 
                                 const counts = calculateCountsFromSubmissions(assignmentSubmissions || []);
                                 setSubmissionCounts((prev) => ({
@@ -621,18 +614,18 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                 }));
                                 fetchedAssignmentIdsRef.current.add(assignment.id);
 
-                                // 6. Create updated assignment with merged submissions
+                                // 5. Create updated assignment with fresh submissions
                                 const updatedAssignment: Assignment = {
                                   ...assignment,
                                   submissions: assignmentSubmissions || [],
-                                  batchId: batchId, // CRITICAL: Ensure assignment batchId matches students' batchId
+                                  batchId: batchId,
                                 };
 
-                                // 7. Transform submissions into Student[] for compatibility
+                                // 6. Transform submissions into Student[]
                                 const students = (assignmentSubmissions || []).map((sub) => ({
                                   id: sub.studentId,
                                   name: sub.studentName,
-                                  email: "", // Email not available in submission data
+                                  email: "",
                                   batchId: batchId,
                                   enrollmentDate: "N/A",
                                   overallAttendance: 0,
@@ -644,8 +637,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                                   placementStatus: "Not Placed",
                                 }));
 
-                                // 8. Pass updated assignment with full submission data
-                               
+                                // 7. Pass updated assignment with fresh data
                                 onViewSubmissions(updatedAssignment, batch, students);
                               } catch (error) {
                                 onViewSubmissions(assignment, null, []);
