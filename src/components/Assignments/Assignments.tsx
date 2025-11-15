@@ -52,6 +52,8 @@ export const Assignments: React.FC = () => {
       await addAssignment(assignmentData);
       await fetchAssignments();
       setIsFormOpen(false);
+      // Trigger immediate refresh of counts
+      setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error creating assignment:', error);
     }

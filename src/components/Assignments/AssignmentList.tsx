@@ -184,24 +184,14 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
       const updates: Record<string, { total: number; pending: number; reviewed: number }> = {};
       const fetchPromises: Promise<void>[] = [];
-      const now = Date.now();
 
       assignments.forEach((assignment) => {
-        // Skip if currently fetching
-        if (fetchingAssignmentIdsRef.current.has(assignment.id)) {
+        // Skip if already fetched OR currently fetching
+        if (fetchedAssignmentIdsRef.current.has(assignment.id) || fetchingAssignmentIdsRef.current.has(assignment.id)) {
           return;
         }
 
-        // Check if recently created
-        const createdAt = assignment.createdAt ? new Date(assignment.createdAt).getTime() : null;
-        const isRecentlyCreated = createdAt ? (now - createdAt) < 60_000 : false;
-
-        if (isRecentlyCreated) {
-          updates[assignment.id] = { total: 0, pending: 0, reviewed: 0 };
-          return;
-        }
-
-        // Always fetch fresh counts from API
+        // Fetch counts from API only for new assignments
         fetchingAssignmentIdsRef.current.add(assignment.id);
         fetchPromises.push((async () => {
           try {
@@ -238,7 +228,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     return () => {
       isActive = false;
     };
-  }, [assignments, getSubmissionCounts, calculateCountsFromSubmissions, refreshTrigger]);
+  }, [assignments.length, getSubmissionCounts, calculateCountsFromSubmissions, refreshTrigger]); // Changed dependency to assignments.length instead of assignments
 
 
   // Helper to check batch filter

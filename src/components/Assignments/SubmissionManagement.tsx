@@ -32,10 +32,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   students,
   onReviewSubmission,
   onBulkReview,
-  onSubmissionUpdated // Destructure the new prop
+  onSubmissionUpdated // Keep for future use but not calling it to avoid API calls
 }) => {
-
-  const { refreshAssignmentSubmissions} = useTrainerData();
 
   // Add token for API calls
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3MDkwfQ.C6BhLFFCetm_GBiklD-04t0nMBoPspl59tZED603vFE";
@@ -62,7 +60,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRefreshRef = useRef<number>(0);
 
-  // Refresh data only when modal opens (not periodically)
+  // Reset state when modal opens (no API calls needed - data comes from parent)
   useEffect(() => {
     if (!isOpen || !assignment.id) return;
 
@@ -71,11 +69,9 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     setSelectedSubmission(null); // Clear selected submission
     setBulkSelectedIds(new Set()); // Clear bulk selections
 
-    // Always refresh when opening modal to get latest data
+    // Update last refresh timestamp
     const now = Date.now();
     lastRefreshRef.current = now;
-    
-    refreshAssignmentSubmissions(assignment.id);
 
     // Cleanup any pending timeout
     return () => {
@@ -273,35 +269,25 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           } 
         }));
 
-        // Update selectedSubmission immediately with the new status
-        const updatedSelectedSubmission = { 
-          ...selectedSubmission, 
-          ...override 
-        } as AssignmentSubmission;
-        setSelectedSubmission(updatedSelectedSubmission);
-
-        // Update assessmentData to reflect the new status
-        setAssessmentData(prev => ({
-          ...prev,
-          action: assessmentData.action // Keep the current action for form consistency
-        }));
-
         // Call the original onReviewSubmission callback to update local state
         onReviewSubmission(assignment.id, selectedSubmission.id, {
           action: assessmentData.action,
           marks: assessmentData.action === 'accept' ? assessmentData.marks : 0,
           feedback: assessmentData.feedback,
-          // Pass status back to parent
           status: override.status, 
         } as any);
 
-        // Refresh assignment data in background to sync with server
-        await refreshAssignmentSubmissions(assignment.id);
+        // Don't call onSubmissionUpdated here - it causes unwanted API calls
+        // The UI is already updated via submissionOverrides and onReviewSubmission
+        // Parent will refresh naturally when user navigates or list is refreshed
 
-        // Notify parent to refresh counts
-        if (onSubmissionUpdated) {
-          onSubmissionUpdated();
-        }
+        // Close the assessment panel and reset form after successful update
+        setSelectedSubmission(null);
+        setAssessmentData({
+          marks: 0,
+          feedback: '',
+          action: 'accept'
+        });
 
       } catch (error) {
         console.error('Error updating submission:', error);
@@ -362,9 +348,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
       await response.json();
 
-      // Refresh assignment data immediately to get latest submission status
-      await refreshAssignmentSubmissions(assignment.id);
-
       // Call the original onBulkReview callback to update local state
       const reviews = Array.from(bulkSelectedIds).map(submissionId => ({
         assignmentId: assignment.id,
@@ -392,25 +375,20 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         return next;
       });
 
-      // If currently selected submission was in bulk update, update it too
+      // If currently selected submission was in bulk update, close it
       if (selectedSubmission && bulkSelectedIds.has(selectedSubmission.id)) {
-        const updatedSubmission: AssignmentSubmission = {
-          ...selectedSubmission,
-          marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
-          feedback: bulkReviewData.feedback,
-          status: bulkReviewData.action === 'accept' ? 'reviewed' : 'rejected',
-          reviewedAt: new Date().toISOString(),
-          reviewedBy: 'Dr. Sarah Johnson'
-        };
-        setSelectedSubmission(updatedSubmission);
+        setSelectedSubmission(null);
+        setAssessmentData({
+          marks: 0,
+          feedback: '',
+          action: 'accept'
+        });
       }
 
-      // Notify parent to refresh counts
-      if (onSubmissionUpdated) {
-        onSubmissionUpdated();
-      }
+      // Don't call onSubmissionUpdated here - it causes unwanted API calls
+      // The UI is already updated via submissionOverrides and onBulkReview
 
-      // Reset form
+      // Reset form and close modal
       setBulkSelectedIds(new Set());
       setShowBulkReview(false);
       setBulkReviewData({ action: 'accept', marks: 0, feedback: '' });

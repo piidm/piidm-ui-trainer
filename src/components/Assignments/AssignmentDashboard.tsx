@@ -14,8 +14,6 @@ function getAssignmentStatus(assignment: Assignment): 'active' | 'expired' {
 }
 
 export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ assignments }) => {
-  console.log('Assignments in Dashboard:', assignments);
-  console.log('Assignment Expired:', assignments[0]?.totalExpiredAssignments || assignments.totalExpiredAssignments);
   
   // Use ?? instead of || to handle 0 values correctly
   const totalAssignments = assignments[0]?.totalAssignments ?? assignments.totalAssignments ?? 0;
