@@ -773,8 +773,21 @@ export const useTrainerData = () => {
         }
       );
       const resData = await res.json();
+      const totalAssignments = resData.basic_stats.total_assignments || 0;
+      const totalActiveAssignments = resData.basic_stats.total_active_assignments || 0;
+      const totalSubmittedAssignments = resData.basic_stats.total_submissions || 0;
+      const totalPendingSubmissions = resData.basic_stats.total_pending_submissions || 0;
+      const totalCompletedSubmissions = resData.basic_stats.total_completed_submissions || 0;
+      const totalExpiredAssignments = resData.basic_stats.total_expired_assignments || 0;
+
       const assignments: Assignment[] = resData.data.map((item: any) => ({
         id: item.assignment_id.toString(),
+        totalAssignments: totalAssignments,
+        totalActiveAssignments: totalActiveAssignments,
+        totalSubmittedAssignments: totalSubmittedAssignments,
+        totalPendingSubmissions: totalPendingSubmissions,
+        totalCompletedSubmissions: totalCompletedSubmissions,
+        totalExpiredAssignments: totalExpiredAssignments,
         title: item.title || "Untitled Assignment",
         details: item.description || "<p>No details provided.</p>",
         batchId: item.json_batch_ids?.toString() || "0",
@@ -837,7 +850,7 @@ export const useTrainerData = () => {
   const getSubmissionCounts = useCallback(async (assignmentId: string): Promise<{ total: number; pending: number; reviewed: number }> => {
     try {
       const submissions = await fetchAssignmentSubmissions(assignmentId);
-      
+
       let total = 0;
       let pending = 0;
       let reviewed = 0;
@@ -1302,7 +1315,7 @@ export const useTrainerData = () => {
     batches,
     allBatches,
     allLectureTimes,
-    students,
+    students, // ✅ Make sure this is exported
     sessions,
     assignments,
     exams,
@@ -1320,15 +1333,15 @@ export const useTrainerData = () => {
     fetchBatchById,
     fetchAssignmentSubmissions,
     getSubmissionCounts,
-    getStudentsByBatch, // 
-    getStudentById, // 
+    getStudentsByBatch,
+    getStudentById,
     addSession,
     updateSession,
     addAssignment,
     updateAssignment,
     deleteAssignment,
     addSubmission,
-    updateSubmission, 
+    updateSubmission,
     reviewSubmission,
     bulkReviewSubmissions,
     addExam,

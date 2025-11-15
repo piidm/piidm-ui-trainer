@@ -14,12 +14,16 @@ function getAssignmentStatus(assignment: Assignment): 'active' | 'expired' {
 }
 
 export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ assignments }) => {
-  const totalAssignments = assignments[0]?.length || assignments.length;
-  const activeAssignments = assignments.filter(a => getAssignmentStatus(a) === 'active').length;
-  const expiredAssignments = assignments.filter(a => getAssignmentStatus(a) === 'expired').length;
-  const totalSubmissions = assignments.reduce((acc, a) => acc + a.submissions.length, 0);
-  const pendingReviews = assignments.reduce((acc, a) => acc + a.submissions.filter(s => s.status === 'submitted').length, 0);
-  const reviewedSubmissions = assignments.reduce((acc, a) => acc + a.submissions.filter(s => s.status === 'reviewed').length, 0);
+  console.log('Assignments in Dashboard:', assignments);
+  console.log('Assignment Expired:', assignments[0]?.totalExpiredAssignments || assignments.totalExpiredAssignments);
+  
+  // Use ?? instead of || to handle 0 values correctly
+  const totalAssignments = assignments[0]?.totalAssignments ?? assignments.totalAssignments ?? 0;
+  const activeAssignments = assignments[0]?.totalActiveAssignments ?? assignments.totalActiveAssignments ?? 0;
+  const expiredAssignments = assignments[0]?.totalExpiredAssignments ?? assignments.totalExpiredAssignments ?? 0;
+  const totalSubmissions = assignments[0]?.totalSubmittedAssignments ?? assignments.totalSubmittedAssignments ?? 0;
+  const pendingReviews = assignments[0]?.totalPendingSubmissions ?? assignments.totalPendingSubmissions ?? 0;
+  const reviewedSubmissions = assignments[0]?.totalCompletedSubmissions ?? assignments.totalCompletedSubmissions ?? 0;
   const completionRate = totalSubmissions > 0 ? Math.round((reviewedSubmissions / totalSubmissions) * 100) : 0;
   const pendingRate = totalSubmissions > 0 ? Math.round((pendingReviews / totalSubmissions) * 100) : 0;
 
