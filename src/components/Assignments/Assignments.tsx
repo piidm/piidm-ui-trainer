@@ -34,7 +34,6 @@ export const Assignments: React.FC = () => {
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     fetchAssignments();
@@ -42,9 +41,6 @@ export const Assignments: React.FC = () => {
     fetchBatches();
     fetchAllBatches();
     fetchStudents();
-    
-    // Trigger a refresh of submission counts when component mounts
-    setRefreshTrigger(prev => prev + 1);
   }, []);
 
   const handleCreateAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'submissions' | 'status'>) => {
@@ -52,8 +48,6 @@ export const Assignments: React.FC = () => {
       await addAssignment(assignmentData);
       await fetchAssignments();
       setIsFormOpen(false);
-      // Trigger immediate refresh of counts
-      setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error creating assignment:', error);
     }
@@ -136,7 +130,6 @@ export const Assignments: React.FC = () => {
         onViewSubmissions={handleViewSubmissions}
         onEditAssignment={handleEditClick}
         onDeleteAssignment={handleDeleteAssignment}
-        refreshTrigger={refreshTrigger}
       />
 
       {/* Modals */}

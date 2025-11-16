@@ -10,7 +10,6 @@ interface AssignmentListProps {
   onViewSubmissions: (assignment: Assignment, batch: Batch | null, students: Student[]) => void;
   onEditAssignment: (assignment: Assignment) => void;
   onDeleteAssignment: (assignmentId: string) => void;
-  refreshTrigger?: number; // Add optional refresh trigger
 }
 
 export const AssignmentList: React.FC<AssignmentListProps> = ({
@@ -19,8 +18,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   allBatches,
   onViewSubmissions,
   onEditAssignment,
-  onDeleteAssignment,
-  refreshTrigger
+  onDeleteAssignment
 }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -165,15 +163,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     };
   }, []);
 
-  // Clear cache when component mounts or refreshTrigger changes
-  useEffect(() => {
-    // Clear all caches to force fresh API calls
-    fetchedAssignmentIdsRef.current.clear();
-    fetchingAssignmentIdsRef.current.clear();
-    submissionCacheRef.current = {};
-    setSubmissionCounts({});
-  }, [refreshTrigger]);
-
   useEffect(() => {
     let isActive = true;
 
@@ -228,7 +217,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     return () => {
       isActive = false;
     };
-  }, [assignments.length, getSubmissionCounts, calculateCountsFromSubmissions, refreshTrigger]); // Changed dependency to assignments.length instead of assignments
+  }, [assignments.length, getSubmissionCounts, calculateCountsFromSubmissions]);
 
 
   // Helper to check batch filter

@@ -62,7 +62,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
 
   // Reset state when modal opens (no API calls needed - data comes from parent)
   useEffect(() => {
-    if (!isOpen || !assignment.id) return;
+    if(!isOpen || !assignment.id) return;
 
     // Clear overrides when opening modal
     setSubmissionOverrides({});
@@ -281,13 +281,14 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         // The UI is already updated via submissionOverrides and onReviewSubmission
         // Parent will refresh naturally when user navigates or list is refreshed
 
-        // Close the assessment panel and reset form after successful update
+        // Close the assessment panel, reset form, and close the main modal after successful update
         setSelectedSubmission(null);
         setAssessmentData({
           marks: 0,
           feedback: '',
           action: 'accept'
         });
+        onClose(); // Close the main submission management modal
 
       } catch (error) {
         console.error('Error updating submission:', error);
@@ -319,7 +320,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
       setBulkSelectedIds(new Set(submittedSubmissions));
     }
   };
-
 
   const submitBulkReview = async () => {
     setIsUpdatingSubmission(true);
@@ -383,6 +383,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           feedback: '',
           action: 'accept'
         });
+         onClose(); // Close the main submission management modal
+
       }
 
       // Don't call onSubmissionUpdated here - it causes unwanted API calls
