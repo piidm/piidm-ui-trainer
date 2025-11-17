@@ -121,6 +121,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
     );
   }, [attendenceStudents, session.batchId]);
 
+  // Initialize attendance data - SINGLE useEffect to avoid conflicts
   useEffect(() => {
     if (isOpen && batchStudents.length > 0) {
       const initialData = batchStudents.map((s) => {
@@ -136,32 +137,12 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
         };
       });
 
-      // Only update state if the data has changed
       setAttendanceData((prevData) => {
         const isSameData = JSON.stringify(prevData) === JSON.stringify(initialData);
         return isSameData ? prevData : initialData;
       });
     }
   }, [isOpen, batchStudents]);
-
-  // Initialize attendance data
-  useEffect(() => {
-    if (isOpen && batchStudents.length > 0) {
-      const initialData = batchStudents.map((s) => {
-        let status: "present" | "absent" | "no attendance";
-        if (s.attendance_status === 2) status = "present";
-        else if (s.attendance_status === 1) status = "absent";
-        else status = "no attendance";
-        return {
-          studentId: s.student.student_id,
-          studentName: s.student.name,
-          attendanceId: s.attendance_id,
-          status
-        };
-      });
-      setAttendanceData(initialData);
-    }
-  }, [isOpen, session.batchId, batchStudents]);
 
   // Filter students based on search
   const filteredStudents = attendanceData.filter((student) =>
@@ -227,8 +208,8 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
       if (!res.ok) throw new Error("Update failed");
 
-      // Refresh data from server to ensure consistency
-      await fetchAttendanceData();
+      // Successfully updated - keep the optimistic update
+      // No need to refresh all data
 
     } catch (err) {
       console.error("Error updating status:", err);

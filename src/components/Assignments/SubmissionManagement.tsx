@@ -205,6 +205,9 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
   }, [studentSubmissions]);
 
   const handleAssessment = (submission: AssignmentSubmission) => {
+    // Close bulk review modal if open
+    setShowBulkReview(false);
+    
     // Find the latest version of this submission from assignment.submissions
     const latestSubmission = assignment.submissions.find(
       sub => sub.id === submission.id
@@ -256,8 +259,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           status: assessmentData.action === 'accept' 
             ? (assessmentData.marks > 0 ? 'reviewed' : 'submitted') 
             : 'rejected',
-          reviewedAt: new Date().toISOString(),
-          reviewedBy: 'Dr. Sarah Johnson'
+          reviewedAt: new Date().toISOString()
+          // reviewedBy will come from API response
         };
         
         // Apply override immediately
@@ -288,7 +291,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           feedback: '',
           action: 'accept'
         });
-        onClose(); // Close the main submission management modal
 
       } catch (error) {
         console.error('Error updating submission:', error);
@@ -306,6 +308,7 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
     } else {
       newSelected.add(submissionId);
     }
+    console.log('Bulk Select - Updated selection:', Array.from(newSelected));
     setBulkSelectedIds(newSelected);
   };
 
@@ -331,6 +334,10 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
         feedback: bulkReviewData.feedback,
         submission_status: bulkReviewData.action === 'accept' ? 1 : 2
       }));
+
+      console.log('Bulk Review - Selected IDs:', Array.from(bulkSelectedIds));
+      console.log('Bulk Review - Payload:', payload);
+      console.log('Bulk Review - Payload length:', payload.length);
 
       // Call API to update multiple submissions
       const response = await fetch(`https://64.227.150.234:3002/api/assignment/submission/update/${assignment.id}`, {
@@ -368,8 +375,8 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
             marks: bulkReviewData.action === 'accept' ? bulkReviewData.marks : 0,
             feedback: bulkReviewData.feedback,
             status: bulkReviewData.action === 'accept' ? 'reviewed' : 'rejected',
-            reviewedAt: new Date().toISOString(),
-            reviewedBy: 'Dr. Sarah Johnson'
+            reviewedAt: new Date().toISOString()
+            // reviewedBy will come from API response
           };
         });
         return next;
@@ -383,7 +390,6 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
           feedback: '',
           action: 'accept'
         });
-         onClose(); // Close the main submission management modal
 
       }
 
@@ -551,7 +557,11 @@ export const SubmissionManagement: React.FC<SubmissionManagementProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">{bulkSelectedIds.size} selected</span>
                   <button
-                    onClick={() => setShowBulkReview(true)}
+                    onClick={() => {
+                      // Close single review panel if open
+                      setSelectedSubmission(null);
+                      setShowBulkReview(true);
+                    }}
                     className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                   >
                     Bulk Review
